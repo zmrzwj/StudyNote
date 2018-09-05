@@ -1,0 +1,6 @@
+1.mac的python在/usr/bin/python默认为2.7
+查看whereis python
+
+2.mac安装python3
+官网下载python3的dmg,双击安装即可，安装完成路径为/usr/local/bin/python3
+在终端运行>python3,即可使用python3

@@ -1,0 +1,24 @@
+mac安装virtualenv：
+sudo easy_install virtualenv
+创建干净的环境
+cd /Users/zwj
+virtualenv --no-site-packages ./virenv_path
+cd ./virenv_path/
+激活virtulenv
+source bin/activate
+安装tensorflow
+pip install tensorflow
+（他会自动安装上需要的依赖）
+安装 pip install keras
+测试：
+import tensorflow as tf
+import keras
+hello = tf.constant('Hello, TensorFlow!')
+sess = tf.Session()
+print sess.run(hello)
+
+pycharm virtualenv环境配置：
+
+default settings->project interpreter
+选择Add Local...
+选择刚安装的virtualenv里的python(在/bin或里/scripts)

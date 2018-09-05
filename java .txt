@@ -1,0 +1,39 @@
+1.java安装
+Java 在/usr/local/java/，已卸载 环境变量在/etc/profile  source /etc/profile
+Java 在/usr/local/java/jdk8
+
+下载jdk-8u171-linux-x64.tar.gz
+
+在/usr/local/下mkdir java
+把jdk-8u171-linux-x64.tar.gz移动到/usr/local/java下
+tar -zxvf jdk-8u171-linux-x64.tar.gz
+修改/etc/profile,在末尾添加
+export JAVA_HOME=/usr/local/java/jdk8
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export PATH=$JAVA_HOME/bin:$PATH
+等号与变量和路径之间不要加空格
+
+2.Java数组字符串输出
+System.out.println(Arrays.toString(array));
+
+
+3.字符流与字节流
+字符与字节，‘a’是字符，97是字节。
+字符流处理的单元为2个字节的Unicode字符，分别操作字符、字符数组或字符串。
+所有文件的储存是都是字节（byte）的储存。
+字节流在操作时不会用到缓冲区（内存），是直接对文件本身进行操作的。而字符流在操作时使用了缓冲区，通过缓冲区再操作文件。 
+字符流其实是通过转换流变化为字节流再进行IO操作。
+字符流到文件流的转换Java提供了两个转换流：InputStreamReader和OutputStreamWriter。
+为了提高数据的传输效率，特意引入缓冲流(Buffered Stream)的概念，为每一个流配置一个缓冲(Buffered)，BufferedReader类 ，BufferedWriter类。
+
+4.add-ons:译为附加软件，即插件，外挂的意思。
+
+5.TreeMap
+TreeMap 是一个有序的key-value集合，它是通过红黑树实现的.
+Iterator<Map.Entry<String, String>> iterator = map.entrySet().iterator();
+while (iterator.hasNext()) {
+    Map.Entry<String, String> entry = iterator.next();
+    System.out.println(entry.getKey() + "　：" + entry.getValue());
+}
+Map遍历最快。
+

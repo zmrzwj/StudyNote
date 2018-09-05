@@ -1,0 +1,171 @@
+1.tomcat下载：
+	https://tomcat.apache.org/download-80.cgi
+	下载zip文件
+
+2.配置
+	conf/tomcat-users.xml
+	添加：
+	<user username="admin" password="admin" roles="manager-gui,admin-gui"/>
+	conf/web.xml
+	添加：
+	<init-param>
+            <param-name>compilerSource</param-name>
+            <param-value>1.8</param-value>
+        </init-param>
+        <init-param>
+            <param-name>compilerTargetVM</param-name>
+            <param-value>1.8</param-value>
+        </init-param>
+	conf/server.xml可以修改接口
+
+3.运行
+	./startup.sh
+	如果出现startup.sh: command not found
+        需要更改startup.sh权限
+	sudo chmod 755 *.sh //需要在tomcat-xxx/bin/目录下执行
+	执行成功访问http://localhost:8080/
+	./shutdown.sh关闭tomcat
+
+4.创建Maven
+	groupId一般分为多个段，这里我只说两段，第一段为域，第二段为公司名称。域又分为org、com、cn等等许多。如：top.hellozwj
+	artifactId设置为项目的名称;
+	使用阿里maven：
+	修改pom.xml:
+		<repositories><!-- 代码库 -->
+        		<repository>
+          			<id>maven-ali</id>
+            			<url>http://maven.aliyun.com/nexus/content/groups/public//</url>
+            			<releases>
+                			enabled>true</enabled>
+            			</releases>
+            			<snapshots>
+                			<enabled>true</enabled>
+                			<updatePolicy>always</updatePolicy>
+                			<checksumPolicy>fail</checksumPolicy>
+            			</snapshots>
+        		</repository>
+    		</repositories>
+	如果想修改settings文件的话：settings.xml的默认路径就：个人目录/.m2/settings.xml
+		Mac下在～/.m2/下,如果没有就自己创建
+			内容：<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+      				xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      				xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                          	https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  				<localRepository/>
+  				<interactiveMode/>
+  				<usePluginRegistry/>
+  				<offline/>
+  				<pluginGroups/>
+  				<servers/>
+  				<mirrors/>
+  				<proxies/>
+  				<profiles/>
+  				<activeProfiles/>
+			</settings>
+5.下载离线maven
+http://maven.apache.org/download.cgi
+Mac 下载-bin.tar.gz解压到zwj/applictions
+在使用idea创建maven时，更改默认的maven,选择解压的目录就到apache-maven-3.5.4
+同时settings也要改为apache-maven-3.5.4/conf/settings.xml
+<mirrors>中添加
+	<mirror>
+        	<id>nexus-aliyun</id>
+        	<mirrorOf>*</mirrorOf>
+        	<name>Nexus aliyun</name>
+        	<url>http://maven.aliyun.com/nexus/content/groups/public</url>
+    	</mirror>
+
+6.IDEA设置tomcat
+	run->Edit Configurations
+	点击：+,点击：tomcat server,点击：local
+	然后配置tomcat，选择解压的tomcat目录
+	如果出现错误：no artifacts configured：
+	打开file->Project Structure,选择Aritfacts选项， 选择Web Application:Exploded,修改命名name,在右边avilable elements下选中要添加的项目，点击+，选择directory content,选择项目的目录.再次进入Edit Configration->Deployment，点击+号，即可看到Artifact选项了.(注意：Aritfact一定要是：xxx:war exploded)
+	war模式：将WEB工程以包的形式上传到服务器 ；
+	war exploded模式：直接把文件夹、jsp页面 、classes等等移到Tomcat 部署文件夹里面，进行加载部署，一般在开发的时候也是用这种方式。
+	就可以运行项目了，但什么都没有浏览器会显示404
+
+7.创建webapp
+选择Maven项目时，勾选create from archetype,并选中org.apache.maven.archetypes:maven-archetype-webapp.
+然后创建完项目后会加载很多依赖，会很慢，加载完后才会出现所有目录结构，不然只有pom.xml。
+最后下载离线的Maven，在创建项目时更改为自己下载的maven解压后的目录，settings.xml也要更改为自己的settings.xml在maven目录的conf目录里。
+
+8.创建的项目main下没有java目录
+解决：   选择File->Project Structure
+	选择Modules选项卡下面的Sources项，在main文件夹上右键，选择New Folder...并点击OK
+	输入要创建的文件夹名称java，并点击OK继续
+	在创建好的java文件夹上右键选择Sources项将该文件夹标记为源文件夹
+	我们发现java文件夹已经由黄色变成了蓝色，我们点击OK按钮表示设置完成（蓝色就对了）
+解决2:在main文件夹上右键,直接创建目录，即可。
+
+9.Servlet should have a mapping
+请添加<servlet-mapping>
+    	<servlet-name>HelloWorld</servlet-name>
+    	<url-pattern>/hello</url-pattern>
+     </servlet-mapping>
+
+10.创建断点
+<servlet>下添加
+<load-on-startup>1</load-on-startup>
+
+11.@WebServlet(
+        name = "hello",
+        urlPatterns = {"/hello","/greeting"},
+        loadOnStartup = 1
+)可以代替web.xml的servlet的配置
+
+
+12.javax.inject.jar：依赖注入非常方便的jar包.
+用过Spring框架的我们都知道，每当生成依赖注入的时候，我们都必须生成相应类的set方法，而且要在set方法上面写上@Autowired，才能实现依赖注入.
+
+
+13.scope=compile的情况（默认scope),也就是说这个项目在编译，测试，运行阶段都需要这个artifact对应的jar包在classpath中。
+scope=provided的情况，则可以认为这个provided是目标容器已经provide这个artifact。换句话说，它只影响到编译，测试阶段。在编译测试阶段，我们需要这个artifact对应的jar包在classpath中，而在运行阶段，假定目标的容器（比如我们这里的liferay容器）已经提供了这个jar包，所以无需我们这个artifact对应的jar包了。
+
+14.Artifact 是maven中的一个概念，表示某个module要如何打包。
+
+
+15scope的分类
+compile
+默认就是compile，什么都不配置也就是意味着compile。compile表示被依赖项目需要参与当前项目的编译，当然后续的测试，运行周期也参与其中，是一个比较强的依赖。打包的时候通常需要包含进去。
+test
+scope为test表示依赖项目仅仅参与测试相关的工作，包括测试代码的编译，执行。比较典型的如junit。
+runntime
+runntime表示被依赖项目无需参与项目的编译，不过后期的测试和运行周期需要其参与。与compile相比，跳过编译而已，说实话在终端的项目（非开源，企业内部系统）中，和compile区别不是很大。比较常见的如JSR×××的实现，对应的API jar是compile的，具体实现是runtime的，compile只需要知道接口就足够了。oracle jdbc驱动架包就是一个很好的例子，一般scope为runntime。另外runntime的依赖通常和optional搭配使用，optional为true。我可以用A实现，也可以用B实现。
+provided
+provided意味着打包的时候可以不用包进去，别的设施(Web Container)会提供。事实上该依赖理论上可以参与编译，测试，运行等周期。相当于compile，但是在打包阶段做了exclude的动作。
+system
+从参与度来说，也provided相同，不过被依赖项不会从maven仓库抓，而是从本地文件系统拿，一定需要配合systemPath属性使用。
+
+
+16.RSS 简单信息聚合
+
+17.SOAP(simple object access protocol)简单对象访问协议
+
+18.ORM对象关系映射
+面向对象编程语言
+
+19.应用服务器有专门用于管理连接池的内建系统，可以改善应用程序中数据库连接的性能。对应管理这些连接的应用服务器，必须在应用服务器类加载器中而不是web应用类加载器中加载JDBC驱动。
+在mysql官网下载mysql JDBC,拿到JAR文件,把它放到tomcat\lib下。修改tomcat\conf\context.xml
+
+mysql-connector-java-bin.jar与mysql-connector-java.jar
+使用上是没区别的一样的,都可以用,带-bin的文件里在编译的的时候里面多了几个编译用的校验文件而已.
+
+20.ubuntu 安装tomcat9
+下载：apache-tomcat-9.0.11.tar.gz
+解压到/usr/local
+修改tomcat/bin下的startup.sh文件，在最后添加
+export JAVA_HOME=/usr/local/java
+export JRE_HOME=${JAVA_HOME}/jre
+export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
+export PATH=${JAVA_HOME}/bin:$PATH
+
+启动tomcat
+  ./bin/startup.sh
+  curl localhost:8080
+关闭tomcat
+  ./bin/shuntdown.sh
+
+
+	
+

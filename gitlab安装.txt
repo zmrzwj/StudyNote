@@ -1,0 +1,65 @@
+命令安装：
+curl -sS http://packages.gitlab.com.cn/install/gitlab-ce/script.deb.sh | sudo bash
+sudo apt-get install gitlab-ce
+
+配置：
+sudo vim /etc/gitlab/gitlab.rb
+将external_url = 'http://git.example.com'修改成自己的 IP 或者 HostName
+external_url = 'http://118.24.131.38'
+
+#修改nginx监听
+#gitlab默认使用了nginx进行反向代理，这里我重新配置了一下 gitlab.rb-500多行接近600行但地方
+unicorn['listen'] = '127.0.0.1'
+unicorn['port'] = 7799
+
+#重新配置nginx gitlab.rb-800多行的地方
+nginx['enable'] = true
+nginx['listen_addresses'] = ['*']
+nginx['listen_port'] = 82
+
+sudo gitlab-ctl reconfigure//重新加载配置
+gitlab-ctl restart 重新启动
+
+
+
+可能需要安装postfix:
+sudo apt-get install postfix
+
+首次登录会提示初始化root密码。
+
+补充：
+/var/opt/gitlab/nginx/conf/ 放置的是nginx的配置
+gitlab-ctl status 查看运行状态
+gitlab-ctl tail unicorn 检查unicorn的日志 //502错误时可查看
+
+gitlab删除项目：
+点击进入项目，回看到有一排导航（project, repository, issues，...., 等，其中有个settings）,点击settings, settings下general找到advanced settings边上的expand,然后找到remove project，点击remove project，然后会弹出框，然后输入项目的名称。
+
+Gitlab给项目添加成员：
+settings下找到members,然后根据提示进行。
+
+Gitlab分支权限设置：
+settings下Repository的Protected Branches，选择分支，调整相应权限即可。
+
+Git clone master是不会把其它分支clone下来的
+
+查看远程分支：
+git branch -r
+git branch 是查看本地分支
+
+git remote命令列出所有远程主机
+origin
+
+git remote -v 可以参看远程主机的网址
+origin  git@github.com:jquery/jquery.git (push)
+
+创建本地分支zwj
+Git branch zwj
+Git checkout zwj //切换到zwj
+
+Git push origin zwj:zwj (提交本地的zwj到zwj)
+Git push origin mster:zwj
+
+
+
+

@@ -1,0 +1,20 @@
+Python3 -m venv venv_dirctory  //创建一个venv_dirctory目录，并保护虚拟环境
+（Python3.3以上的版本通过venv模块原生支持虚拟环境，可以代替Python之前的virtualenv）
+
+virtualenv
+参数：--system-site-packages
+virtualenv --system-site-packages ENV 创建的隔离环境能直接引用 /usr/lib/python2.7/site-packages (即是本机全局site-packages路径)中的模块。
+只在拥有全局site-packages目录的读写权限，并且你的应用要依赖其中的模块的情况下，该参数会很有用。其他情况下没必要使用该参数。
+
+参数：--no-site-packages
+--no-site-packages，这样，已经安装到系统Python环境中的所有第三方包都不会复制过来，这样，我们就得到了一个不带任何第三方包的“干净”的Python运行环境。
+
+使用：
+virtualenv --no-site-packages venv
+（注意：目录不能有中文名，不然就要报错）
+
+激活virtualenv
+source bin/activate
+
+关闭:virtualenv
+deactivate 

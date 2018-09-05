@@ -1,0 +1,30 @@
+1.Docker Community Edition（CE）和Enterprise Edition（EE）
+mac下载dmg
+Linux 离线包https://download.docker.com/linux/centos/7/x86_64/stable/Packages/
+1）安装Docker CE
+$ sudo yum install /path/to/package.rpm
+2）Start Docker.
+$ sudo systemctl start docker
+3）映像验证是否已正确安装
+$ sudo docker run hello-world
+
+静态二进制包安装，https://download.docker.com/linux/static/stable/x86_64/
+$ tar xzvf /path/to/<FILE>.tar.gz
+可选：命令时提供可执行文件的路径，$ sudo cp docker/* /usr/bin/
+启动Docker守护程序：$ sudo dockerd &
+通过运行hello-world 映像验证是否正确安装了Docker 。
+$ sudo docker run hello-world
+
+
+2.docker --version
+
+3.docker info
+
+4.列出image:
+docker image ls
+列出容器:
+docker container ls --all
+
+5.hadoop,spark docker镜像
+docker pull sequenceiq/hadoop-docker：2.4.1
+docker pull sequenceiq/spark:1.6.0

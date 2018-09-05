@@ -1,0 +1,46 @@
+下载tar.gz
+tar -zxvf nginx....tar.gz
+cd nginx-1.10.3/
+./configure --prefix=/usr/local/nginx //指定安装路径，不指定安装到/usr/local/nginx
+make
+make install
+
+去到/usr/local/nginx/sbin
+./nginx (不报错可能安装成功)
+查看是否启动
+ps -ef|grep nginx
+root     27725     1  0 15:32 ?        00:00:00 nginx: master process ./nginx
+nobody   27726 27725  0 15:32 ?        00:00:00 nginx: worker process
+root     27736 20787  0 15:32 pts/0    00:00:00 grep --color=auto nginx
+出现上面则安装成功
+浏览器访问IP，可出现 Welcome to nginx!
+
+停止nginx:
+快速停止：./nginx -s stop
+完整停止：./nginx -s quit
+重新加载文件：./nginx -s reload
+启动：./nginx (不需要任何参数)
+
+静态文件在
+/usr/local/nginx/html/
+
+
+设置开机启动：
+vim /lib/systemd/system/nginx.service
+
+内容如下
+[Unit]
+Description=nginx
+After=network.target
+[Service]
+Type=forking
+ExecStart=/usr/local/nginx/sbin/nginx
+ExecReload=/usr/local/nginx/sbin/nginx -s reload
+ExecStop=/usr/local/nginx/sbin/nginx -s quit
+PrivateTmp=true
+[Install]
+WantedBy=multi-user.targe
+
+设置开机启动
+systemctl enable nginx.service
+

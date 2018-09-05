@@ -1,0 +1,28 @@
+1.官网
+https://www.cs.waikato.ac.nz/~ml/weka/downloading.html
+
+2.weka提供了GUI和java API两套使用方式
+
+3.maven仓库
+开发版：http://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/weka-dev
+稳定版：http://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/weka-stable
+选择相应的版本点进去即可。
+如3.8.2的maven
+<dependency>
+    <groupId>nz.ac.waikato.cms.weka</groupId>
+    <artifactId>weka-stable</artifactId>
+    <version>3.8.2</version>
+</dependency>
+
+4.weka.core.converters.ConverterUtils.DataSource
+DataSource读取相对路径数据是从项目根开始，通常为src目录开始，示例：src/main/java/com/zwj/train.arff
+
+5.线性回归
+weka.classifiers.functions.LinearRegression
+读取系数double [] coefficients = lr.coefficients();
+转为字符串：Arrays.toString(coefficients);
+说明：
+训练数据有6个属性，但coefficients返回7个值，其中指定的因变量的属性的系数必为0，最后多的一项是截距。
+
+
+

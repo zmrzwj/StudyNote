@@ -1,0 +1,8 @@
+composer安装：
+curl -sS https://getcomposer.org/installer | php
+
+可以在命令行使用：
+mv composer.phar /usr/local/bin/composer
+
+下载腾讯云php demo去到/qcloudsms_php/demo
+composer update

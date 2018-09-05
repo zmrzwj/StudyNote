@@ -1,0 +1,290 @@
+查看mysql状态：ps aux|grep mysql      ps aux|grep mysqld
+mkdir /usr/local/msyql
+useradd -r -g mysql mysql
+
+检查是否安装了 libaio
+# rpm -qa | grep libaio
+
+
+tar -zxvf mysql-xxxxx.glic.xxx//解压
+mv mysql.xxxx.glic.xxx mysql //改名
+cd mysql
+Vim /etc/my.cnf
+[mysql] 
+# 设置mysql客户端默认字符集 
+default-character-set=utf8  
+socket=/var/lib/mysql/mysql.sock 
+[mysqld] 
+#skip-name-resolve 
+#设置3306端口 
+port = 3306  
+socket=/var/lib/mysql/mysql.sock 
+# 设置mysql的安装目录 
+basedir=/usr/local/mysql 
+# 设置mysql数据库的数据的存放目录 
+datadir=/usr/local/mysql/data 
+# 允许最大连接数 
+max_connections=200 
+# 服务端使用的字符集默认为8比特编码的latin1字符集 
+character-set-server=utf8 
+# 创建新表时将使用的默认存储引擎 
+default-storage-engine=INNODB 
+#lower_case_table_name=1 
+max_allowed_packet=16M
+
+在mysql文件夹下：
+mkdir data
+创建文件夹：
+mkdir /var/lib/mysql
+chmod 777 /var/lib/mysql
+
+创建mysql用户组：
+groupadd mysql
+添加mysql用户：
+useradd -r -g mysql mysql
+检查mysql组：
+more /etc/group | grep mysql
+检查mysql所属用户
+groups mysql
+更改mysql文件目录所有者：
+chown -R mysql:mysql ./
+
+初始化mysqld：(mysqld 是服务端程序 ,mysql是命令行客户端程序 )
+./bin/mysqld --initialize --user=mysql --basedir=/usr/local/mysql --datadir=/usr/local/mysql/data
+(可能问题：libaio.so.1: cannot open shared object file解决方法
+缺少安装包libaio和libaio-devel.命令行yum install libaio*。（apt-get install libaio*）自动安装这两个包)
+会有一行：
+2018-06-01T02:10:16.805014Z 1 [Note] A temporary password is generated for root@localhost: -;PRuEYe<7h8 dyEDx*sC<6WX
+-;PRuEYe<7h8是初始的随机密码。
+
+设置开机启动：
+1.复制启动脚本 cp ./support-files/mysql.server /etc/rc.d/init.d/mysqld
+2.增加mysqld服务控制脚本执行权限 chmod +x /etc/rc.d/init.d/mysqld 
+3.增加mysqld服务到系统服务  chkconfig --add mysqld
+4.检查mysqld服务是否生效 chkconfig --list mysqld
+出现以下则，正常了：
+mysqld         	0:off	1:off	2:on	3:on	4:on	5:on	6:off
+(ubuntu下:cp ./support-files/mysql.server /etc/init.d/mysqld
+update-rc.d -f mysql.server defaults
+update-rc.d -f mysql.server remove  //移除开机自启动
+service mysqld start 启动mysql
+)
+
+启动mysqld
+错误：
+'/var/lib/mysql' for UNIX socket file don't exists.
+ ERROR! The server quit without updating PID file (/usr/local/mysql/data/cdh225.pid).
+
+在/var/lib下创建mysql目录
+mkdir /var/lib/mysql
+更改权限 chmod 777 /var/lib/mysql
+
+再次service mysqld start
+SUCCESS! 
+
+测试登陆：
+mysql -u root -p
+初始密码为：上面mysqld --initialize时root@localhost:后的随机字符串。
+登上后，请修改密码：
+set password = password("uestc@123456");
+
+运行远程登录：
+grant all privileges on *.* to root@'%' identified by 'uestc@123456';
+flush privileges;
+
+Mysql5.7user表没有password字段了，改为authentication_string
+
+开启防火墙端口：
+firewall-cmd --zone=public --add-port=3306/tcp --permanent
+
+
+
+-----------------------------------Mac 安装mysql---------------------------------------
+1.官网下载mysql.dmg
+2.点击安装，中途弹出框，记下初始root密码。
+3.安装完成后在，系统偏好设置里，一般是最后一排可以看见mysql的图标，点击，再点击运行起mysql server.
+4.>mysql -u root -p登录
+5.set  password = password("123456");//修改密码
+6.flush privileges;
+
+
+
+----------------------------------mysql cluster安装：----------------------------------
+下载mysql-cluster-gpl-7.6.6-linux-glibc2.12-x86_64.tar.gz
+三种节点: 1)管理节点: 管理cluster内其他节点; 包括启动,停止, 备份,配置等; 
+　　　　　　　　　　　　在启动其他节点前需要先启动管理节点
+　　　　　　　　　　　　管理节点不应是一台,否则如果宕机会导致集群不可用
+　　　　　　 2)数据节点: 保存cluster数据, 
+　　　　　　　　　　　　如果有两个副本,每个副本有两个片段,那么就有4个数据节点,依此类推
+　　　　　　 3)sql节点: 用于访问cluster中数据
+默认端口:
+管理节点: 1186
+数据节点: 2202
+(Netstat -anp|grep 1186,2202)
+
+卸载已经安装的mysql:
+查看是否已安装mysql: rpm -qa | grep mysql(什么都没例出则说明没有装)
+查看服务状态: service mysql status
+关闭当前sql服务: /etc/init.d/mysqld stop（service mysqld stop）
+查看进程是否关闭: ps -ef | grep mysql(多于一条才可以，因为有一条是ps这条命令的进程)
+卸载已安装的mysql: rpm -e --allmatches --nodeps mysql mysql-server
+删除相关目录: rm -rf /usr/local/mysql
+              rm -rf /var/mysql
+              rm -rf /var/lib/mysql
+
+解压：tar -zxvf mysql-cluster-gpl-7.6.6-linux-glibc2.12-x86_64.tar.gz
+重命名文件夹: mv mysql-cluster-gpl-7.3.4-linux-glibc2.5-i686 mysql(一定要是mysql)
+
+添加mysql用户和组，这是必需的。
+groupadd mysql
+useradd -g mysql mysql
+更改文件或文件夹所有者: chown mysql:mysql mysql(mysql: mysql中前面为用户,后面为组)
+
+先把 /etc/my.cnf  备份
+#mv /etc/my.cnf /etc/my.cnf.bak
+
+新建配置文件并且初始化管理节
+创建文件夹: mkdir /var/lib/mysql-cluster
+然后：mkdir /var/lib/mysql-cluster/data
+# chown root:mysql /var/lib/mysql-cluster
+vi /usr/local/mysql/config.ini
+[ndbd default]
+NoOfReplicas=2                           #每个数据节点的镜像数量，通常最低设置为2，否则就没有意义了
+DataMemory=100M                    #每个数据节点中给数据分配的内存，注意：mysql-cluster内存开销极大，占用为DataMemory2倍
+IndexMemory=18M                   #每个数据节点中给索引分配的内存   ,7.6版本中的已经改名了
+[ndb_mgmd]
+HostName=192.168.5.114.             #管理节点ip
+DataDir=/var/lib/mysql-cluster.     #管理节点数据目录,存放相关日志，以及pid文件
+[ndbd]
+HostName=192.168.5.114              #数据节点ip地址
+DataDir=/usr/local/mysql/data      #NDB点数据存放目录
+[ndbd]
+HostName=192.168.5.115
+DataDir=/usr/local/mysql/data
+[mysqld]
+HostName=192.168.5.114          #SQL节点ip地址
+[mysqld]
+HostName=192.168.5.115          #SQL节点ip地址
+[mysqld]			#最后最好多写一个，不然在启动数据节点后报错:No free node id found 
+
+for ndbd(NDB).
+（nodeid可以配置各个节点的ID，不配置系统自动分配）
+
+启动管理节点：
+./bin/ndb_mgmd -f config.ini  --initial   #第一次启动加—initial参数，以后修改了config.ini 加—-reload
+(可能会提示locked by pid=xxx,kill掉重新执行，kill -9 xxx)
+# ./bin/ndb_mgmd  -f  config.ini     #正常启动方式
+# ./bin/ndb_mgm                #进入管理程序，可以看到配置文件生效了，但因为没配置节点上的mysql,所以这里显示未连接
+ndb_mgm> show
+关闭管理节点
+ndb_mgm> shutdown
+
+安装配置数据节点和mysql节点
+每个节点执行
+# groupadd mysql
+# useradd -g mysql
+# mkdir /var/lib/mysql-cluster
+# chown root:mysql /var/lib/mysql-cluster
+# tar -zxvf mysql-cluster-gpl-7.6.6-linux-glibc2.12-x86_64.tar.gz
+#mv mysql-cluster-gpl-7.3.4-linux-glibc2.5-i686 mysql
+进入刚才的目录下
+# cd /usr/local/mysql
+配置数据节点
+# vi /etc/my.cnf
+[mysqld]
+character_set_server=utf8
+default-storage-engine=ndbcluster
+ndbcluster
+ndb-connectstring=192.168.5.114
+[mysql_cluster]
+ndb-connectstring=192.168.5.114
+
+#./bin/mysqld --initialize
+(初始化后修改data目录权限chown -R mysql:mysql data)
+(查看mysqld 状态ps -ef | grep mysqld，kill -9启动的进程,除了--color=auto mysqld以外其它都kill掉)
+如果初始化成功之后，系统会提示一个随机生成的数据库密码，此时需要记住这个密码，之后登录数据库需要使用这个密码！！！
+----添加启动脚步----
+# cp support-files/mysql.server /etc/rc.d/init.d/mysqld
+# chmod +x /etc/rc.d/init.d/mysqld
+# chkconfig --add mysqld
+启动：service mysqld start
+问题：start the mysql.logging to /usr/local/mysql/data/master.err
+把mysql,chown -R mysql:mysql mysql/
+修改密码： 
+#bin/mysql -u root -p ('I>ttslve=75P' (2kyf_-d:ldiJ))=6lGl?/ZHeq>      82=fbhE9ooPy
+mysql>use mysql;
+mysql> set password=password("root");
+mysql>flush privileges;
+mysql>quit;
+问题：error 1045 (28000):access denied for
+解决：vi /etc/mycnf 
+在[mysqld]下面添加skip-grant-tables，保存退出
+密码修改后，将这行去掉。
+
+
+初始化数据节点：
+./bin/ndbd –-initial
+正常启动方式
+./bin/ndbd
+查看 ndbd 启动状态
+# ps -ef | grep ndbd
+root      3209     1  0 07:35 ?        00:00:00 ndbd --initial
+root      3210  3209 13 07:35 ?        00:00:02 ndbd --initial
+root      3253  2936  0 07:36 pts/0    00:00:00 grep --color=auto ndbd
+
+去到192.168.5.114（管理节点）
+#./bin/ndb_mgm
+
+启动需要按照如下顺序进行：
+Management Node > Data Node > SQL Node
+# ./bin/ndb_mgmd  -f  config.ini
+#service mysqld start
+#./bin/ndbd --initial(网上又说不用加initial，可不加./bin/ndbd又会莫名其妙退出)
+# ./bin/ndb_mgm
+
+ 
+停止顺需要按照如下顺序进行
+SQL Node  > Data Node > Management Node
+(1) SQL节点：service mysqld stop 
+(2) 数据节点：./bin/ndbd stop 
+(3) 管理节点：./bin/ndb_mgm -e shutdown
+
+
+测试：
+从192.168.5.115数据节点登陆MYSQL
+#./bin/mysql –u root -p 
+mysql>create database zwjtest;
+问题：ERROR 1820 (HY000): You must SET PASSWORD before executing this statement
+解决：set password=password("root");
+mysql>create table zwj_test (id varchar(30), name varchar(30)) engine=ndbcluster;#指定数据库表的引擎为NDB，否则同步失败; 
+mysql> insert into zwj_test values(‘abc’, ‘zwj’);
+从192.168.5.114数据节点登陆MYSQL查看：
+#./bin/mysql –u root -p
+mysql>show databases;(可以看到zwjtest);
+myslq>use zwjtest;
+mysql>show tables;(可以看到zwj_test);
+在管理节点：
+ndb_mgm>all report memoryusage;
+
+./bin/ndb_desc -c 10.115.246.220 -d test_ndb test_table_ndb -p  //查看数据在节点上的分布情况
+(-c 管理节点ip,-d数据库名，test_table_ndb为表名，-p输出分区详细信息)
+(可以看到数据几乎是均匀分布在各个节点的)
+(分片规则：hash:均匀，联合主键时默认按照多个主键hash分片，可指定按其中一个主键分片)
+
+修改mysql密码统一，修改mysql的访问权限，使外部ip能远程访问mysql.
+然后创建在一台上面创建数据库，看另一台是否被同步，然后创建表，然后新增删除等等.
+唯一需要注意的是，创建表的时候必须选择表的引擎为NDBCLUSTER，否则表不会进行同步.
+
+
+---------------- 图形界面部署---------------
+./bin/ndb_setup.py -N 10.115.246.220 -p 8888
+打开相应的网页http://10.115.246.220:8888
+直接通过界面配置
+
+
+-----------------Jdbc连接集群--------------
+Jdbc:mysql:loadbalance://10.115.246.220:3306,10.115.246.225:3306/test_ndb?roundRobinLoadBalance=true
+(test_ndb为数据库名，均衡算法为roundRobin:轮询调度算法，把请求依次询问各个服务器)
+
+
+

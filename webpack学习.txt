@@ -1,0 +1,43 @@
+npm install安装所有插件（插件在package.json里）
+sudo npm install webpack -g 全局安装webpack
+cd到项目目录运行npm init(创建package.json)
+npm install webpack --save-dev 添加webpack模块到项目
+npm install webpack-dev-server --save-dev webpack-dev-server是一个小型的node.js Express服务器
+
+html-webapck-plugin：
+使用new HtmlWebpackPlugin(conf)，conf为配置json
+为html文件中引入的外部资源如script、link动态添加每次compile后的hash，防止引用缓存的外部文件问题。
+可以生成创建html入口文件，比如单页面可以生成一个html文件入口，配置N个html-webpack-plugin可以生成N个页面入口。（就是把所有js里的东西管理到html里去）（配置N个html-webpack-plugin就可以构造N个页面里，这就是多页面的关键点之一）
+配置json的一些有用属性：
+minify: { //压缩HTML文件
+      removeComments: true, //移除HTML中的注释
+      collapseWhitespace: false, //删除空白符与换行符
+      removeAttributeQuotes: true  //去除属性引用
+}
+inject：向template或者templateContent中注入所有静态资源，不同的配置值注入的位置不经相同。
+1、true或者body：所有JavaScript资源插入到body元素的底部
+2、head: 所有JavaScript资源插入到head元素中
+3、false： 所有静态资源css和JavaScript都不会注入到模板文件中
+
+
+node - glob模块：
+安装：npm install glob 
+glob允许以通配符访问文件路径：如：“./*/*.js”
+glob.sync("./*/*.js").forEach(function(entry){
+	//entry就是所有js文件的路径，是相对路径带./的
+})
+
+多入口entry：
+module.exports = {
+	entry: entries,
+}
+entries通过glob获取，形式为：
+{ 'module/index': './src/module/index/index.js',
+  'module/info': './src/module/info/info.js' }
+'module/index'和'module/info'都为键名，这是entry对象语法，通过对象语法可以实现多个入口点，这是多页面又一个关键点。
+
+
+
+
+
+

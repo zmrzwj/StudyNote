@@ -1,0 +1,32 @@
+useradd -g git zwj   //创建zwj用户，并添加其到git组。如果不使用任何参数，则创建的用户无密码、无主目录、没有指定shell版本
+passwd zwj          //修改zwj密码
+Who                 //查看当前登陆的用户
+ip addr             //查看IP地址
+free -m             //查看内存使用
+lsof -i:90          //查看端口占用情况
+pwd                 //查看当前路径
+adduser             //会自动为创建的用户指定主目录、系统shell版本，会在创建时输入用户密码
+
+Ps -x 查看运行进程
+service iptable status //centos6.5查看防火墙状态
+servcie iptables stop                    --临时关闭防火墙
+chkconfig iptables off                    --永久关闭防火墙
+CentOS 7.0默认使用的是firewall作为防火墙
+firewall-cmd --state #查看默认防火墙状态
+firewall-cmd --list-ports 查看已经开放的端口：
+firewall-cmd --zone=public --add-port=80/tcp --permanent 开启端口
+firewall-cmd --reload #重启firewall
+systemctl stop firewalld.service #停止firewall
+systemctl disable firewalld.service #禁止firewall开机启动
+systemctl start firewalld.service 启动一个服务
+启动： systemctl start firewalld
+查看状态： systemctl status firewalld 
+停止： systemctl stop firewalld
+禁用： systemctl  disable firewalld
+
+
+vim /etc/sysconfig/network-scripts/ifcfg-etxxx //编辑网卡配置 etxxx为网卡名
+
+允许root远程登录：vim /etc/ssh/sshd_config
+PermitRootLogin yes
+

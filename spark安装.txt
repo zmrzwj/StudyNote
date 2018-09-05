@@ -1,0 +1,95 @@
+1.下载spark:spark-2.3.0-bin-hadoop2.7.tgz
+  下载scala:scala-2.12.6.tgz
+
+2.安装scala
+	sudo mv scala-2.12.6.tgz /usr/local/
+	sudo tar -zxvf scala-2.12.6.tgz //并把目录重命名为scala
+	sudo vi /etc/profile
+	//添加export SCALA_HOME=/usr/local/scala
+	export PATH=$SCALA_HOME/bin:$PATH
+	source /etc/profile
+
+3.安装spark
+	sudo mv spark-2.3.0-bin-hadoop2.7.tgz /usr/local/
+	sudo tar -zxvf spark-2.3.0-bin-hadoop2.7.tgz //并把目录重命名为spark
+        vi /etc/profile //添加环境变量
+        export SPARK_HOME=/usr/local/spark
+        Export PATH=$SPARK_HOME/bin:$SPARK_HOME/sbin:$PATH
+	更改目录权限：sudo chown -R hadoop:hadoop ./spark
+	
+4.修改配置文件conf/spark-env.sh（需要把spark-env.sh.template成spark-env.sh）
+	cp spark-env.sh.template spark-env.sh
+        vi spark-env.sh //末尾添加
+		export JAVA_HOME=/usr/local/jdk8
+		export SCALA_HOME=/usr/local/scala
+		export HADOOP_HOME=/usr/local/hadoop
+		export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop
+		export SPARK_MASTER_IP=192.168.5.114
+		export SPARK_WORKER_MEMORY=1g
+		export SPARK_WORKER_CORES=1
+		export SPARK_HOME=/usr/local/spark
+
+5.复制slaves.template成slaves
+cp slaves.template slaves
+修改内容：localhost改为：
+Master
+Slave1
+Slave2
+
+6.启动
+（spark和hadoop下都有start-all.sh,所以不要再运行start-all.sh启动）
+先启动hadoop
+/usr/local/hadoop/sbin/start-all.sh
+再启动spark
+/usr/local/spark/sbin/start-all.sh
+运行jps在hadoop基础上增加：
+Master
+Worker
+slave增加Worker
+管理页面：http://192.168.5.114:8080/
+spark停止：/usr/local/spark/sbin/stop-all.sh
+7.测试
+1.计算Pi
+2.使用count word
+运行spark-shell
+(如果export ... not a valid identifier，说明export变量时再=傍边有空格，要去掉空格)
+(如果出现unable to load native-hadoop library，在spark-env.sh中加入LD_LIBRARY_PATH=$HADOOP_HOME/lib/native)
+#spark-shell   //出现scala编程shell,退出scala为（:quit）
+val file=sc.textFile("hdfs://Master:8020/home/hadoop/input/testWordCount")
+读取本地文件：sc.textFile("file:///usr/local/spark/README.md")
+val rdd=file.flatMap(line => line.split(" ")).map(word => (word,1)).reduceByKey((a,b)=>a+b)
+问题：
+java.net.ConnectException:Connection refused
+解决：
+
+rdd.collect()
+rdd.foreach(println)
+
+
+8.idea 远程调试
+安装scala ,(mac:brew install scala)
+idea安装 scala插件，preferences->plugins,搜索scala.
+(Spark2.X已经不提供spark-assembly-1.5.0-hadoop2.4.0.jar 之类的jar包，改成了一些小的jar包，存放在jars目录下。开发的时候可以全部导入jars目录下的jar包，但更方便的是使用maven可以方便的自动导入spark2.1.1开发所需要的包。)
+创建Maven,勾选create from archetype，选中org.apache.camel.archetypes:camel-archetype-scala
+
+
+修改Spark-env.sh:
+在集群配置文件sparkk-env.sh中加入一下代码
+export SPARK_SUBMIT_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+这里对上面的几个参数进行说明：
+	-Xdebug 启用调试特性
+	-Xrunjdwp 启用JDWP实现，包含若干子选项：
+	transport=dt_socket JPDA front-end和back-end之间的传输方法。dt_socket表示使用套接字传输。
+	address=5005 JVM在5005端口上监听请求，这个设定为一个不冲突的端口即可。
+	server=y y表示启动的JVM是被调试者。如果为n，则表示启动的JVM是调试器。
+	suspend=y y表示启动的JVM会暂停等待，直到调试器连接上才继续执行。suspend=n，则JVM不会暂停等待.
+配置idea远程调试：
+edit configurations,然后选择remote,添加-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
+然后填好host(192.168.5.114)和port(5005)
+启动spark
+
+9.打包Build->Build Artifacts…->Build
+前提是先在project structure的artifacts配置好了xxx.jar（如果没有点击+,选JAR,选from modules with dependencies...）
+
+
+	

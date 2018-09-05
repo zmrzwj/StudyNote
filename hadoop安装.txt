@@ -1,0 +1,245 @@
+/*安装Java*/
+下载jdk-8u171-linux-x64.tar.gz
+在/usr/local/下mkdir java
+把jdk-8u171-linux-x64.tar.gz移动到/usr/local/java下
+tar -zxvf jdk-8u171-linux-x64.tar.gz
+修改/etc/profile,在末尾添加
+export JAVA_HOME=/usr/local/java/jdk8
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export PATH=$JAVA_HOME/bin:$PATH
+等号与变量和路径之间不要加空格
+
+/*hadoop用户生成*/
+1.安装好jdk8
+2.# useradd -m hadoop -s /bin/bash # 创建新用户hadoop (useradd hadoop -g hadoop创建hadoop并添加给hadoop组)(-m 自动建立用户的登入目录，-s指定用户登录后使用的shell,userdel -f zzz删除用户zzz连同目录一起删除)
+3.# passwd hadoop  修改用户的密码(广思hadoop密码：hadoop)
+4.# visudo 为用户增加管理员权限
+找到 root ALL=(ALL) ALL 这行在这行下面增加一行内容：hadoop ALL=(ALL) ALL（当中的间隔为tab）
+5.以hadoop登录，直接su hadoop不行，可以重启后以hadoop登录或logout命令
+6.$ ssh localhost 测试一下 SSH 是否可用，然后退出刚才的 ssh
+7.$ cd ~/.ssh/	# 若没有该目录，请先执行一次ssh localhost
+8.$ ssh-keygen -t rsa	# 会有提示，都按回车就可以
+9.$ cat id_rsa.pub >> authorized_keys  # 加入授权
+10.$ chmod 600 ./authorized_keys    # 修改文件权限
+   再用 ssh localhost 命令，无需输入密码就可以直接登陆了
+
+/*单台机器hadoop安装*/
+11.移动hadoop-2.8.4.tar.gz到/usr/local/
+12.sudo tar -zvxf hadoop-2.8.4.tar.gz
+13.sudo mv ./hadoop-2.6.5/ ./hadoop # 将文件夹名改为hadoop
+14.sudo chown -R hadoop:hadoop ./hadoop # 修改文件权限
+15.修改环境变量：
+	export HADOOP_HOME=/usr/local/hadoop
+	export PATH=$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
+
+/*haddoop集群*/
+15.上述操作在所有机器走一遍
+16.$ sudo vim /etc/hostname  //为了便于区分，可以修改各个节点的主机名
+ 添加HOSTNAME=Master.    //其它主机也对应修改为HOSTNAME=Slave1,HOSTNAME=Slave2....
+17.$ sudo vim /etc/hosts //修改自己所用节点的IP映射,所有主机都需要修改
+  添加: 192.168.5.114 Master
+       192.168.5.115 Slave1
+       192.168.5.116 Slave2
+18.修改了主机名要重启：shutdown -r now
+
+/*SSH无密码登陆节点,让 Master 节点可以无密码 SSH 登陆到各个 Slave 节点上*/
+18.重新生成公匙，因为改过主机名，所以还需要删掉原有的再重新生成一次
+	$ cd ~/.ssh               # 如果没有该目录，先执行一次ssh localhost
+	$ rm ./id_rsa*            # 删除之前生成的公匙（如果有）
+	$ ssh-keygen -t rsa       # 一直按回车就可以
+	$ cat ./id_rsa.pub >> ./authorized_keys
+19. Master 节点将上公匙传输到 Slave1, Slave2 节点
+	$ scp ~/.ssh/id_rsa.pub hadoop@Slave1:/home/hadoop/
+20.在 Slave1 节点上，将 ssh 公匙加入授权：
+	$ cat ~/id_rsa.pub >> ~/.ssh/authorized_keys
+	$ rm ~/id_rsa.pub    # 用完就可以删掉了
+21.在 Master 节点上就可以无密码 SSH 到各个 Slave 节点了，可在 Master 节点上执行如下命令进行检验：
+	$ ssh Slave1
+
+/*修改配置文件*/
+(查看端口占用netstat -anp|grep 9200,8020,50090)
+22.修改 /usr/local/hadoop/etc/hadoop 中的5个配置文件， slaves、core-site.xml、hdfs-site.xml、mapred-site.xml、yarn-site.xml 
+23.文件slaves，将作为 DataNode 的主机名写入该文件，每行一个，默认为 localhost，分布式配置可以保留 localhost，也可以删掉，让 Master 节点仅作为 NameNode 使用。我们把localhost保留，再添加Slave1，Slave2.
+24.修改 core-site.xml:
+<configuration>
+        <property>
+                <name>fs.defaultFS</name>
+                <value>hdfs://Master:8020</value>
+        </property>
+        <property>
+                <name>hadoop.tmp.dir</name>
+                <value>/usr/local/hadoop/tmp</value>
+                <description>Abase for other temporary directories.</description>
+        </property>
+</configuration>
+（备注：请先在 /usr/local/hadoop 目录下建立 tmp 文件夹）
+25.文件 hdfs-site.xml
+<configuration>
+        <property>
+                <name>dfs.namenode.secondary.http-address</name>
+                <value>Master:50090</value>
+        </property>
+        <property>
+                <name>dfs.replication</name>
+                <value>1</value>
+        </property>
+        <property>
+                <name>dfs.namenode.name.dir</name>
+                <value>/usr/local/hadoop/tmp/dfs/name</value>
+        </property>
+        <property>
+                <name>dfs.datanode.data.dir</name>
+                <value>/usr/local/hadoop/tmp/dfs/data</value>
+        </property>
+</configuration>
+（备注：请先在 /usr/local/hadoop 目录下建立 tmp/dfs/name,tmp/dfs/data 文件夹）
+26.mapred-site.xml （可能需要先重命名，默认文件名为 mapred-site.xml.template），然后配置修改如下：
+<configuration>
+        <property>
+                <name>mapreduce.framework.name</name>
+                <value>yarn</value>
+        </property>
+</configuration>
+27.文件 yarn-site.xml：
+<configuration>
+        <property>
+                <name>yarn.resourcemanager.hostname</name>
+                <value>Master</value>
+        </property>
+        <property>
+                <name>yarn.nodemanager.aux-services</name>
+                <value>mapreduce_shuffle</value>
+        </property>
+</configuration>
+27.如果有其他 Slave 节点,所有节点配置都一样，拷贝过去就行。
+28.格式化namenode：$hadoop namenode -format（只需要执行一次即可）(重新格式化请先删除/usr/local/hadoop/tmp)
+	执行过程不报错，最后是
+        /***********************************************************
+	SHUTDOWN_MSG:Shutting down NameNode at Master/192.168.5.114
+	************************************************************/
+29.启动hadoop：$start-all.sh
+ 如果报错JAVA_HOME is not set and could not be found
+ 修改hadoop-env.sh中，JAVA_HOME
+ export JAVA_HOME=${JAVA_HOME}
+ 改为：export JAVA_HOME=/usr/local/java/jdk8
+
+ 如果出现：namenode running as process xxxx. Stop it first.
+ 需要stop掉所有的hadoop服务；解决：重启电脑。shutdown -r now	
+30.如果没有再报错，使用jps查看节点启动情况
+$jps
+2000 Jps
+1586 SecondaryNameNode
+1739 ResourceManager
+1390 NameNode
+其它节点也运行$jps也会看到相应信息。
+Master上的进程：NameNode，SecondaryNameNode，ResourceManager。 
+Slaves上的进程：DataNode，NodeManager。
+31.在master访问管理页面：http://192.168.5.114:50070/
+   集群信息：http://192.168.5.114:8088
+   如果访问不了，请关闭防火墙。
+
+/*单词统计的测试wordcount*/
+32.测试
+$vi testWordCount 创建文件随便写点东西进去。
+$ hadoop fs -mkdir /home/hadoop/input 在hdfs中创建文件夹 
+$ hadoop fs -ls /home/hadoop/ 查看创建的文件夹
+$hadoop fs -put testWordCount /home/hadoop/input //把刚创建的testWordCount文件上传到hdfs.
+如果出现testwordcount._copying_ could only be replicated to 0 nodes的问题，请关闭防火墙，master和slave的都要关。systemctl stop firewalld，禁止systemctl  disable firewalld，查看firewall-cmd --state
+$hadoop jar /usr/local/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-2,8,4.jar wordcount /home/hadoop/input/* /home/hadoop/output
+已经编译好的WordCount的Jar在/usr/local/hadoop/share/hadoop/mapreduce目录下，其中/usr/local/hadoop是hadoop的安装目录
+$hadoop fs -ls /home/hadoop/output	查看output内容
+会存在两个文件xxx/_SUCCESS,xxx/part-r-00000
+$hadoop fs -cat output/part-r-00000 //查看统计结果
+/*
+hadoop fs: 可以用于其他文件系统，不止是hdfs文件系统内,该命令的使用范围更广.
+hadoop dfs :专门针对hdfs分布式文件系统.
+hdfs dfs :和上面作用相同，更为推荐此命令，当使用hadoop dfs时内部会被转为hdfs dfs命令。
+*/
+
+/*
+jar
+运行jar文件。用户可以把他们的Map Reduce代码捆绑到jar文件中，使用这个命令执行。
+
+用法：hadoop jar <jar> [mainClass] args...
+*/
+
+
+/*IDEA编写java hadoop程序*/
+1.创建一个Maven项目，填写Maven的GroupId和ArtifactId（根据自己的项目随便填，点击Next）
+groupId一般分为多个段，这里我只说两段，第一段为域，第二段为公司名称。我一般会将groupId设置为top.hellozwj，表示域，hellozwj是我个人姓名缩写。artifactId设置为test_hadoop，表示你这个项目的名称是test_hadoop。
+2.配置依赖
+apache源
+在project内尾部添加
+<repositories>
+    <repository>
+        <id>apache</id>
+        <url>http://maven.apache.org</url>
+    </repository>
+</repositories>
+阿里云仓库：
+要修改maven根目录下的setting.xml文件(maven根目录在${user.home}/.m2/，修改下面的settings.xml配置本地仓库路径，没有settings这个xml文件就新建，在settings下build,execution,deployment下build tools下maven，通过user settings file可以修改settings.xml)
+/*settings.xml
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+/*
+<mirrors>
+        <!-- 阿里云仓库 -->
+        <mirror>
+            <id>alimaven</id>
+            <mirrorOf>central</mirrorOf>
+            <name>aliyun maven</name>
+            <url>http://maven.aliyun.com/nexus/content/repositories/central/</url>
+        </mirror>
+        <!-- 中央仓库1 -->
+        <mirror>
+            <id>repo1</id>
+            <mirrorOf>central</mirrorOf>
+            <name>Human Readable Name for this Mirror.</name>
+            <url>http://repo1.maven.org/maven2/</url>
+        </mirror>
+    
+        <!-- 中央仓库2 -->
+        <mirror>
+            <id>repo2</id>
+            <mirrorOf>central</mirrorOf>
+            <name>Human Readable Name for this Mirror.</name>
+            <url>http://repo2.maven.org/maven2/</url>
+        </mirror>
+</mirrors> 
+也可以在pom.xml添加：
+<repositories><!-- 代码库 -->
+        <repository>
+            <id>maven-ali</id>
+            <url>http://maven.aliyun.com/nexus/content/groups/public//</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+        </repository>
+</repositories>
+添加hadoop依赖：
+基础依赖hadoop-core和hadoop-common；如果需要读写HDFS，则还需要依赖hadoop-hdfs和hadoop-client；如果需要读写HBase，则还需要依赖hbase-client。
+在project内尾部添加
+<dependencies>
+    <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-core</artifactId>//2.x之后不需要这个包，用hadoop-client和hadoop-hdfs两个依赖项取代
+        <version>1.2.1</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-common</artifactId>
+        <version>2.8.4</version>
+    </dependency>
+</dependencies>
+//Hadoop版本为2.8.4，所以这里的maven的Hadoop版本必须对应
+
+
+
+
+
