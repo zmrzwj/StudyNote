@@ -25,7 +25,7 @@ gitlab-ctl restart 重新启动
 可能需要安装postfix:
 sudo apt-get install postfix
 
-首次登录会提示初始化root密码。
+首次登录会提示初始化root密码。"18215606560"
 
 补充：
 /var/opt/gitlab/nginx/conf/ 放置的是nginx的配置
@@ -58,8 +58,15 @@ Git branch zwj
 Git checkout zwj //切换到zwj
 
 Git push origin zwj:zwj (提交本地的zwj到zwj)
-Git push origin mster:zwj
+Git push origin master:zwj
 
+
+//默认情况master分支不允许push
+git clone http://www.sccps.cn:82/xs/xs-intelligence-system.git后
+git checkout -b xxx(你名字的首字母，如邓带雨，git checkout -b ddy)(这步首创建分支并切换到此分子)
+
+以后提交代码：
+git push -u origin xxx(如邓带雨，git push -u origin ddy)
 
 
 

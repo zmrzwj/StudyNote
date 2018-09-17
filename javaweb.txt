@@ -104,6 +104,7 @@ Mac 下载-bin.tar.gz解压到zwj/applictions
     	<url-pattern>/hello</url-pattern>
      </servlet-mapping>
 
+
 10.创建断点
 <servlet>下添加
 <load-on-startup>1</load-on-startup>
@@ -147,9 +148,23 @@ system
 
 19.应用服务器有专门用于管理连接池的内建系统，可以改善应用程序中数据库连接的性能。对应管理这些连接的应用服务器，必须在应用服务器类加载器中而不是web应用类加载器中加载JDBC驱动。
 在mysql官网下载mysql JDBC,拿到JAR文件,把它放到tomcat\lib下。修改tomcat\conf\context.xml
-
+在<Context>里添加
+<Resource
+            name="jdbc/GZXS"
+            type="javax.sql.DataSource"
+            maxActive="100"
+            maxIdle="30"
+            maxWait="5000"
+            username="root"
+            password="123456"
+            driverClassName="com.mysql.jdbc.Driver"
+            url="jdbc:mysql://localhost:3306/GZXS?autoReconnect=true&amp;useSSl=false"
+    />
+//maxIdle连接池中最少空闲30个连接，maxWait连接池连接用完时新请求等待时间，name为Resource的名字,&amp;是&的转义符直接使用&会报错。
 mysql-connector-java-bin.jar与mysql-connector-java.jar
 使用上是没区别的一样的,都可以用,带-bin的文件里在编译的的时候里面多了几个编译用的校验文件而已.
+数据源在tomcat /conf/content/xml与/conf/server.xml的区别
+server.xml不可动态重新加载资源，要修改这个文件，就要重启才能重新加载。context.xml文件，tomcat一旦文件修改(时间戳改变)，就会重新加载这个文件，不需要重启服务器。
 
 20.ubuntu 安装tomcat9
 下载：apache-tomcat-9.0.11.tar.gz
@@ -166,6 +181,68 @@ export PATH=${JAVA_HOME}/bin:$PATH
 关闭tomcat
   ./bin/shuntdown.sh
 
-
+21.SpringMVC 中 url-patter 与 @RequestMapping 的对应问题
+利用 SpringMVC 响应前端发起的请求时，其完整 url 会按照 DispatcherServlet 指定的 url 格式进行匹配、修剪，去掉<url-pattern>指定的上下文部分，剩余部分 url'，再由注解 @RequestMapping 转到 Controller 特定的方法上，执行具体的处理。
+前端请求的完整 url：
+	http://localhost:8088/aaa/bbb/ccc?myParam=myValue
+servlet 指定的 url 格式：
+	<url-pattern>/aaa/*</url-pattern> <!-- *一定要加不然访问不了 -->
+则 @RequestMapping 的正确配置为：
+	@RequestMapping(value="/bbb/ccc")
+	public String demoMethodSignature(String myParam) 
 	
+
+22.Spring项目
+Controller层：负责具体业务模块流程的控制，即调用Service层的接口来控制业务流程。负责url映射（action）。
+Dao层：负责数据持久化，与数据库进行联络的任务都封装在其中，Dao层的数据源以及相关的数据库连接参数都在Spring配置文件中进行配置。
+Entity层：java对象，与数据库表一一对应，是其对应的实现类。即一个Entity就是对应表中的一条记录。
+Service层：建立在DAO层之上，Controller层之下。调用Dao层的接口，为Controller层提供接口。负责业务模块的逻辑应用设计，首先设计接口，再设计其实现的类。
+View层：表示层，负责前端jsp页面表示。
+
+23.JDBC连接数据库java.sql.Connection
+import java.sql.*;
+//声明Connection对象
+         Connection con;
+         //驱动程序名
+        String driver = "com.mysql.jdbc.Driver";
+         //URL指向要访问的数据库名mydata
+         String url = "jdbc:mysql://localhost:3306/sqltestdb";
+         //MySQL配置时的用户名
+         String user = "root";
+        //MySQL配置时的密码
+         String password = "123456";
+             //加载驱动程序
+             Class.forName(driver);
+             //1.getConnection()方法，连接MySQL数据库！！
+             con = DriverManager.getConnection(url,user,password);
+	     Statement stat = conn.createStatement()创建一个Statement对象来将SQL语句发送到数据库
+	    //要执行的SQL语句
+             String sql = "select count(1) from VIEW_JLZDH_OB_DL_DAY";
+	    //ResultSet类，用来存放获取的结果集！！
+            ResultSet rs = statement.executeQuery(sql);
+	    while (rs.next()){
+                //输出结果
+                System.out.println(rs.getString("count(1)"));
+            }
+
+24.mac IDEA try catch自动添加，option+command+t
+
+25.preparedStatement与Statement
+preparedStatement是预编译的，对批处理可以大大提高效率，Statement只执行一次性存取。preparedStatement用于执行带参数的预编译SQL, Statement执行不带参数的简单SQL。执行的对象较多时，preparedStatement会降低运行时间。企业更喜欢preparedStatement，因为它更安全，传递给preparedStatement的对象参数可以被强制进行类型转换。Statement每次执行一个SQL，都会对它进行解析和编译。preparedStatement和Statement都需要调用close函数关闭，不应等待对象自动关闭。
+
+26.java:comp/env/
+这是J2EE环境的定义，代表了当前J2EE应用的环境，使用这样的方式，必须设置当前应用环境到资源名的映射。
+
+27.JDBC-DataSource(数据库连接池)
+JDBC的数据库连接池使用javax.sql.DataSource来表示，它只是一个接口，该接口由应用服务器实现，或开源组织（DBCP,C3P0）.
+DBCP:
+需要两个依赖：commons-dbcp.jar，commons-pool.jar
+Tomcat的连接池正是采用这个连接池实现的，可以和应用服务器整合使用，也可以由程序单独使用。
+C3P0:
+C3p0性能更胜一筹，hibernate推荐使用该连接池，c3p0连接池不仅可以自动清理不使用的connection，还可以自动清理statement和resultset.
+
+
+
+
+
 

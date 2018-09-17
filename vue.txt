@@ -1,0 +1,25 @@
+1.vuetify
+安装vue-cli:npm install @vue/cli -g
+创建项目：vue create my-app
+添加vuetify:  cd my-app;   vue add vuetify
+
+2.自定义配置，需要在项目的 根目录添加一个Vue.config.js
+修改vue-cli资源无法正常加载的问题:
+Vue.config.js中添
+module.exports = {
+    // 基本路径
+    baseUrl: './',
+    // 生产环境是否生成 sourceMap 文件
+    productionSourceMap: false,
+    // 服务器端口号
+    // devServer: {
+    //     port: 1234,
+    // },
+}
+
+
+
+
+
+
+

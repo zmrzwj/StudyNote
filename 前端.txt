@@ -1,0 +1,28 @@
+1.前端操作word
+前端使用富文本编辑器；然后获取编辑器的内容，要是带html标签的；通过后台生成word
+Java: apache poi
+Node:officegen
+
+Office online:
+http://view.officeapps.live.com/op/view.aspx?src=
+后面那个是具体的文档地址，用URLEncode进行处理的链接地址
+通过拼接的地址即可实现office 的在线预览 
+需要注意的是：office 在线预览限制
+文档访问地址不能直接使用 ip，需要通过域名访问，并且端口必须是 80 端口
+文档的格式（必须为以下格式之一）： 
+Word：docx、docm、dotm、dotx 
+Excel：xlsx、xlsb、xls、xlsm 
+PowerPoint：pptx、ppsx、ppt、pps、pptm、potm、ppam、potx、ppsm
+文档的大小：Word 和 PowerPoint 文档必须小于 10 兆字节;Excel 必须小于五兆字节（通过office web app 部署的本地服务器可以设置文档大小).
+
+
+2.UMD的实现很简单，先判断是否支持NodeJS模块格式（exports是否存在），存在则使用NodeJS模块格式。
+再判断是否支持AMD（define是否存在），存在则使用AMD方式加载模块。前两个都不存在，则将模块公开的全局（window或global）。
+
+
+3.mac php
+mac系统各种一般自带apache服务以及php环境，但是当我们访问本地php页面时会发现php并没有执行而是直接显示源码，这是因为apache服务并没有加载php模块。进行如下的操作就可以解决此问题。
+1.在/private/etc/apache2目录下找到并打开httpd.conf文件
+2.找到这一行#LoadModule php7_module libexec/apache2/libphp7.so，把前面的#去掉，这里根据电脑里不同的php版本，php7_module这里可能有所变化，所以不要整句复制进行搜索。
+3.在终端输入命令：sudo /usr/sbin/apachectl restart 重启apache服务。
+
