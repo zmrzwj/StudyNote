@@ -26,3 +26,15 @@ mac系统各种一般自带apache服务以及php环境，但是当我们访问�
 2.找到这一行#LoadModule php7_module libexec/apache2/libphp7.so，把前面的#去掉，这里根据电脑里不同的php版本，php7_module这里可能有所变化，所以不要整句复制进行搜索。
 3.在终端输入命令：sudo /usr/sbin/apachectl restart 重启apache服务。
 
+
+4.在ios下iframe内部页面无法自适应
+1）包裹一层div,style="overflow: auto;-webkit-overflow-scrolling:touch;width:100%;height:100%;"
+2)iframe scrolling="no" width="100%" height="100%"
+3)iframe{
+        overflow: scroll;
+        -webkit-overflow-scrolling: touch;
+        min-width: 100%;
+        width: 1px;
+        *width:100%;
+    }
+
