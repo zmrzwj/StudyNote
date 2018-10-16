@@ -288,3 +288,45 @@ Jdbc:mysql:loadbalance://10.115.246.220:3306,10.115.246.225:3306/test_ndb?roundR
 
 
 
+
+
+-----------------------mysql使用知识-------------------
+1.无法插入中文数据
+show variables like 'character_set_database';//查看数据库编码
+如果是Latin字符集，请修改为utf-8
+alter database <数据库名> character set utf8;
+如果只修改单个表：
+alter table <表名> character set utf8;
+或
+修改mysql 安装目录下的 my.ini 文件为 
+default-character-set=utf8 
+character-set-server=utf8
+
+2.utf-8无法导入中文的话，试下，在导入的时候设置为GB18030
+GBK和GB2312 都是16位的，GBK支持简体中文和繁体中文，而GB2312只支持简体中文，GBK里面包含了GB2312，用GBK比较多;GB18030是32位的，它支持简体中文、繁体中文 藏文、蒙文、维吾尔文等主要的少数民族文字，包含GBK和GB2312也就是说从GB2312（1980年）、GBK（1995年）到GB18030（2000年），这些编码方法是向下兼容的.
+
+3.utf8mb4编码是utf8编码的超集，兼容utf8，并且能存储4字节的表情字符。 Utf8 只能支持 1~3 个字节的字符.
+采用utf8mb4编码的好处是：存储与获取数据的时候，不用再考虑表情字符的编码与解码问题。
+
+4.添加索引
+alter table VIEW_DEV_DNB_FULL ADD INDEX index_CJ_MP_ID(CJ_MP_ID);
+索引的类型：
+	UNIQUE(唯一索引)：不可以出现相同的值，可以有NULL值
+	INDEX(普通索引)：允许出现相同的索引内容
+	PROMARY KEY(主键索引)：不允许出现相同的值
+	fulltext index(全文索引)：可以针对值中的某个单词，但效率确实不敢恭维
+查看索引：
+	show index from table_name（表名）
+
+删除索引：
+	drop index index_CJ_MP_ID on VIEW_DEV_DNB_FULL;
+
+检测语句是否走索引：
+	Explain select * from user where id=1;
+
+
+
+
+
+
+

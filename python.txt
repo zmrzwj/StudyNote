@@ -5,3 +5,124 @@
 官网下载python3的dmg,双击安装即可，安装完成路径为/usr/local/bin/python3
 在终端运行>python3,即可使用python3
 
+
+3.连接mysql（python驱动模块）
+MySQL-python又叫 MySQLdb，是 Python 连接 MySQL 最流行的一个驱动，很多框架都也是基于此库进行开发，遗憾的是它只支持 Python2.x, 
+前置条件
+sudo apt-get install python-dev libmysqlclient-dev # Ubuntu
+sudo yum install python-devel mysql-devel # Red Hat / CentOS
+# 安装
+pip install MySQL-python;
+PyMySQL 是纯 Python 实现的驱动，速度上比不上 MySQLdb，最大的特点可能就是它的安装方式没那么繁琐，同时也兼容 MySQL-python,
+pip install PyMySQL
+# 为了兼容mysqldb，只需要加入;
+peewee
+pip install peewee;
+SQLAlchemy
+如果想找一种既支持原生 SQL，又支持 ORM 的工具，那么 SQLAlchemy 是最好的选择，它非常接近 Java 中的 Hibernate 框架。
+
+
+4.连接池
+DBUtils
+pip install DBUtils
+两种模式：
+　　1.为每一个线程创建一个链接，即使线程即使调用了close()方法，也不会关闭，只是把线程放到连接池，供自己再次使用，当连接关闭时，线程连接自动关闭。
+from DBUtils.PersistentDB import PersistentDB
+import pymysql
+PooL = PersistentDB(
+     creator = pymysql,  #使用链接数据库的模块
+     maxusage = None, #一个链接最多被使用的次数，None表示无限制
+     setsession = [], #开始会话前执行的命令
+     ping = 0, #ping MySQL服务端,检查服务是否可用
+     closeable = False, #conn.close()实际上被忽略，供下次使用，直到线程关闭，自动关闭链接，而等于True时，conn.close()真的被关闭
+     threadlocal = None, # 本线程独享值的对象，用于保存链接对象
+     host = '127.0.0.1',
+     port = 3306,
+     user = 'root',
+     password = '123',
+     database = 'ok1',
+     charset = 'utf8'
+ )
+  2.创建一批连接到连接池，供所有线程共享使用
+import pymysql
+from DBUtils.PooledDB import PooledDB
+POOL = PooledDB(
+     creator = pymysql, #使用链接数据库的模块
+     maxconnections = 6,  #连接池允许的最大连接数，0和None表示没有限制
+     mincached = 2, #初始化时，连接池至少创建的空闲的连接，0表示不创建
+     maxcached = 5, #连接池空闲的最多连接数，0和None表示没有限制
+     maxshared = 3, #连接池中最多共享的连接数量，0和None表示全部共享，ps:其实并没有什么用，因为pymsql和MySQLDB等模块中的threadsafety都为1，所有值无论设置多少，_maxcahed永远为0，所以永远是所有链接共享
+     blocking = True, #链接池中如果没有可用共享连接后，是否阻塞等待，True表示等待，False表示不等待然后报错
+     setsession = [],#开始会话前执行的命令列表
+     ping = 0,#ping Mysql 服务端，检查服务是否可用
+     host = '127.0.0.1',
+     port = 3306,
+     user = 'root',
+     password = '123',
+     database = 'ok1',
+     charset = 'utf8'
+ )
+传递如下参数：
+creator: 可以生成 DB-API 2 连接的任何函数或 DB-API 2 兼容的数据库连接模块。
+mincached : 启动时开启的空连接数量(缺省值 0 意味着开始时不创建连接)
+maxcached: 连接池使用的最多连接数量(缺省值 0 代表不限制连接池大小)
+maxshared: 最大允许的共享连接数量(缺省值 0 代表所有连接都是专用的)如果达到了最大数量，被请求为共享的连接将会被共享使用。
+maxconnections: 最大允许连接数量(缺省值 0 代表不限制)
+blocking: 设置在达到最大数量时的行为(缺省值 0 或 False 代表返回一个错误；其他代表阻塞直到连接数减少)
+maxusage: 单个连接的最大允许复用次数(缺省值 0 或 False 代表不限制的复用)。当达到最大数值时，连接会自动重新连接(关闭和重新打开)
+setsession: 一个可选的SQL命令列表用于准备每个会话，如 ["set datestyle to german", ...]
+creator 函数或可以生成连接的函数可以接受这里传入的其他参数，例如主机名、数据库、用户名、密码等。你还可以选择传入creator函数的其他参数，允许失败重连和负载均衡。
+请注意连接可以与其他线程共享，只要你设置 maxshared 参数为非零，并且DB-API 2模块也允许。如果你想要使用专用连接则使用:
+db = pool.connection(0)
+-------关于pymysql模块，如果没有单线程的情况，连接MySQL数据库没有问题，但如果要是多线程，就需要加锁，一旦加锁，后面的线程就得等待，势必会降低使用效率。
+
+5.JayDeBeApi
+JayDeBeApi是一个python模块,可是通过它来使用java的JDBC来连接数据库。
+pip install JayDeBeApi
+dirver='com.mysql.jdbc.Driver'
+conn=jaydebeapi.connect('com.mysql.jdbc.Driver',['jdbc:mysql://localhost:3306/test','root','password'],'/data/users/huser/lan/codes/useJPype/mysql-connector-java-5.1.36/mysql-connector-java-5.1.36-bin.jar')
+curs=conn.cursor()
+curs.execute('create table CUSTOMER("ID" INTEGER not null primary key,"NAME" varchar not null)')
+curs.fetchall()
+#jaydebeapi.connect(dirver,[url,User,Pwd],jarFile)
+
+
+6.python下载离线包
+pip download ipython
+pip download -d . ipython （-d后面加要下载到的目录）
+pip download -r requirement.txt (-r从给定的需求文件下载，requirement.txt里写入你要下载的包)
+安装离线包：
+pip install --no-index --find-links="./" ipython
+pip install --no-index --find-links="./" -r requirements.txt(将要安装的包名写在requirements.txt中)
+删除：
+pip uninstall ipython
+
+
+7.pyodbc
+安装
+pip install pyodbc
+会出现没有<sql.h>
+Mac: brew install unixodbc
+     brew install freetds--with-unixodbc（安装freetds）
+Linux: sudo apt-get install unixodbc-dev
+没找到 python.c，执行：
+brew install python-devel
+yum install python-devel
+连接mysql需要安装mysql odbc
+
+
+8.替换brew.git:
+cd "$(brew --repo)"
+git remote set-url origin https://mirrors.ustc.edu.cn/brew.git
+
+替换homebrew-core.git:
+cd "$(brew --repo)/Library/Taps/homebrew/homebrew-core"
+git remote set-url origin https://mirrors.ustc.edu.cn/homebrew-core.git 
+
+
+9.pip更换源
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple tensorflow（使用清华的源安装tensorflow）
+
+
+
+
