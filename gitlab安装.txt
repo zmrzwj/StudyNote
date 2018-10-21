@@ -69,4 +69,14 @@ git checkout -b xxx(你名字的首字母，如邓带雨，git checkout -b ddy)(
 git push -u origin xxx(如邓带雨，git push -u origin ddy)
 
 
+--------git 安装--------
+下载tar.gz
+下载地址：https://mirrors.edge.kernel.org/pub/software/scm/git/
+然后
+$ tar -zxf git-1.7.2.2.tar.gz
+$ cd git-1.7.2.2
+$ make prefix=/usr/local all
+$ sudo make prefix=/usr/local install
+
+
 

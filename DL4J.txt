@@ -263,6 +263,40 @@ z2=sqrt(-2*logu)sin(2*PI*v)
 57.1. 学习率η，2. 正则化参数λ，3. 神经网络的层数L，4. 每一个隐层中神经元的个数j，5. 学习的回合数Epoch，6. 小批量数据 minibatch的大小，7. 输出神经元的编码方式，8. 代价函数的选择，9. 权重初始化的方法，10. 神经元激活函数的种类，11.参加训练模型数据的规模 这十一类超参数。
 
 
+58.网络与输入数据
+输入为6为，输出为1维
+MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder().seed(12345)
+                .l2(0.001).weightInit(WeightInit.XAVIER)
+                .updater(new RmsProp(0.1))
+                .list()
+                .layer(0, new GravesLSTM.Builder().nIn(6).nOut(100).activation(Activation.TANH).build())
+                .layer(1, new GravesLSTM.Builder().nIn(lstmLayer1Size).nOut(50).activation(Activation.TANH).build())
+                .layer(2, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MSE).activation(Activation.IDENTITY).nIn(50).nOut(OUT_NUM).build())
+                .pretrain(false).backprop(true).build();
+        MultiLayerNetwork model = new MultiLayerNetwork(conf);
+        model.init();
+用Nd4j.rand创建1x6x100的训练数据，1为batch，当要创建多个batch时修改他即可；20为一个batch的数据数，100为随机种子，6为数据维度
+INDArray input = Nd4j.rand(new int[]{1,6,20}, 100);
+为20个数据设置标签，随机种子1000
+INDArray label = Nd4j.rand(new int[]{1,1,20}, 1000);
+测试数据1个6维向量
+INDArray initArray = Nd4j.zeros(1, 6, 1);
+把input和label放到DataSet中
+DataSet trainingData = new DataSet(input, label);
+训练1000个周期
+for(int Epochs=0;Epochs<1000;Epochs++){
+             model.fit(DataSet);//model.fit(input,label);
+             INDArray next = model.rnnTimeStep(initArray);
+             System.out.println("next");
+             System.out.println(next);
+             model.rnnClearPreviousState();
+}
+注：DL4j做回归最后添加一层网络为
+.activationFunction('identity')
+.lossFunction(LossFunctions.LossFunction.RMSE)
+
+
+
 
 
 

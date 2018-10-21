@@ -1,0 +1,11 @@
+1.安装Android studio（需要先安装jdk）可以不安装android sdk
+安装的时候会提示unable to access android sdk-on list，因为没有装android sdk，点击cancel即可，之后会安装。
+
+2.主题更改
+Preferences->Appearance&Behavior->Appearance->Theme
+
+3.联机调试
+连接数据线
+mac输入命令：system_profiler SPUSBDataType//查看是否有小米手机的信息
+
+4.assets文件夹放在与java和res同等级的目录下，html放在assets中。

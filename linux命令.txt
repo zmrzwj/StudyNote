@@ -30,3 +30,9 @@ vim /etc/sysconfig/network-scripts/ifcfg-etxxx //编辑网卡配置 etxxx为网�
 允许root远程登录：vim /etc/ssh/sshd_config
 PermitRootLogin yes
 
+
+Vim查找字符串
+如：查找zzz  /zzz
+查看下一个匹配，按下n(小写n)
+跳转到上一个匹配，按下N（大写N）
+
