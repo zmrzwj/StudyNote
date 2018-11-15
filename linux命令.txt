@@ -36,3 +36,34 @@ Vim查找字符串
 查看下一个匹配，按下n(小写n)
 跳转到上一个匹配，按下N（大写N）
 
+
+fdisk -l查看磁盘信息
+parted /dev/sdb print 查看具体信息
+mount -t ntfs-3g /dev/sdb2 /mnt/sdb4T/
+如果出现：The disk contains an unclean file system (0, 0).
+Metadata kept in Windows cache, refused to mount.
+Falling back to read-only mount because the NTFS partition is in an
+unsafe state. Please resume and shutdown Windows fully (no hibernation
+or fast restarting.)
+使用：ntfsfix /dev/sdb2
+如果mount继续出现：
+Mount is denied because the NTFS volume is already exclusively opened.
+The volume may be already mounted, or another software may use it which
+could be identified for example by the help of the 'fuser' command.
+使用fuser -m -u /dev/sdb2 //查看占用进程和用户名
+
+df -h 查看磁盘挂载和使用情况
+df -h /dev/sdb 查看具体磁盘的情况
+
+格式化4T磁盘
+parted /dev/sdb
+(parted)mklabel gpt //用gpt分区格式
+(parted)q //退出
+#mkfs.ext4 /dev/sdb 格式化为ext4
+mount  /dev/sdb /mnt/sdb4T  / 挂载到sdb4T
+添加自动挂载：
+vi /etc/fstab
+# 在最后一行加入如下配置
+/dev/sdb               /mnt/sdb4T                 ext4   defaults        0 0
+
+

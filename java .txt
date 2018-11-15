@@ -37,3 +37,17 @@ while (iterator.hasNext()) {
 }
 Map遍历最快。
 
+
+6.List遍历
+LinkedList 使用迭代器较快
+Iterator<String> it = list.iterator();
+while(it.hasNext()){
+    System.out.println(it.next());
+}
+ArrayList 使用get(index)
+List<String> list = new ArrayList<String>();
+for(int i = 0; i < list.size(); i++){
+    System.out.println(list.get(i));
+}
+
+

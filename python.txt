@@ -123,6 +123,15 @@ git remote set-url origin https://mirrors.ustc.edu.cn/homebrew-core.git
 9.pip更换源
 pip install -i https://pypi.tuna.tsinghua.edu.cn/simple tensorflow（使用清华的源安装tensorflow）
 
+10.安装gunicorn
+pip download gunicorn
+pip install --no-index --find-links="./" gunicorn
+screen gunicorn -w 4 -b 127.0.0.1:5000 flask_main:app #flask_main文件名, 即flask_main.py, app是应用名字,即app.run();
+
+
+11.*args,Python允许我们制定一些参数并且通过args捕获其他所有剩余的未被捕捉的位置参数
+**kwargs来表明，所有未被捕获的关键字参数都应该存储在kwargs的字典中
+
 
 
 

@@ -1,0 +1,20 @@
+1.下载：apache-tomcat-8.5.34.tar.gz
+
+2.在/usr/local下解压
+
+
+3.开机启动
+vi /etc/systemd/system/tomcat.service
+[unit]
+Description=Apache Tomcat Web Application Container
+After=network.target
+[Service]
+Type=forking
+ExecStart=/usr/local/tomcat/bin/startup.sh
+ExecStop=/usr/local/tomcat/bin/shutdown.sh
+[Install]
+WantedBy=multi-user.target
+
+将tomcat设为开机启动： 
+systemctl enable tomcat
+

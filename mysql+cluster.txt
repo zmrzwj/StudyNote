@@ -5,7 +5,6 @@ useradd -r -g mysql mysql
 检查是否安装了 libaio
 # rpm -qa | grep libaio
 
-
 tar -zxvf mysql-xxxxx.glic.xxx//解压
 mv mysql.xxxx.glic.xxx mysql //改名
 cd mysql
@@ -47,14 +46,14 @@ more /etc/group | grep mysql
 检查mysql所属用户
 groups mysql
 更改mysql文件目录所有者：
-chown -R mysql:mysql ./
+chown -R mysql:mysql mysql/
 
 初始化mysqld：(mysqld 是服务端程序 ,mysql是命令行客户端程序 )
 ./bin/mysqld --initialize --user=mysql --basedir=/usr/local/mysql --datadir=/usr/local/mysql/data
 (可能问题：libaio.so.1: cannot open shared object file解决方法
 缺少安装包libaio和libaio-devel.命令行yum install libaio*。（apt-get install libaio*）自动安装这两个包)
 会有一行：
-2018-06-01T02:10:16.805014Z 1 [Note] A temporary password is generated for root@localhost: -;PRuEYe<7h8 dyEDx*sC<6WX
+2018-06-01T02:10:16.805014Z 1 [Note] A temporary password is generated for root@localhost: -;PRuEYe<7h8  J1w9+mOdk#3)
 -;PRuEYe<7h8是初始的随机密码。
 
 设置开机启动：
@@ -88,14 +87,26 @@ mysql -u root -p
 登上后，请修改密码：
 set password = password("uestc@123456");
 
+mysql -u root -p登录错误：
+请把mysql整个chown给mysql用户
+ Can't connect to local MySQL server through socket '/var/lib/mysql/mysql.sock' (2)
+
 运行远程登录：
 grant all privileges on *.* to root@'%' identified by 'uestc@123456';
 flush privileges;
+
+新建用户：
+ create user 'cddw'@'%' identified by 'uestc@123';
+授权：
+grant select on XS.* to 'cddw'@'%';//对数据库XS只有select权限
 
 Mysql5.7user表没有password字段了，改为authentication_string
 
 开启防火墙端口：
 firewall-cmd --zone=public --add-port=3306/tcp --permanent
+
+显示数据目录：show variables like "datadir";
+查看：max_allowed_packet  show variables like '%max_allowed_packet%';
 
 
 
@@ -276,13 +287,13 @@ ndb_mgm>all report memoryusage;
 唯一需要注意的是，创建表的时候必须选择表的引擎为NDBCLUSTER，否则表不会进行同步.
 
 
----------------- 图形界面部署---------------
+---------------------------------- 图形界面部署---------------------------------------------
 ./bin/ndb_setup.py -N 10.115.246.220 -p 8888
 打开相应的网页http://10.115.246.220:8888
 直接通过界面配置
 
 
------------------Jdbc连接集群--------------
+---------------------------------------Jdbc连接集群-----------------------------------
 Jdbc:mysql:loadbalance://10.115.246.220:3306,10.115.246.225:3306/test_ndb?roundRobinLoadBalance=true
 (test_ndb为数据库名，均衡算法为roundRobin:轮询调度算法，把请求依次询问各个服务器)
 
@@ -290,16 +301,16 @@ Jdbc:mysql:loadbalance://10.115.246.220:3306,10.115.246.225:3306/test_ndb?roundR
 
 
 
------------------------mysql使用知识-------------------
+--------------------------------mysql使用知识----------------------------------------------
 1.无法插入中文数据
+show variables like 'character%';//查看全部编码
 show variables like 'character_set_database';//查看数据库编码
 如果是Latin字符集，请修改为utf-8
 alter database <数据库名> character set utf8;
 如果只修改单个表：
 alter table <表名> character set utf8;
 或
-修改mysql 安装目录下的 my.ini 文件为 
-default-character-set=utf8 
+修改mysql 安装目录下的 my.ini 文件在[mysqld]添加：
 character-set-server=utf8
 
 2.utf-8无法导入中文的话，试下，在导入的时候设置为GB18030
@@ -310,6 +321,7 @@ GBK和GB2312 都是16位的，GBK支持简体中文和繁体中文，而GB2312�
 
 4.添加索引
 alter table VIEW_DEV_DNB_FULL ADD INDEX index_CJ_MP_ID(CJ_MP_ID);
+alter table VIEW_DEV_DNB_FULL ADD INDEX index_CJ_MP_ID_ TYPE_CODE(CJ_MP_ID,TYPE_CODE); 组合索引
 索引的类型：
 	UNIQUE(唯一索引)：不可以出现相同的值，可以有NULL值
 	INDEX(普通索引)：允许出现相同的索引内容
@@ -323,6 +335,12 @@ alter table VIEW_DEV_DNB_FULL ADD INDEX index_CJ_MP_ID(CJ_MP_ID);
 
 检测语句是否走索引：
 	Explain select * from user where id=1;
+
+
+5.count(1)
+1并不是表示第一个字段，而是表示一个固定值。 
+其实就可以想成表中有这么一个字段，这个字段就是固定值1，count(1)，就是计算一共有多少个1.
+同理count(20000)也一样。
 
 
 

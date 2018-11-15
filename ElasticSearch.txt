@@ -1,0 +1,98 @@
+1. Elasticsearch与关系型数据库的关系
+Elasticsearch集群可以包含多个索引(indices)（数据库），每一个索引可以包含多个类型(types)（表），每一个类型包含多个文档(documents)（行），然后每个文档包含多个字段(Fields)（列）
+
+2.maven依赖查询
+<!-- https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch -->
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>6.4.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>transport</artifactId>
+            <version>6.4.3</version>
+        </dependency>
+
+3.ElasticSearch (服务默认端口 9300 Web 管理平台端口 9200)
+用java时使用9300端口
+
+4.index和type需要为小写
+
+5.InetSocketTransportAddress 换成 TransportAddress
+InetSocketTransportAddress这个类在新的版本中去掉了，之前的老版本就有.
+
+6.查询所有索引
+curl -XGET -H "Content-Type: application/json" 'http://localhost:9200/_count?pretty' -d '
+{
+    "query": {
+        "match_all": {}
+    }
+}
+' 
+     
+7.删除索引
+curl -XDELETE http://localhost:9200/test_bulk
+可以逗号分开删除多个test_bulk，test_bulk2
+
+8.批量插入数据
+Settings settings = Settings.builder().put("cluster.name", "elasticsearch").build();
+
+        try {
+            TransportClient client = new PreBuiltTransportClient(settings)
+                    .addTransportAddress(new TransportAddress(InetAddress.getByName("127.0.0.1"), 9300));
+
+            //开启批量插入
+            BulkRequestBuilder bulkRequestBuilder = client.prepareBulk();
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("/Users/zwj/Desktop/办公/贵州线损/数据/CSV文件--档案数据/VIEW_YX_TQ.csv"),"GBK"));
+
+            String line = null;
+            int count = 0;
+            String head = br.readLine();
+            String[] headList =  head.split(",");
+            while ((line = br.readLine()) != null){
+                count++;
+                String[] lineList = line.split(",");
+                Map temp = new HashMap();
+
+                XContentBuilder builder = XContentFactory.jsonBuilder()
+                        .startObject();
+                if(headList.length == lineList.length){
+                   for(int i=0;i<headList.length;i++){
+                       temp.put(headList[i],lineList[i]);
+                       builder.field(headList[i],lineList[i]);
+                   }
+                   builder.endObject();
+                    bulkRequestBuilder.add(client.prepareIndex("test_bulk", "test_bulk").setSource(builder));
+                    if (count % 10==0) {
+                        BulkResponse bulkResponse = bulkRequestBuilder.execute().actionGet();
+                        bulkRequestBuilder = client.prepareBulk();
+                        System.out.println("提交了：" + count);
+                    }
+                }
+
+                System.out.println( count );
+            }
+
+            bulkRequestBuilder.execute().actionGet();
+            System.out.println("插入完毕");
+            br.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    
+
+
+
+
+
+ 
+
+
+
+
+
+
+

@@ -17,7 +17,13 @@ module.exports = {
     // },
 }
 
-
+3.No ESLint configuration found
+./node_modules/.bin/eslint --init(前提是先安装eslint：npm install eslint --save-dev)
+使用上下键选择eslint的设置。
+初始化后会出现.eslintrc.js的文件
+module.exports = {
+     .....
+}
 
 
 

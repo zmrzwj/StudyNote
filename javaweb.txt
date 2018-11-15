@@ -242,6 +242,40 @@ C3P0:
 C3p0性能更胜一筹，hibernate推荐使用该连接池，c3p0连接池不仅可以自动清理不使用的connection，还可以自动清理statement和resultset.
 
 
+28.idea创建springboot项目
+Maven的Snapshot版本与Release版本
+1. Snapshot版本代表不稳定、尚处于开发中的版本
+2. Release版本则代表稳定的版本
+1）选择File –> New –> Project –>Spring Initialer –> 点击Next 
+2）自己修改 Group 和 Artifact 字段名 –>点击next 
+3）选择web，勾选web, spring boot可以选择spring boot版本
+4）点击finish 
+5)等待编译完成(这个貌似翻墙会好点,要不然下载依赖特别慢。。。)
+
+29.application.properties
+原来spring boot2.0之后，server.context-path上下文的配置改为了server.servlet.context-path
+
+
+30.idea spring打包为war包
+<packaging>jar</packaging>改为
+<packaging>war</packaging>
+主程序文件修改如下：
+@SpringBootApplication
+public class XsApplication extends SpringBootServletInitializer {
+
+    @Override
+    protected SpringApplicationBuilder configure(
+            SpringApplicationBuilder application) {
+        return application.sources(XsApplication.class);
+    }
+
+
+    public static void main(String[] args) {
+        SpringApplication.run(XsApplication.class, args);
+    }
+}
+
+
 
 
 

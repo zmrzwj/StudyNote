@@ -1,0 +1,112 @@
+1.下载centos https://www.centos.org/download/
+Root qwertyui
+安装两台Minimal Install
+
+2.IEEE 802又称为LMSC（LAN /MAN Standards Committee， 局域网/城域网标准委员会），致力于研究局域网和城域网的物理层和MAC层中定义的服务和协议，对应OSI网络参考模型的最低两层（即物理层和数据链路层）。
+
+3.桥接模式：当虚拟机系统的网络连接模式为桥接模式时，相当于在主机系统和虚拟机系统之间连接了一个网桥，而网桥两端的网络都属于同一网络，主机和虚拟机是处于同一网络中的对等主机。
+NAT模式：NAT即Network Address Translation，网络地址转换是虚拟专用网和全球IP地址之间的转换，虚拟专用网是企业，政府部门的内部网络，在虚拟专用网中主机的IP地址是虚拟专用地址，它不能被互联网中的路由器所识别，因此，在企业接入互联网的默认网关（接入路由器）中，需要地址转换NAT软件使得虚拟专用网内部的主机可以连接到互联网。
+
+4.配置网卡
+1）给虚拟机设置两块网卡(都设置为桥接网络)
+2）cd /etc/sysconfig/network-scripts/ 可能只有一个ifcfg-enp0s3
+cp ifcfg-enp0s3 ./ifcfg-enp0s8
+#nmcli con 查看网络UUID
+对ifcfg-enp0s3 （作为provider）
+修改
+ONBOOT=yes
+BOOTPROTO=none
+对ifcfg-enp0s8
+修改
+ONBOOT=Yes
+BOOTPROTO=Static
+# 新增以下内容
+IPADDR=192.168.2.50
+NETMASK=255.255.255.0
+GATEWAY=192.168.2.1
+DNS1=114.114.114.114
+DNS2=8.8.8.8
+UUID=xxx 此为#nmcli con查看到的UUID
+对另外一台一样
+3）关掉 NetworkManager 和 防火墙
+systemctl stop NetworkManager
+systemctl disable NetworkManager
+systemctl stop firewalld
+systemctl disable firewalld
+4）重启
+5）yum install vim 看是否可以联网安装
+
+5.修改hosts
+Vim /etc/hosts
+添加：
+192.168.2.50 controller
+192.168.2.51 compute1
+
+6.下载git clone https://github.com/BillWang139967/openstack_install.git
+scp /Users/zwj/Downloads/openstack_install-master.zip root@192.168.2.50:/home
+
+7.修改yum源
+mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo_bak
+阿里yum源配置文件
+wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo 
+#yum -y update 会升级内核，不要随便执行这条命令
+
+
+8.Keystone：认证管理服务
+Glance：镜像管理服务
+Nova：计算管理服务,提供虚拟机的创建，运行，迁移，快照等各种围绕虚拟机的服务，并提供API与控制节点对接，由控制节点下发任务
+Neutron：网络管理服务,私有网段与公有网段的通信，以及管理虚拟机网络之间的通信/拓扑，管理虚拟机之上的防火等,提供计算节点与网络节点之间的通信服务
+Horizon：控制台服务
+
+Nova - 计算服务
+Neutron-网络服务
+Swift - 对象存储服务
+Cinder-块存储服务
+Glance - 镜像服务
+Keystone - 认证服务
+Horizon - UI服务
+Ceilometer-监控服务
+Heat-集群服务
+Trove-数据库服务
+
+
+9.修改配置
+vi openstack_install/etc/main-config.rc
+修改
+# controller IP
+CONTROLLER_NODES_IP="192.168.2.50"
+# computer IP
+COMPUTE_NODES_IP="192.168.2.51"
+# provider 物理网卡名称
+PROVIDER_INTERFACE="enp0s3"
+
+安装controller
+#bash main-installer.sh controller install
+部署计算节点
+#bash main-installer.sh compute install
+
+Open stack horizon link http://192.168.2.50/dashboard
+User login horizon: admin
+Password user admin: itnihao
+Password root user database mariadb: itnihao
+File admin script open stack:admin-openrc
+
+10.查看网络
+openstack network agent list
+查看nova
+openstack compute service list
+
+11.Missing value auth-url required for auth plugin password
+在openstack_install目录下生成有admin-openrc
+执行命令：source admin-openrc
+
+12.访问http://192.168.2.50/dashboard/报错500
+The server encountered an internal error or misconfiguration and was unable to complete your request
+修改/etc/httpd/conf.d/openstack-dashboard.conf文件
+在WSGISocketPrefix run/wsgi下面加一行代码：（就在第3行的位置） 
+WSGIApplicationGroup %{GLOBAL} 
+重启httpd:service httpd restart
+
+
+
+

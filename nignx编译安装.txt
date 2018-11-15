@@ -26,7 +26,7 @@ root     27736 20787  0 15:32 pts/0    00:00:00 grep --color=auto nginx
 
 
 设置开机启动：
-vim /lib/systemd/system/nginx.service
+vim /etc/systemd/system/nginx.service
 
 内容如下
 [Unit]
@@ -39,7 +39,10 @@ ExecReload=/usr/local/nginx/sbin/nginx -s reload
 ExecStop=/usr/local/nginx/sbin/nginx -s quit
 PrivateTmp=true
 [Install]
-WantedBy=multi-user.targe
+WantedBy=multi-user.target
+
+使文件生效
+systemctl daemon-reload
 
 设置开机启动
 systemctl enable nginx.service
