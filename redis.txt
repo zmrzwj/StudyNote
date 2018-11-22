@@ -1,0 +1,207 @@
+1.下载https://redis.io/download
+
+2.#tar -xzvf redis-xx.tar.gz
+#cd redis-xx
+#Make
+#cd src
+#Make install 
+会安装到/usr/local/bin下
+(指定安装位置Make install PREDFIX=/usr/local/redis)
+安装后会生成以下文件
+redis-benchmark : Redis 性能测试工具
+redis-check-aof : 检查 aof 日志的工具
+redis-check-dump : 检查 rdb 日志的工具
+redis-cli : 连接用的客户端
+redis-server : Redis 服务进程
+
+3.Redis源代码目录的utils文件夹中有一个名为redis_init_script的初始化脚本文件
+cp utils/redis_init_script /etc/init.d
+mv redis_init_script redis_6379
+
+4.建立以下需要的文件夹
+/etc/redis	存放Redis的配置文件
+/mnt/sdb4T/Importance/redisData/6379	存放Redis的持久化文件
+
+5.修改配置文件
+源文件下有redis.conf复制到/etc/redis 目录中，以端口号命名（如“6379.conf”）
+daemonize	yes	使Redis以守护进程模式运行
+pidfile	/var/run/redis_端口号.pid	设置Redis的PID文件位置
+port	端口号	设置Redis监听的端口号
+dir	/mnt/sdb4T/Importance/redisData/6379	设置持久化文件存放位置
+
+6.现在也可以使用下面的命令来启动和关闭Redis了
+/etc/init.d/redis_6379 start
+/etc/init.d/redis_6379 stop
+
+7.开机启动
+vim /etc/init.d/redis_6379
+在打开的redis初始化脚本文件头部第四行的位置，追加下面两句
+# chkconfig: 2345 90 10 
+# description: Redis is a persistent key-value database
+//设置开机执行redis脚本
+chkconfig redis_6379 on
+通过上面的操作后，以后也可以直接用下面的命令对Redis进行启动和关闭了，如下
+service redis_6379 start
+service redis_6379 stop
+
+8.安全停止Redis
+考虑到 Redis 有可能正在将内存中的数据同步到硬盘中，强行终止 Redis 进程可能会导致数据丢失。正确停止Redis的方式应该是向Redis发送SHUTDOWN命令，方法为：
+redis-cli shutdown （-p 端口）
+
+9.客户端连接
+#redis-cli
+链接到指定主机时,用redis-cli -h 192.168.22.150 -p 6379
+
+10.设置密码
+修改配置文件
+vi /etc/redis/6379.conf
+找到#requirepass foobared,去掉注释的#，把foobared替换成自己的密码即可,如：qwertyui. 
+重新启动redis
+连接时使用：redis-cli -a qwertyui
+添加密码后要停止redis要使用：# redis-cli -a qwertyui shutdown
+service redis_6379 stop会出现
+	Stopping ...
+	(error) NOAUTH Authentication required.
+	Waiting for Redis to shutdown ...
+
+11.允许远程连接
+修改配置文件
+注释掉bind 127.0.0.1
+
+12.spring boot连接redis
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+application.properties添加配置
+spring.redis.host=192.168.50.52
+spring.redis.port=6379
+spring.redis.password=qwertyui
+# 连接池最大连接数（使用负值表示没有限制）
+spring.redis.jedis.pool.max-active=8 
+# 连接池最大阻塞等待时间（使用负值表示没有限制）
+spring.redis.jedis.pool.max-wait=-1ms
+# 连接超时时间（毫秒）
+spring.redis.timeout=100000ms
+
+
+13.StringRedisTemplate连接redis
+#操作字符串
+stringRedisTemplate.opsForValue().set("key","value");
+stringRedisTemplate.opsForValue().get("key");
+#操作set
+Set<String> set=new HashSet<String>();
+stringRedisTemplate.opsForSet().add("set",set);
+stringRedisTemplate.opsForSet().members("set");
+#操作hash
+Map<String,String> map=new HashMap<String,String>();
+stringRedisTemplate.opsForHash().putAll("map",map);
+stringRedisTemplate.opsForHash().get("map");
+stringRedisTemplate.opsForHash().get("map","map1");
+#操作list
+List<String> list=new ArrayList<String>();
+stringRedisTemplate.opsForList().leftPush("list",list1);
+stringRedisTemplate.opsForList().rightPush("list",list2);
+List<String> resultList1=(List<String>)stringRedisTemplate.opsForList().leftPop("list");
+List<String> resultList2=(List<String>)stringRedisTemplate.opsForList().rightPop("list");
+#删除key
+stringRedisTemplate.delete("test");
+
+
+14.显示和删除所有的key
+在redis-cli下
+>keys *
+或>key test* 所有以test开头的键
+flushdb
+flushall
+
+
+15.集群搭建
+#tar -xzvf redis-xx.tar.gz
+#cd redis-xx
+#Make
+#cd src
+#Make install 
+mkdir /etc/redis_cluster	存放Redis的配置文件
+Cd /etc/redis_cluster
+Mkdir 7001 7002 7003
+Cp /home/redis-5.0.0/redis.conf 7001/
+Cp /home/redis-5.0.0/redis.conf 7002/
+Cp /home/redis-5.0.0/redis.conf 7003/
+分别对7001，7002、7003文件夹中的3个文件修改对应的配置
+daemonize    yes                          //redis后台运行
+pidfile  /var/run/redis_7000.pid          //pidfile文件对应7000,7002,7003
+port  7000                                //端口7000,7002,7003
+cluster-enabled  yes                      //开启集群  把注释#去掉
+cluster-config-file  nodes_7000.conf      //集群的配置  配置文件首次启动自动生成 7000,7001,7002
+cluster-node-timeout  5000                //请求超时  设置5秒够了
+appendonly  yes                         //aof日志开启  有需要就开启，它会每次写操作都记录一条日志
+bind 192.168.2.200			  
+另一台机器也同样，但端口使用7004，7005，7006
+启动各个节点：
+redis-server redis_cluster/7001/redis.conf
+redis-server redis_cluster/7002/redis.conf
+redis-server redis_cluster/7003/redis.conf
+
+redis-server redis_cluster/7004/redis.conf
+redis-server redis_cluster/7005/redis.conf
+redis-server redis_cluster/7006/redis.conf 
+
+检查 redis 启动情况
+ps -ef | grep redis
+root 61020 1  0 02:14 ?  00:00:01 redis-server 127.0.0.1:7001 [cluster] 
+（需有cluster字样，不然redid-cli -p 7001 shutdown,修改配置文件，再启动）
+netstat -tlnp | grep redis （没有netstat使用ss命令）
+
+redis5.0使用redis-cli创建集群：
+redis-cli --cluster create 192.168.2.200:7001 192.168.2.200:7002 192.168.2.200:7003 192.168.2.201:7004 192.168.2.201:7005 192.168.2.201:7006 --cluster-replicas 1
+redis5.0以下使用redis-trib.rb创建集群：
+运行一下redis-trib.rb，在源代码src里
+如果提示ruby:no such file or directory请先安装ruby:
+yum -y install ruby ruby-devel rubygems rpm-build 
+再用 gem 这个命令来安装 redis接口    gem是ruby的一个工具包:
+gem install redis    //等一会儿就好了,两台机器都要
+(redis requires Ruby version >= 2.2.2问题:
+Centos默认支持ruby到2.0.0，可gem 安装redis需要最低是2.2.2
+安装RVM
+gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB 
+curl -L https://raw.githubusercontent.com/wayneeseguin/rvm/master/binscripts/rvm-installer | bash -s stable
+Find / -name rvm -print
+source /usr/local/rvm/scripts/rvm
+rvm list known  //查看rvm库中已知的ruby版本
+rvm install 2.5.1  //安装一个ruby版本
+rvm use 2.5.1. //使用一个ruby版本
+rvm remove 2.0.0   //卸载一个已知版本
+)
+
+创建集群
+cp /home/redis-5.0.0/src/redis-trib.rb /usr/local/bin
+确认所有的节点都启动,使用参数create 创建(在192.168.2.200上)
+redis-trib.rb  create  --replicas  1  192.168.2.200:7001 192.168.2.200:7002  192.168.2.200:7003 192.168.2.201:7004  192.168.2.201:7005  192.168.2.201:7006
+(问题：Could not connect to Redis at 192.168.2.200:7001: Connection refused
+修改bind为自己的ip。
+问题： Redis at 192.168.2.201:7004: No route to host
+关闭防火墙systemctl stop firewalld，systemctl  disable firewalld
+)
+提示Can I set the above configuration? (type 'yes' to accept): yes    //输入yes
+测试集群：
+Redis-cli -h 192.168.2.200 -c -p 7001
+>Set hello word
+在另一台机器上Redis-cli -h 192.168.2.201 -c -p 7004
+>get hello
+"World"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

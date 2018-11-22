@@ -1,4 +1,4 @@
-useradd -g git zwj   //创建zwj用户，并添加其到git组。如果不使用任何参数，则创建的用户无密码、无主目录、没有指定shell版本
+1.useradd -g git zwj   //创建zwj用户，并添加其到git组。如果不使用任何参数，则创建的用户无密码、无主目录、没有指定shell版本
 passwd zwj          //修改zwj密码
 Who                 //查看当前登陆的用户
 ip addr             //查看IP地址
@@ -7,7 +7,7 @@ lsof -i:90          //查看端口占用情况
 pwd                 //查看当前路径
 adduser             //会自动为创建的用户指定主目录、系统shell版本，会在创建时输入用户密码
 
-Ps -x 查看运行进程
+2.Ps -x 查看运行进程
 service iptable status //centos6.5查看防火墙状态
 servcie iptables stop                    --临时关闭防火墙
 chkconfig iptables off                    --永久关闭防火墙
@@ -25,19 +25,19 @@ systemctl start firewalld.service 启动一个服务
 禁用： systemctl  disable firewalld
 
 
-vim /etc/sysconfig/network-scripts/ifcfg-etxxx //编辑网卡配置 etxxx为网卡名
+3.vim /etc/sysconfig/network-scripts/ifcfg-etxxx //编辑网卡配置 etxxx为网卡名
 
-允许root远程登录：vim /etc/ssh/sshd_config
+4.允许root远程登录：vim /etc/ssh/sshd_config
 PermitRootLogin yes
 
 
-Vim查找字符串
+5.Vim查找字符串
 如：查找zzz  /zzz
 查看下一个匹配，按下n(小写n)
 跳转到上一个匹配，按下N（大写N）
 
 
-fdisk -l查看磁盘信息
+6.fdisk -l查看磁盘信息
 parted /dev/sdb print 查看具体信息
 mount -t ntfs-3g /dev/sdb2 /mnt/sdb4T/
 如果出现：The disk contains an unclean file system (0, 0).
@@ -52,10 +52,10 @@ The volume may be already mounted, or another software may use it which
 could be identified for example by the help of the 'fuser' command.
 使用fuser -m -u /dev/sdb2 //查看占用进程和用户名
 
-df -h 查看磁盘挂载和使用情况
+7.df -h 查看磁盘挂载和使用情况
 df -h /dev/sdb 查看具体磁盘的情况
 
-格式化4T磁盘
+8.格式化4T磁盘
 parted /dev/sdb
 (parted)mklabel gpt //用gpt分区格式
 (parted)q //退出
@@ -65,5 +65,34 @@ mount  /dev/sdb /mnt/sdb4T  / 挂载到sdb4T
 vi /etc/fstab
 # 在最后一行加入如下配置
 /dev/sdb               /mnt/sdb4T                 ext4   defaults        0 0
+
+9.Find ./ -name cps  查找cps的目录
+
+
+10.压缩文件夹
+tar -zcvf ./gcc.tar.gz  gcc/
+zip gcc.zip gcc/
+注意：tar参数中不能同时带有c、x、t中的两个，否则提示：tar: 您不能指定超过一个”-Acdtrux”或是”–test-label”外的选项；如果一个都不带，则提示正好相反：tar: 您必须从”-Acdtrux”或是”–test-label”选项中指定一个。
+
+
+11.Gcc离线安装
+获取离线rpm包,在系统iso镜像的Packages目录里有
+把需要的放到一个目录里，在目录下执行rpm -Uvh *.rpm --nodeps --force
+gcc -v
+
+
+12.分区时请选择standard partition,文件系统类型选择ext4。不要用默认分区，会分的很细。
+
+13.ss命令代替netstat
+ss -tlnp | grep redis //通过服务名查看
+ss -pl | grep 3306   //通过端口名查看
+-l：显示处于监听状态的套接字；
+-o：显示计时器信息；
+-m：显示套接字的内存使用情况；
+-p：显示使用套接字的进程信息；
+-t：只显示tcp套接字；
+
+14.如果使用yum install xxxx，会找到安装包之后，询问你Is this OK[y/d/N]，需要你手动进行选择。但是如果加上参数-y，就会自动选择y，不需要你再手动选择！
+
 
 

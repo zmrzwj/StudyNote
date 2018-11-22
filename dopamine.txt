@@ -1,0 +1,12 @@
+1.pycharm创建项目并添加虚拟环境
+
+2.安装cmake zlib:brew install cmake zlib
+
+3.下载dopamine仓库：git clone https://github.com/google/dopamine.git
+
+4.安装依赖：pip install absl-py atari-py gin-config gym opencv-python tensorflow
+
+5.测试：
+	cd dopamine
+	export PYTHONPATH=${PYTHONPATH}:.
+	python tests/dopamine/atari_init_test.py

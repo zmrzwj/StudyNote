@@ -28,6 +28,8 @@ DNS1=114.114.114.114
 DNS2=8.8.8.8
 UUID=xxx 此为#nmcli con查看到的UUID
 对另外一台一样
+(Service network restart重启network)
+
 3）关掉 NetworkManager 和 防火墙
 systemctl stop NetworkManager
 systemctl disable NetworkManager

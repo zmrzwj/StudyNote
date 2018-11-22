@@ -335,12 +335,23 @@ alter table VIEW_DEV_DNB_FULL ADD INDEX index_CJ_MP_ID_ TYPE_CODE(CJ_MP_ID,TYPE_
 
 检测语句是否走索引：
 	Explain select * from user where id=1;
+结构解释：
+  type:ALL：遍历全表;index：遍历全索引树;range:索引范围扫描，between或者where子句里带有<, >;ref：使用非唯一索引扫描或者唯一索引的前缀扫描；eq_ref：类似ref，区别就在使用的索引是唯一索引；
+  possible_keys:查询涉及到的字段上若存在索引，则该索引将被列出，但不一定被查询使用
+  key:显示MySQL在查询中实际使用的索引，若没有使用索引，显示为NULL
+  key_len:表示索引中使用的字节数，可通过该列计算查询中使用的索引的长度
+  ref:表示上述表的连接匹配条件，即哪些列或常量被用于查找索引列上的值
+  rows:表示MySQL根据表统计信息及索引选用情况，估算的找到所需的记录所需要读取的行数
 
 
 5.count(1)
 1并不是表示第一个字段，而是表示一个固定值。 
 其实就可以想成表中有这么一个字段，这个字段就是固定值1，count(1)，就是计算一共有多少个1.
 同理count(20000)也一样。
+
+6.select list is not in group by clause this is incompatible only_full_group_by
+[mysqld]下
+sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
 
 
 
