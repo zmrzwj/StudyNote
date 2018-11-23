@@ -249,6 +249,201 @@ apache源
 4、在cm管理平台中，cdh的parcel包不包含某些组件，需要自己下载对应的parcel包，比如说kafka 
 5、对hdfs部署过程中，对磁盘进行lvm卷轴或者是磁盘目录统一，对于多台机器，否则之后维护成本高
 
+安装操作系统：
+(vbox虚拟机选择linux2.6/3.x/4.x(64bit)不要选redhat)
+
+1.安装jdk
+修改/etc/profile,在末尾添加
+export JAVA_HOME=/usr/local/java/jdk8
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export PATH=$JAVA_HOME/bin:$PATH
+在/usr下创建java目录，然后添加软连接
+ln -s /usr/local/java  /usr/java/default
+
+2.配置hosts
+vi /etc/hosts
+192.168.2.200 master
+192.168.2.201 slave1
+192.168.2.202 slave2
+
+3.配置ssh免密码
+cd  ~/.ssh/	# 若没有该目录，请先执行一次ssh localhost
+#ssh-keygen -t rsa	# 会有提示，都按回车就可以
+#scp  id_rsa.pub root@192.168.2.201:/home
+#cat /home/id_rsa.pub >> ~/.ssh/authorized_keys  # 加入授权,在192.168.2.201上操作
+(202执行同样的操作)
+#ssh root@192.168.2.201 #测试是否可以免密码登录，在192.168.2.200上操作
+（201，200上同样进行上面操作使免密码登录）
+
+4.ntp服务配置（所有节点安装相关组件）（如果已经保证时间同步，此步骤可跳过）
+yum -y install ntp ntpdate
+
+5.在主节点安装mysql
+https://cdn.mysql.com//Downloads/MySQL-5.7/mysql-5.7.24-linux-glibc2.12-x86_64.tar.gz
+tar -zxvf mysql-xxxxx.glic.xxx//解压
+mv mysql.xxxx.glic.xxx mysql //改名
+cd mysql
+Vi /etc/my.cnf
+[mysql] 
+# 设置mysql客户端默认字符集 
+default-character-set=utf8  
+socket=/var/lib/mysql/mysql.sock 
+[mysqld] 
+#skip-name-resolve 
+#设置3306端口 
+port = 3306  
+socket=/var/lib/mysql/mysql.sock 
+# 设置mysql的安装目录 
+basedir=/usr/local/mysql 
+# 设置mysql数据库的数据的存放目录 
+datadir=/usr/local/mysql/data 
+# 允许最大连接数 
+max_connections=200 
+# 服务端使用的字符集默认为8比特编码的latin1字符集 
+character-set-server=utf8 
+# 创建新表时将使用的默认存储引擎 
+default-storage-engine=INNODB 
+#lower_case_table_name=1 
+max_allowed_packet=16M
+
+创建mysql用户组：
+groupadd mysql
+添加mysql用户：
+useradd -r -g mysql mysql
+
+在mysql文件夹下：
+mkdir data
+创建文件夹：
+mkdir /var/lib/mysql
+chmod -R 777 /var/lib/mysql
+更改mysql文件目录所有者：
+chown -R mysql:mysql mysql/
+./bin/mysqld --initialize --user=mysql
+会有一行：
+2018-06-01T02:10:16.805014Z 1 [Note] A temporary password is generated for root@localhost:   gysQ5dRwr6/j
+gysQ5dRwr6/j是初始的随机密码。
+设置开机启动：
+1.复制启动脚本 cp ./support-files/mysql.server /etc/rc.d/init.d/mysqld
+2.增加mysqld服务控制脚本执行权限 chmod +x /etc/rc.d/init.d/mysqld 
+3.增加mysqld服务到系统服务  chkconfig --add mysqld
+4.检查mysqld服务是否生效 chkconfig --list mysqld
+出现以下则，正常了：
+mysqld         	0:off	1:off	2:on	3:on	4:on	5:on	6:off
+启动mysql服务：
+service mysqld start
+测试登陆：
+mysql -u root -p
+登上后，请修改密码：
+set password = password("uestc@123456");
+运行远程登录：
+grant all privileges on *.* to root@'%' identified by 'uestc@123456' ;
+grant all privileges on *.* to root@'%' identified by 'uestc@123456' WITH GRANT OPTION;
+flush privileges;
+
+创建以下数据库
+create database hive DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
+create database oozie DEFAULT CHARACTER SET utf8; 
+create database amon DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
+create database hue DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
+
+下载mysql-connector-java.jar,并保存到所有主机的/usr/share/java目录下
+https://cdn.mysql.com//Downloads/Connector-J/mysql-connector-java-5.1.47.tar.gz
+没有/usr/share/java目录，请自行创建
+
+
+6.官网下载Cloudera Manager和CDH
+Cloudera Manager下载地址：
+http://archive.cloudera.com/cm5/cm/5/
+cloudera-manager-centos7-cm5.15.1_x86_64.tar.gz
+CDH安装包:
+http://archive.cloudera.com/cdh5/parcels/latest/
+CDH-5.11.0-1.cdh5.15.1.p0.34-el6.parcel
+CDH-5.11.0-1.cdh5.15.1.p0.34-el6.parcel.sha1
+manifest.json
+(manager与CDH版本要一致，vbox虚拟机选择linux2.6/3.x/4.x(64bit)不要选redhat)
+
+解压cloudera-manager-centos7-cm5.15.1_x86_64.tar.gz解压后会出现cloudera,cm-5.15.1两个目录
+mv cloudera /opt
+mv cm-5.15.1 /opt
+复制mysql-connector-java.jar到目录/opt/cm-5.15.1/share/cmf/lib/
+
+7.创建用户cloudera-scm（所有节点操作）
+由于Cloudera Manager和Managed Services默认使用cloudera-scm，所以需要创建此用户
+useradd --system --no-create-home --shell=/bin/false --comment "Cloudera SCM User" cloudera-scm
+
+8.agent配置
+修改/opt/cm-5.15.1/etc/cloudera-scm-agent/config.ini中的server_host为主节点的主机名。
+# Hostname of the CM server.
+server_host=master
+
+9.在主节点初始化CM5数据库
+/opt/cm-5.15.1/share/cmf/schema/scm_prepare_database.sh mysql cm -h master -uroot -puestc@123456 --scm-host master scm scm scm
+
+mysql后到cm随便取名字，mysql会创建一个cm的数据库
+-h后是mysql的主机名
+--scm-host 后是SCM server的主机名（主节点）
+(注意：-uroot，u和root不空格 -puestc@123456，p和uestc@123456不空格)
+
+10.准备Parcels，用以安装CDH5,(只主节点)
+将CHD5相关的Parcel包放到主节点的/opt/cloudera/parcel-repo/目录中
+cp CDH-5.15.1-1.cdh5.15.1.p0.4-el5.parcel /opt/cloudera/parcel-repo/
+cp CDH-5.15.1-1.cdh5.15.1.p0.4-el5.parcel.sha1 /opt/cloudera/parcel-repo/
+cp manifest.json /opt/cloudera/parcel-repo/
+相关的文件如下：
+CDH-5.15.1-1.cdh5.11.0.p0.34-el6.parcel
+CDH-5.15.1-1.cdh5.11.0.p0.34-el6.parcel.sha1
+manifest.json
+最后将xxx.parcel.sha1，重命名为xxx.parcel.sha
+mv /opt/cloudera/parcel-repo/CDH-5.15.1-1.cdh5.15.1.p0.4-el5.parcel.sha1 /opt/cloudera/parcel-repo/CDH-5.15.1-1.cdh5.15.1.p0.4-el5.parcel.sha
+
+11.启动主节点的CM  Server和所有节点的Agent
+主节点：通过/opt/cm-5.15.1/etc/init.d/cloudera-scm-server start启动服务端。
+所有节点（包括主节点）：通过/opt/cm-5.15.1/etc/init.d/cloudera-scm-agent start启动Agent服务
+停止可以用/cloudera-scm-server stop
+(问题：
+cloudera-scm-agent start Starting 
+cloudera-scm-agent: [FAILED]
+解决：查看日志
+cd /opt/cm-5.7.0/log/cloudera-scm-agent/ 
+cat cloudera-scm-agent.out
+如果提示python有问题，请使用cloudera-manager-centos7，而不是el版的
+)
+
+12.访问http://192.168.2.200:7180/cmf/login
+用户名：admin，密码：admin
+注意选免费版，回退很难
+删除cm数据库，重新初始化。
+ 问题：Parcel不可用于操作系统分配RHEL7
+ 解决：manager与CDH版本要一致，vbox虚拟机选择linux2.6/3.x/4.x(64bit)不要选redhat
+ 问题：出现主机运行状态不良情况
+ 解决：rm -f /opt/cm-5.15.1/lib/cloudera-scm-agent/cm_guid (每个节点)
+     /opt/cm-5.15.1/etc/init.d/cloudera-scm-agent restart
+ 问题：Cloudera 建议将 /proc/sys/vm/swappiness 设置为最大值 10
+      echo 'vm.swappiness=10'>> /etc/sysctl.conf
+
+1)选择安装服务
+我选择的‘所有服务’
+2）集群设置角色分配，没特殊要求的话，选默认即可，点继续
+3）数据库设置
+请使用安装mysql时创建的数据库,点击连接测试，当全部都显示Successful，点击继续
+4)群集设置,审核更改,选择默认，点击继续
+
+find / -type f -name "*cc.sh"
+定位到编辑 vim /opt/cm-5.15.1/lib64/cmf/service/client/deploy-cc.sh
+直接在上面加上
+JAVA_HOME=/usr/local/java
+export JAVA_HOME=/usr/local/java
+所有节点都这样设置一下
+
+安装失败后：
+删除mysql下的cm数据库，重新初始化，重启server, agent
+
+问题：安装CDH找不到java_home的错误
+jdk的时候,应该要安装到/usr/java目录
+ln -s /usr/local/java  /usr/java/default
+
+
+
 
 
 

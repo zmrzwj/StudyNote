@@ -13,6 +13,7 @@ Vim /etc/my.cnf
 # 设置mysql客户端默认字符集 
 default-character-set=utf8  
 socket=/var/lib/mysql/mysql.sock 
+
 [mysqld] 
 #skip-name-resolve 
 #设置3306端口 
@@ -53,7 +54,7 @@ chown -R mysql:mysql mysql/
 (可能问题：libaio.so.1: cannot open shared object file解决方法
 缺少安装包libaio和libaio-devel.命令行yum install libaio*。（apt-get install libaio*）自动安装这两个包)
 会有一行：
-2018-06-01T02:10:16.805014Z 1 [Note] A temporary password is generated for root@localhost: -;PRuEYe<7h8  J1w9+mOdk#3)
+2018-06-01T02:10:16.805014Z 1 [Note] A temporary password is generated for root@localhost: -;PRuEYe<7h8  gysQ5dRwr6/j
 -;PRuEYe<7h8是初始的随机密码。
 
 设置开机启动：
