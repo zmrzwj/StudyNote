@@ -94,5 +94,57 @@ ss -pl | grep 3306   //通过端口名查看
 
 14.如果使用yum install xxxx，会找到安装包之后，询问你Is this OK[y/d/N]，需要你手动进行选择。但是如果加上参数-y，就会自动选择y，不需要你再手动选择！
 
+15.查看linux发型版本
+cat /proc/version
+cat /etc/os-release
+
+
+15.离线安装git
+下载：https://www.kernel.org/pub/software/scm/git/
+解压：tar -vxf /usr/local/git/git-2.9.5.tar.gz
+    
+    安装：
+        ./configure --prefix=/usr/local/git
+        make && make install
+
+    配置环境变量：
+        export GIT_PATH=/usr/local/git/bin
+        export PATH=$JAVA_HOME/bin:$PATH:$GIT_PATH
+        source /etc/profile
+    
+    验证：git --version
+    useradd git
+    passwd git
+
+    创建仓库：
+        Cd /home/git
+        mkdir xs-vue.git
+        git init --bare ./xs-vue.git
+        chown -R git:git xs-vue.git/
+ git clone git@192.168.50.52:/home/git/xs-vue.git
+问题：bash: git-upload-pack: command not found
+服务器上的git安装路径是/usr/local/git，不是默认路径，根据提示，在git服务器上， 建立链接文件.
+将git安装目录bin下面的git-upload-pack和git-receive-pack 文件复制到/usr/bin目录下。我本机上的git安装在/usr/local/git目录下
+cp /usr/local/git/bin/git-upload-pack /usr/bin/
+cp /usr/local/git/bin/git-receive-pack /usr/bin/
+
+
+
+缺少：perl-ExtUtils-MakeMaker
+在联网的地方：yum install --downloadonly perl-ExtUtils-MakeMaker （--downloadonly指定目录但确没用）
+rpm在/var/cache/yum/x86_64/7/base/packages/下
+tar -zcvf /home/perl-ExtUtils-MakeMaker.tar.gz ./packages/
+然后进入目录：
+rpm -Uvh *.rpm --nodeps --force
+
+16.yum下载安装包及其依赖不安装
+1)yum install --downloadonly xxx
+2) yumdownloader
+yum install yum-utils -y
+yumdownloader xxx --resolve --destdir=/home(保存到home目录下)
+
+
+
+
 
 

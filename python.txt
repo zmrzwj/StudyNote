@@ -128,10 +128,51 @@ pip download gunicorn
 pip install --no-index --find-links="./" gunicorn
 screen gunicorn -w 4 -b 127.0.0.1:5000 flask_main:app #flask_main文件名, 即flask_main.py, app是应用名字,即app.run();
 
+11.python GIL
+GIL的全称为Global Interpreter Lock，全局解释器锁。
+  为了利用多核，Python开始支持多线程。而解决多线程之间数据完整性和状态同步的最简单方法自然就是加锁。 于是有了GIL这把超级大锁，而当越来越多的代码库开发者接受了这种设定后，他们开始大量依赖这种特性.
+  python使用引用计数做垃圾回收，为了解决这个问题，就引入了GIL，保证对虚拟机内部共享资源的互斥性（mutex），每一时刻只有一个线程工作。
 
-11.*args,Python允许我们制定一些参数并且通过args捕获其他所有剩余的未被捕捉的位置参数
+
+12.*args,Python允许我们制定一些参数并且通过args捕获其他所有剩余的未被捕捉的位置参数
 **kwargs来表明，所有未被捕获的关键字参数都应该存储在kwargs的字典中
 
+12.numpy使用
+import numpy as np
+创建矩阵
+A = np.mat([1,2,3],[3,4,5]) #2*3的矩阵
+np.zeros((3,4)) #创建3*4全零二维数组
+np.ones((2,3,4))  # 创建2*3*4全1三维数组
+np.empty((2,3))  # 创建2*3的未初始化二维数组
+np.eye(5,k=0) #5*5 对角矩阵,k调节1向上偏离
+np.identity(5) #只能创建方形矩阵
+
+np.dot(A,B) # 矩阵乘法
+.T －－ 返回自身的转置
+.H －－ 返回自身的共轭转置
+求逆：.I
+a = A.I
+.I可以求广义逆,但无法求奇异方阵的逆
+验证广义逆：A*a*A=A,a*A*a=a,A*a与a*A为对称矩阵，满足1，2的为广义自反逆，满足4个条件的为穆尔彭罗斯伪逆记A+。
+np.linalg.pinv(A)可求任意广义逆
+
+np.cov(x,y) #计算协方差矩阵
+np.corrcoef(x,y) #相关系数
+
+行列式：
+np.linalg.det(d) #d必须为方阵，无法计算广义行列式
+
+向量的范数：
+np.linalg.norm(a,ord=0)# 0-范数，表示向量中非零元素的个数
+np.linalg.norm(a, ord = 1) #1-范数，计算方式为向量所有元素的绝对值之和
+np.linalg.norm(a, ord = 2) #2-范数，计算方式跟欧式距离的方式一致即向量各元素的平方和然后求平方根
+np.linalg.norm(x, ord = np.inf) #+∞ -范数，所有向量元素绝对值中的最大值
+np.linalg.norm(x, ord = -np.inf) #−∞ -范数，所有向量元素绝对值中的最小值
+矩阵范数：
+np.linalg.norm(x, ord = 1) #1-范数，又名列和范数。顾名思义，即矩阵列向量中绝对值之和的最大值
+np.linalg.norm(x, ord = 2) #2-范数，又名谱范数，计算方法为ATA矩阵的最大特征值的开平方
+np.linalg.norm(x, ord = 'fro') #F-范数，Frobenius范数，计算方式为矩阵元素的绝对值的平方和再开方
+ninf = np.linalg.norm(x, ord = np.inf) #∞ -范数，又名行和范数， 即矩阵行向量中绝对值之和的最大值。
 
 
 

@@ -46,6 +46,17 @@ module.exports = {
     },
 };
 
+5.vuetify表格
+hover的样式
+.theme--dark.v-table tbody tr:hover td{
+    background: aqua;
+    font-weight: bolder;
+    color: #ffaf5e;
+  }
+表格背景：
+.zwj-table table.v-table{
+    background-color: transparent;
+  }
 
 
 

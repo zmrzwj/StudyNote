@@ -250,7 +250,7 @@ apache源
 5、对hdfs部署过程中，对磁盘进行lvm卷轴或者是磁盘目录统一，对于多台机器，否则之后维护成本高
 
 安装操作系统：
-(vbox虚拟机选择linux2.6/3.x/4.x(64bit)不要选redhat)
+(vbox虚拟机选择linux2.6/3.x/4.x(64bit)不要选redhat，master内存要不少于6个G，slave不少于3个G)
 
 1.安装jdk
 修改/etc/profile,在末尾添加
@@ -441,6 +441,29 @@ export JAVA_HOME=/usr/local/java
 问题：安装CDH找不到java_home的错误
 jdk的时候,应该要安装到/usr/java目录
 ln -s /usr/local/java  /usr/java/default
+
+安装好后cloudera-scm-server启动很慢，大概6分钟
+
+问题：hue webUI无法访问，请在cloudera manager主页点击hue，在hue的配置下点击‘端口和地址’，勾选将 Hue 服务器绑定到通配符地址，重启服务。
+（注：hdfs的50070，spark,yarn等都是因为没有把端口是和外网地址绑定，所以把端口的地址都绑定到0.0.0.0，外网才能访问）
+问题：hdfs副本不足的块
+dfs. replication属性默认是3，也就是说副本数---块的备份数默认为3份。但是我们这里集群只有两个DataNode.
+点击HDFS-配置,在搜索框搜索dfs. replication，设置为2后保存更改
+
+13.介绍
+JobHistoryServer
+         历史服务器，管理者可以通过历史服务器查看已经运行完成的Mapreduce作业记录，比如用了多少个Map、多少个Reduce、作业提交时间、作业启动时间、作业完成时间等信息。
+Impala
+	Impala是Cloudera公司主导开发的新型查询系统，它提供SQL语义，能查询存储在Hadoop的HDFS和HBase中的PB级大数据。已有的Hive系统虽然也提供了SQL语义，但由于Hive底层执行使用的是MapReduce引擎，仍然是一个批处理过程，难以满足查询的交互性。相比之下，Impala的最大特点也是最大卖点就是它的快速。
+HUE
+	Hue是cdh专门的一套web管理器，它包括3个部分hue ui，hue server，hue db。hue提供所有的cdh组件的shell界面的接口。你可以在hue编写mr，查看修改hdfs的文件，管理Hive的元数据，运行Sqoop，编写Oozie工作流等大量工作。
+
+
+
+
+
+
+
 
 
 

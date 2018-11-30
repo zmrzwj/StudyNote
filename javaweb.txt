@@ -275,6 +275,9 @@ public class XsApplication extends SpringBootServletInitializer {
     }
 }
 
+31.如果使用spring-boot的服务器
+在Edit Configurations时选择Spring-boot,Main class填写
+com.cddw.com.xs.XsApplication
 
 
 
