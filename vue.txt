@@ -5,7 +5,7 @@
 
 2.自定义配置，需要在项目的 根目录添加一个Vue.config.js
 修改vue-cli资源无法正常加载的问题:
-Vue.config.js中添
+vue.config.js中添
 module.exports = {
     // 基本路径
     baseUrl: './',
@@ -26,7 +26,7 @@ module.exports = {
 }
 
 4.dev server使用http-proxy跨域调试
-Vue.config.js中设置
+vue.config.js中设置
 module.exports = {
     // webpack-dev-server的配置
     devServer: {
@@ -96,6 +96,11 @@ module.exports = {
 //建议在开发时，新建一个src/pages目录统一管理，页面的 主js,模版html,主vue页面
 多页面时访问非index.html页面直接http://localhost:8080/home.html
 
+
+8.Save this as a preset for future projects? (y/N) N 默认选择 No ,表示不把现在的配置设置为本机的默认配置。
+
+
+9.Linter/Formatter 支持代码风格检查和格式化。
 
 
 

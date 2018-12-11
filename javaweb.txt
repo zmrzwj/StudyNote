@@ -122,6 +122,8 @@ Mac 下载-bin.tar.gz解压到zwj/applictions
 
 13.scope=compile的情况（默认scope),也就是说这个项目在编译，测试，运行阶段都需要这个artifact对应的jar包在classpath中。
 scope=provided的情况，则可以认为这个provided是目标容器已经provide这个artifact。换句话说，它只影响到编译，测试阶段。在编译测试阶段，我们需要这个artifact对应的jar包在classpath中，而在运行阶段，假定目标的容器（比如我们这里的liferay容器）已经提供了这个jar包，所以无需我们这个artifact对应的jar包了。
+即scope=provided，打包不会打包进去。
+
 
 14.Artifact 是maven中的一个概念，表示某个module要如何打包。
 
@@ -200,6 +202,10 @@ Service层：建立在DAO层之上，Controller层之下。调用Dao层的接口
 View层：表示层，负责前端jsp页面表示。
 
 23.JDBC连接数据库java.sql.Connection
+<dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+</dependency>
 import java.sql.*;
 //声明Connection对象
          Connection con;
@@ -274,11 +280,42 @@ public class XsApplication extends SpringBootServletInitializer {
         SpringApplication.run(XsApplication.class, args);
     }
 }
+修改pom.xml
+<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <!-- 移除嵌入式tomcat插件 -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+</dependency>
+在project settings点击artifacts:
+点击+，选择web application archive,勾选include in project build(或Build on make,视idea版本而定，勾选了才会产生war包不然就是个目录)，在下面点击+号选择Directory Content，选择你的项目目录整个目录哟，点击ok.
+点击build->Build Artifacts，选xs.war(war与war exploded的区别见6，如果没有先build一次idea会自动生成war和war exploded)，如果是第二次build就选择rebuild。
+
+问题：Error:(12, 8) java: 无法访问javax.servlet.ServletException 找不到javax.servlet.ServletException的类文件
+Pom.xml添加
+<dependency>
+    <groupId>javax</groupId>
+    <artifactId>javaee-api</artifactId>
+    <version>7.0</version>
+</dependency>
+
 
 31.如果使用spring-boot的服务器
 在Edit Configurations时选择Spring-boot,Main class填写
 com.cddw.com.xs.XsApplication
 
+
+32. fastjson将容器转为字符串
+<dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.50</version>
+</dependency>
 
 
 

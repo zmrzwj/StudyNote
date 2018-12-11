@@ -115,7 +115,7 @@ stringRedisTemplate.delete("test");
 flushdb
 flushall
 
-
+--------------------------------------集群搭建----------------------------------------
 15.集群搭建
 #tar -xzvf redis-xx.tar.gz
 #cd redis-xx

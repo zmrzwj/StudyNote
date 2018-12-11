@@ -6,6 +6,63 @@ Preferences->Appearance&Behavior->Appearance->Theme
 
 3.联机调试
 连接数据线
+确保数据处于开发者模式，并且允许usb调试
 mac输入命令：system_profiler SPUSBDataType//查看是否有小米手机的信息
 
 4.assets文件夹放在与java和res同等级的目录下，html放在assets中。
+
+5.线性布局
+<LinearLayout></LinearLayout>
+<View />组件是所有组件的父组件
+熟悉：
+android:id组件id     
+android:layout_width  200dp/match_parent 组件宽度   
+android:layout_height   200dp/match_parent 组件高度
+android:padding="80dp"   内边距
+android:layout_margin="10dp" 外边距
+ android:background="#ffff"  背景
+android:layout_weight="1"    剩下宽度按权重分配
+
+6.相对布局
+<RelativeLayout>
+android:layout_below="@id/view_1" 处于@id/view_1之下
+android:layout_toRightOf="@id/view_1" 处于@id/view_1的右边
+
+7.文本组件
+<Button/>
+<TextView />
+android:text="tiange". 文本内容
+android:textColor="#0f0fff"   颜色
+android:textSize="12sp"       字体大小
+下划线
+需要Java代码实现
+	mTextView = (TextView)findViewById(R.id.view_0);
+        mTextView.getPaint().setFlags(Paint.STRIKE_THRU_TEXT_FLAG);//中滑线
+        mTextView.getPaint().setAntiAlias(true);
+<EditText>文本输入框 类似<input>
+android:inputType="number" 类似<input>的type
+addTextChangedListener(new TextWatcher(){
+	
+})
+<RadioButton>单选按钮
+<RadioGroup>
+   <RadioButton />
+   <RadioButton />
+   <RadioButton />
+</RadioGroup>
+
+
+
+8.页面跳转
+//跳转到textview
+                Intent intent = new Intent(MainActivity.this,TextViewActivity.class);
+                startActivity(intent);
+
+
+
+9.ANR
+在Android上，如果你的应用程序有一段时间响应不够灵敏，系统会向用户显示一个对话框，这个对话框称作应用程序无响应（ANR：Application Not Responding）对话框。用户可以选择“等待”而让程序继续运行，也可以选择“强制关闭”。
+
+
+
+

@@ -4,6 +4,15 @@ cd nginx-1.10.3/
 ./configure --prefix=/usr/local/nginx //指定安装路径，不指定安装到/usr/local/nginx
 make
 make install
+(
+缺失pcre:
+ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/
+缺失zlib:
+https://sourceforge.net/projects/libpng/files/zlib/1.2.11/zlib-1.2.11.tar.gz
+缺失ssl:
+http://www.openssl.org/source/
+以上三个都是源码安装./configure  make&&make install
+)
 
 去到/usr/local/nginx/sbin
 ./nginx (不报错可能安装成功)
@@ -46,4 +55,11 @@ systemctl daemon-reload
 
 设置开机启动
 systemctl enable nginx.service
+
+
+nginx反向代理：
+
+
+nginx配置https:
+
 

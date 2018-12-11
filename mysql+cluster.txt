@@ -1,3 +1,6 @@
+横向扩展是已扩展服务器的数量进行高并发的处理(增强处理业务的能力)
+纵向扩展，是增加单机的处理能力，一般增加cpu的处理能力
+
 查看mysql状态：ps aux|grep mysql      ps aux|grep mysqld
 mkdir /usr/local/msyql
 useradd -r -g mysql mysql

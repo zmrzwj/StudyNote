@@ -5,11 +5,12 @@
 
 3.开机启动
 vi /etc/systemd/system/tomcat.service
-[unit]
+[Unit]
 Description=Apache Tomcat Web Application Container
 After=network.target
 [Service]
 Type=forking
+Environment="JAVA_HOME=/usr/local/java"
 ExecStart=/usr/local/tomcat/bin/startup.sh
 ExecStop=/usr/local/tomcat/bin/shutdown.sh
 [Install]
@@ -17,4 +18,7 @@ WantedBy=multi-user.target
 
 将tomcat设为开机启动： 
 systemctl enable tomcat
-
+启动：
+systemctl start tomcat
+关闭：
+systemctl stop tomcat
