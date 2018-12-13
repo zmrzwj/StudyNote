@@ -147,6 +147,14 @@ yumdownloader xxx --resolve --destdir=/home(保存到home目录下)
 ethtool enp3s1
 如果link detected是no说明没有连接
 
+18.centos安装后丢失了windows的启动选项
+默认centos7不识别window的ntfs分区格式，需要安装ntfs-3g
+1)yum -y install peel-release
+2)yum -y install rtfs-3g
+3)grub2-mkconfig -o /boot/grub2/grub.cfg
+
+
+
 
 
 

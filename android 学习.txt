@@ -64,5 +64,19 @@ addTextChangedListener(new TextWatcher(){
 在Android上，如果你的应用程序有一段时间响应不够灵敏，系统会向用户显示一个对话框，这个对话框称作应用程序无响应（ANR：Application Not Responding）对话框。用户可以选择“等待”而让程序继续运行，也可以选择“强制关闭”。
 
 
+10.声明网络权限
+在AndroidManifet.xml中<application>上方添加
+<uses-permission android:name="android.permission.INTERNET" />
+
+11.添加glide的gradle依赖
+在build.gradle(Module:app)中添加（同dependencies同等级）
+repositories {
+    mavenCentral()
+    google()
+}
+在dependencies中最后添加
+implementation 'com.github.bumptech.glide:glide:4.8.0'
+annotationProcessor 'com.github.bumptech.glide:compiler:4.8.0'
+
 
 

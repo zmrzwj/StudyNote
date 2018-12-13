@@ -358,6 +358,17 @@ alter table VIEW_DEV_DNB_FULL ADD INDEX index_CJ_MP_ID_ TYPE_CODE(CJ_MP_ID,TYPE_
 sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
 
 
+7.两个mysql之间数据迁移
+两边的mysql要先停掉
+需要拷贝mysql等数据目录下的:
+ibdata1(表空间)
+XS/(数据库数据目录，如：数据库名为XS)
+ib_logfile0
+ib_logfile1
+启动mysql：service mysqld start
+如果出现：the server quit without updating pid file .....
+请把你刚拷贝进来的数据的所有者给mysql:
+执行：chown -R mysql:mysql mysql/
 
 
 

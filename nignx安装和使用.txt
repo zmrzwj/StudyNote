@@ -1,7 +1,8 @@
+--------------------------nginx安装-----------------------
 下载tar.gz
 tar -zxvf nginx....tar.gz
 cd nginx-1.10.3/
-./configure --prefix=/usr/local/nginx //指定安装路径，不指定安装到/usr/local/nginx
+./configure --prefix=/usr/local/nginx --with-http_ssl_module //指定安装路径，不指定安装到/usr/local/nginx. 带上ssl
 make
 make install
 (
@@ -58,8 +59,100 @@ systemctl enable nginx.service
 
 
 nginx反向代理：
+location /xs/ {
+            proxy_pass http://localhost:8080;
+            proxy_set_header           Host $host;
+            proxy_set_header           X-Real-IP $remote_addr;
+            proxy_set_header           X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+location /xs/AI/ {
+            proxy_pass http://127.0.0.1:5000;
+}
 
-
+---------------------https--------------------
 nginx配置https:
+生产crt和key
+1.阿里云申请免费证书
+https://common-buy.aliyun.com/?spm=5176.7968328.1267759.17.52061232VcmiCC&commodityCode=cas&request=%7B%22brand%22:%22twtrust%22,%22cer_type%22:%22advanced_pro%22,%22domain_type%22:%22multiple%22,%22domain_num%22:%225%22,%22order_num%22:1,%22ord_time%22:%221:Year%22%7D#/buy
+证书下载控制台：https://yundunnext.console.aliyun.com/?p=casnext#/overview/cn-hangzhou
+2.自己生成
+openssl req -x509 -nodes -days 36500 -newkey rsa:2048 -keyout /usr/local/nginx/conf/cert/a.key -out /usr/local/nginx/conf/cert/a.crt
+Country Name (2 letter code) [XX]:CN
+State or Province Name (full name) []:SiChuan
+Locality Name (eg, city) [Default City]: ChengDu
+Organization Name (eg, company) [Default Company Ltd]:caddy
+Organizational Unit Name (eg, section) []:caddy
+Common Name (eg, your name or your server's hostname) []:www.cddw.com
+Email Address []:admin@cddw.com
+说明：
+-x509 指定使用 X.509 证书签名请求（Certificate Signing Request，CSR）管理。
+-node 告诉 openssl 在生成证书时忽略密码环节（此处需要 Nginx 自动读取此文件，而非是以用户交互的形式）。
+-day 指定证书的有效期。
+-newkey rsa:2048 表示生成一个新证书和一个新的 SSL key（加密强度为 RSA 2048）。
+-keyout 指定 SSL 输出文件名。
+-out 指定生成的证书文件名。
+
+配置nginx.conf
+	listen       443;
+	server_name  www.cddw.com;
+	ssl on;
+	ssl_certificate ./cert/a.crt;
+        ssl_certificate_key ./cert/a.key;
+        ssl_session_timeout 5m;
+        ssl_protocols SSLv2 SSLv3 TLSv1;
+	ssl_ciphers  HIGH:!aNULL:!MD5;     //密码加密方式
+        ssl_prefer_server_ciphers   on;    //依赖SSLv3和TLSv1协议的服务器密码将优先于客户端密码
+
+再添加一个server将http跳转到https:
+server {
+        listen 80;
+    	# HTTPS 配置
+        rewrite ^ https://$http_host$request_uri? permanent;
+}
+
+可能错误：
+nginx: [emerg] unknown directive "ssl" 
+到nginx源代码的解压的目录下
+./configure --with-http_ssl_module
+make ，切记不能make install 会覆盖。
+把新的nginx覆盖旧的
+cp objs/nginx /usr/local/nginx/sbin/nginx
+
+测试：
+由于访问的地址必须与证书的域名相同，所以内网要测试可以使用hosts:
+修改hosts,添加:
+192.168.50.52  www.cddw.com
+
+
+
+----------------------配置参数解释---------------------
+server name 为虚拟服务器的识别路径。因此不同的域名会通过请求头中的HOST字段，匹配到特定的server块，转发到对应的应用服务器中去。
+
+server {
+	listen  80;
+	server_name www.zkh.com;
+	location / {
+		default_type text/html;
+		content_by_lua '
+			ngx.say("<p>second</p>")
+		';        
+	}
+}
+ 
+server {
+	listen 80;
+	server_name www.zkh.*;
+	location / {
+		default_type text/html;
+		content_by_lua '
+			ngx.say("<p>third</p>")
+		';
+ 
+	}
+}
+
+
+
+
 
 
