@@ -1,0 +1,81 @@
+1.安装
+sudo npm install -g cordova
+
+2.创建项目
+cordova create hello com.example.hello HelloWorld
+hello:项目文件夹名
+com.example.hello:项目包名
+HelloWorld:项目名
+
+3.添加平台信息
+Cd hello
+cordova platform add android --save
+
+要检查当前的平台集：
+cordova platform ls
+删除平台：
+cordova platform rm android
+将当前添加到项目中的所有平台的版本保存到config.xml＆package.json
+cordova platform save
+
+4.添加调用手机底层控件
+cordova plugin add cordova-plugin-device
+
+cordova-plugin-device 基本设备信息
+cordova-plugin-network-information 网络连接信息
+cordova-plugin-battery-status 电池状态信息
+cordova-plugin-device-motion 加速度信息
+cordova-plugin-device-orientation 指南针信息
+cordova-plugin-geolocation 定位数据
+cordova-plugin-camera 相机
+cordova-plugin-media-capture 媒体捕获
+cordova-plugin-media 媒体播放器
+cordova-plugin-file 访问文件
+cordova-plugin-file-transfer 文件传递
+cordova-plugin-dialogs 消息提示对话框
+cordova-plugin-vibration 振动提醒
+cordova-plugin-contacts 联系人
+cordova-plugin-globalization 全球化
+cordova-plugin-splashscreen 闪屏(启动画面)
+cordova-plugin-inappbrower 浏览器
+cordova-plugin-console 控制台
+cordova-plugin-statusbar 状态栏
+添加插件，有选择性的安装，没必要都安装...
+
+
+5.构建app
+cordova  build  android/ios/browser
+
+
+6.运行
+在浏览器中运行   cordova  run browser
+在模拟器中运行   cordova  emulate  android
+在实体机中运行  cordova  run  android
+如果出错：
+cordova requirements
+查看哪些没安装：
+如果没有gradle：
+Mac 安装gradle
+http://services.gradle.org/distributions/下载
+gradle-x.x.x-all.zip
+解压到/usr/local/
+执行 vi ~/.bash_profile 命令,添加环境变量：
+export GRADLE_HOME=/usr/local/gradle
+export PATH=$PATH:$GRADLE_HOME/bin
+执行source ~/.bash_profile 命令
+
+
+7.测试读取电池信息
+cordova plugin add cordova-plugin-battery-status
+
+当您打开 index.js 文件时，您将找到 onDeviceReady 函数。 这是应添加事件侦听器的位置。
+window.addEventListener("batterystatus", onBatteryStatus, false);
+
+我们将在 index.js 文件底部创建 onBatteryStatus 回调函数。
+function onBatteryStatus(info) {
+   alert("BATTERY STATUS:  Level: " + info.level + " isPlugged: " + info.isPlugged);
+}
+level：电池充电百分比（0-100）。（数）
+isPlugged：一个布尔值，指示设备是否已插入。（布尔值）
+
+cordova  run  android（连接好数据线，处于开发者模式）

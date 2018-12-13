@@ -79,4 +79,49 @@ implementation 'com.github.bumptech.glide:glide:4.8.0'
 annotationProcessor 'com.github.bumptech.glide:compiler:4.8.0'
 
 
+11.android:scheme(ski:m)
+作用：用户在访问我们的网页时，判断出这个用户手机上是否安装了我们的App，如果安装了则直接从网页上打开APP，否则就引导用户前往下载，从而形成一个推广上的闭环。
+APP端配置
+<activity
+    android:name=".ui.activity.ZMCertTestActivity"
+    android:label="@string/app_name"
+    android:launchMode="singleTask"
+    android:screenOrientation="portrait">
+    <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data
+            android:scheme="scheme1"
+            android:host="host1"
+            android:path="/path1"
+            android:port="8080" />
+    </intent-filter>
+</activity>
+
+1)WEB端通过调用scheme1://host1:8080/path1?query1=1&query2=true(如：window.location.href ="scheme1://host1:8080/path1?query1=1&query2=true(如：window.location.href",或使用<a href=""></a> )
+，便能打开这个Activity。其中scheme和host是必须的，另外的看需求。
+
+2)另一个APP打开
+Intent intent=new Intent(Intent.ACTION_VIEW,Uri.parse("scheme1://host1:8080/path1?query1=1&query2=true"));
+startActivity(intent);
+
+
+12.WebView
+<WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="200dp" />
+MainActivity.java中:
+	private WebView webView;
+protected void onCreate()里写：
+	webView = findViewById(R.id.webView);
+        webView.loadUrl("file:///android_asset/index.html");
+在java同级别目录下新建目录assets.
+在assets中添加index.html
+
+
+
+
+
 
