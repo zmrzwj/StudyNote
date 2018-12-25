@@ -1,0 +1,102 @@
+1.三大组件
+scene 场景
+THREE.Scene
+var scene = new THREE.Scene();
+场景是所有物体的容器，如果要显示一个苹果，就需要将苹果对象加入场景中。
+
+camera 相机
+相机决定了场景中那个角度的景色会显示出来。相机就像人的眼睛一样，人站在不同位置，抬头或者低头都能够看到不同的景色。
+Threejs中有多种相机
+透视相机（THREE.PerspectiveCamera）
+new THREE.PerspectiveCamera
+正投影相机THREE.OrthographicCamera
+正交视图无法看到一个物体是远离自己还是正在我们面前。为什么？因为它不会根据距离收缩。
+
+Renderer 渲染器
+渲染器决定了渲染的结果应该画在页面的什么元素上面，并且以怎样的方式来绘制。
+WebRenderer渲染器
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+渲染器renderer的domElement元素，表示渲染器中的画布，所有的渲染都是画在domElement上的
+
+
+2.物体
+THREE.CubeGeometry 长方体
+new THREE.CubeGeometry(1,1,1);
+CubeGeometry(width, height, depth, segmentsWidth, segmentsHeight, segmentsDepth, materials, sides)
+width：立方体x轴的长度
+height：立方体y轴的长度
+depth：立方体z轴的深度，也就是长度
+
+
+3.渲染
+渲染应该使用渲染器，结合相机和场景来得到结果画面。实现这个功能的函数是
+renderer.render(scene, camera);
+渲染函数的原型如下：
+render( scene, camera, renderTarget, forceClear )
+各个参数的意义是：
+scene：前面定义的场景
+camera：前面定义的相机
+renderTarget：渲染的目标，默认是渲染到前面定义的render变量中
+forceClear：每次绘制之前都将画布的内容给清除，即使自动清除标志autoClear为false，也会清除。
+
+渲染循环
+渲染有两种方式：实时渲染和离线渲染 。
+实时渲染：就是需要不停的对画面进行渲染，即使画面中什么也没有改变，也需要重新渲染。下面就是一个渲染循环：
+function render() {
+    cube.rotation.x += 0.1;
+    cube.rotation.y += 0.1;
+    renderer.render(scene, camera);
+    requestAnimationFrame(render);
+}
+其中一个重要的函数是requestAnimationFrame，这个函数就是让浏览器去执行一次参数中的函数，这样通过上面render中调用requestAnimationFrame()函数，requestAnimationFrame()函数又让rander()再执行一次，就形成了我们通常所说的游戏循环了。
+
+
+4.在Threejs中定义一个点
+空间几何中，点可以用一个向量来表示
+THREE.Vector3 = function ( x, y, z ) {
+	this.x = x || 0;
+	this.y = y || 0;
+	this.z = z || 0;
+};
+定义个点： new THREE.Vecotr3(4,8,9);
+也可以使用set方法，代码如下：
+var point1 = new THREE.Vector3();
+point1.set(4,8,9);
+
+
+5.LineBasicMaterial( parameters )
+定义一种线条的材质，使用THREE.LineBasicMaterial类型来定义，它接受一个集合作为参数，其原型如下
+LineBasicMaterial( parameters )
+Parameters是一个定义材质外观的对象，它包含多个属性来定义材质，这些属性是：
+Color：线条的颜色，用16进制来表示，默认的颜色是白色。
+Linewidth：线条的宽度，默认时候1个单位宽度。
+Linecap：线条两端的外观，默认是圆角端点，当线条较粗的时候才看得出效果，如果线条很细，那么你几乎看不出效果了。
+Linejoin：两个线条的连接点处的外观，默认是“round”，表示圆角。
+VertexColors：定义线条材质是否使用顶点颜色，这是一个boolean值。意思是，线条各部分的颜色会根据顶点的颜色来进行插值。（如果关于插值不是很明白，可以QQ问我，QQ在前言中你一定能够找到，嘿嘿，虽然没有明确写出）。
+Fog：定义材质的颜色是否受全局雾效的影响。
+
+定义一条线:
+new THREE.Line( geometry, material, THREE.LinePieces );
+THREE.DirectionalLight = function ( hex, intensity );
+Hex：关系的颜色，用16进制表示.
+Intensity：光线的强度，默认为1。因为RGB的三个值均在0~255之间，不能反映出光照的强度变化，光照越强，物体表面就更明亮。它的取值范围是0到1。如果为0，表示光线基本没什么作用，那么物体就会显示为黑色。呆会你可以尝试来更改这个参数，看看实际的效果.
+
+
+6.BIM(Building Information Modeling) 建筑信息模型
+bim工程师
+BIM软件：revit  AECOsim  TeklaStructures  ArchiCAD DigitalProject  SketchupBIM
+revit 
+教程：http://www.51zxw.net/list.aspx?cid=612
+
+
+
+
+
+
+
+
+
+
+

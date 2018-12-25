@@ -79,3 +79,18 @@ level：电池充电百分比（0-100）。（数）
 isPlugged：一个布尔值，指示设备是否已插入。（布尔值）
 
 cordova  run  android（连接好数据线，处于开发者模式）
+
+8.ios
+cordova platform add ios --save
+用xcode打开项目里platforms/ios目录，然后点击product/run会在模拟器里运行app
+cordova emulate ios（居然会自己找到xcode的模拟器）
+
+cordova build ios 打包
+问题：Cordova - CordovaError: Promise rejected with non-error: 'ios-deploy was not found
+解决：需要安装ios-deploy
+	sudo npm install -g ios-deploy
+问题：xcode-select: error: tool 'xcodebuild' requires Xcode, but active developer directory '/Library/Deve
+解决：以上错误是因为安装了 xcode , 但并不是系统默认的位置, 所以可以使用以下命令把 xcode 的路径修改为你安装的位置即可
+sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+红色部分就是你安装的 xcode 的自定义路径。
+

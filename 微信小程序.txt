@@ -1,0 +1,13 @@
+1.申请账号
+ https://mp.weixin.qq.com/wxopen/waregister?action=step1
+此邮箱和公众号邮箱要不同，公众号已注册的邮箱不能用作小程序账号
+
+2.安装开发工具
+https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html
+微信开发者工具，集成了公众号网页调试和小程序调试两种开发模式。
+
+使用公众号网页调试，开发者可以调试微信网页授权和微信JS-SDK 详情
+使用小程序调试，开发者可以完成小程序的 API 和页面的开发调试、代码查看和编辑、小程序预览和发布等功能。
+
+
+3.

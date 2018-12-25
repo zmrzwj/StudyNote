@@ -317,6 +317,16 @@ com.cddw.com.xs.XsApplication
             <version>1.2.50</version>
 </dependency>
 
+33.创建普通maven工程
+idea:
+点击Create New Project ->然后选择Maven->新建普通的Java工程，因此选择-quickstart,如果是新建Java web工程就选择-webapp
+->填写GroupID与ArtifactId (GroupID :com.test一般填域名, ArtifactId :一般为项目名)
+-> 点击下一步 -> 填写工程名和保存路径 -> 点击下一步，工程建好后，会自动下载Maven相关的包
+创建运行环境：
+点击Run->Edit Configurations ，接着点击 + ，在新出来的界面，点击Application
+
+
+
 
 
 

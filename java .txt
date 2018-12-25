@@ -51,3 +51,16 @@ for(int i = 0; i < list.size(); i++){
 }
 
 
+7.Java socket
+Socket 和ServerSocket 是一对  他们是java.net下面实现socket通信的类
+SocketChannel 和ServerSocketChannel是一对   他们是java.nio下面实现通信的类 支持异步通信
+
+8.Netty
+Netty 是一个基于NIO的客户、服务器端编程框架，使用Netty 可以确保你快速和简单的开发出一个网络应用，例如实现了某种协议的客户，服务端应用。Netty相当简化和流线化了网络应用的编程开发过程，例如，TCP和UDP的socket服务开发。
+https://mvnrepository.com/artifact/io.netty/netty-all 查看最新的maven仓库
+
+9.NIO中都是使用缓冲区buffer
+在基本IO操作中，所有的数据都是以流的形式操作的，而在NIO中，则都是使用缓冲区，所有的读写操作都是使用缓冲区完成的。
+所有缓冲区都是抽象类Buffer的子类。Java NIO中的Buffer主要用于与NIO通道进行交互，数据是从通道读入到缓冲区，从缓冲区写入通道中的。
+缓冲区本质上是一块可以写入数据，然后可以从中读取数据的内存。这块内存被包装成NIO Buffer对象，并提供了一组方法，用来方便的访问该块内存。
+

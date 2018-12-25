@@ -126,7 +126,7 @@ cp objs/nginx /usr/local/nginx/sbin/nginx
 
 
 ----------------------配置参数解释---------------------
-server name 为虚拟服务器的识别路径。因此不同的域名会通过请求头中的HOST字段，匹配到特定的server块，转发到对应的应用服务器中去。
+1.server name 为虚拟服务器的识别路径。因此不同的域名会通过请求头中的HOST字段，匹配到特定的server块，转发到对应的应用服务器中去。
 
 server {
 	listen  80;
@@ -150,6 +150,50 @@ server {
  
 	}
 }
+
+2.websockect nginx配置：
+其实同http：
+websockect的核心：
+Upgrade: websocket
+Connection: Upgrade
+只是要添加：
+	proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+完整设置：
+	location  /zwj/ws {
+        proxy_pass http://10.217.20.102:8080;
+
+        proxy_redirect    off;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+Wss一样在https下配置，因为ws默认端口80，wss默认端口443
+其他特点包括：
+（1）建立在 TCP 协议之上，服务器端的实现比较容易。
+（2）与 HTTP 协议有着良好的兼容性。默认端口也是80和443，并且握手阶段采用 HTTP 协议，因此握手时不容易屏蔽，能通过各种 HTTP 代理服务器。
+（3）数据格式比较轻量，性能开销小，通信高效。
+（4）可以发送文本，也可以发送二进制数据。
+（5）没有同源限制，客户端可以与任意服务器通信。
+（6）协议标识符是ws（如果加密，则为wss），服务器网址就是 URL。
+
+
+3.php配置
+	location ~ \.php$ {
+		include snippets/fastcgi-php.conf;
+		include fastcgi_params;
+	
+		fastcgi_pass unix:/run/php/php7.0-fpm.sock;
+		fastcgi_param channel $http_channel;
+		fastcgi_read_timeout 300;
+	}
+
+
 
 
 

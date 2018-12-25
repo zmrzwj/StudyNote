@@ -102,5 +102,149 @@ module.exports = {
 
 9.Linter/Formatter 支持代码风格检查和格式化。
 
+10.socket.io
+npm install vue-socket.io --save
+在main.js中注册
+import VueSocketio from 'vue-socket.io'
+Vue.use(VueSocketio, 'http://xxx.xxx.com:2018');//这里的url是后台提供的socket的地址
+组件中使用socket
+new Vue({
+    sockets: {
+        connect: function () {
+            console.log('socket connected')
+        },
+        customEmit: function (data) {
+            console.log('this method was fired by the socket server. eg: io.emit("customEmit", data)')
+        }
+    },
+    methods: {
+        clickButton: function (data) {
+            // $socket is socket.io-client instance
+            this.$socket.emit('emit_method', data)
+        }
+    }
+})
+服务端：
+ws.on('connection',(sock)=>{
+  sock.on('a',(num1,num2)=>{
+    console.log(`${num1},${num2}`)
+  })
+})
+
+emit命令：
+   a）命令可以只有一个名字
+　　　　io.emit('自命名')
+　　
+　　b）命令可以除了名字还有数据
+　　　　io.emit('自命名',a)
+ 
+　　c）命令可以除了名字还有多个数据
+　　　　io.emit('自命名',a，b，c，...，d)
+ 
+　　d）命令可以除了名字还有回调函数
+　　　　io.emit('自命名',data，function(a,b){ } )
+
+on命令：
+   a）命令可以只有一个名字
+　　　　socket.on('自命名'，function(){ } )
+　　
+　　b）命令可以除了名字还有数据
+　　　　socket.on('自命名',  function(data){  } )
+ 
+　　c）命令可以除了名字还有多个数据
+　　　　socket.on('自命名',  function(a,b,c,...,d){  } )
+ 
+　　d）命令可以除了名字数据还有回调函数
+　　　　socket.on('自命名',  function(data，fn){  fn(a,b);  })
+on是监听某个地址，emit向地址发送数据
+
+
+11.vue-resource
+import VueResource from 'vue-resource'
+Vue.use(VueResource)
+	this.$http({
+            url: '',
+            method: 'POST',
+            // 请求体重发送的数据
+            data: {
+                cat: 1
+            },
+            // 设置请求头
+            headers: {
+                'Content-Type': 'x-www-from-urlencoded'
+            }
+        }).then(function () {
+            // 请求成功回调
+        }, function () {
+            // 请求失败回调
+        });
+vue-resource 提供的便捷方法：
+get(url, [data], [options]);
+post(url, [data], [options]);
+put(url, [data], [options]);
+patch(url, [data], [options]);
+delete(url, [data], [options]);
+jsonp(url, [data], [options]);
+   this.$http.post(
+    	'http://example.com', 
+    	// 请求体重发送数据给服务端
+    	{
+        	cat: 1,
+        	name: 'newBook'
+    	},{
+        	'headers': {
+                'Content-Type': 'x-www-form-urlencoded'
+        }
+    	}).then(function () {
+        	// 成功回调
+    	}, function () {
+        	// 失败回调
+    	});
+
+
+12.vuex
+npm install vex
+import Vuex from 'vuex'
+Vue.use(Vuex)
+export default new Vuex.Store({
+  state: {
+      count:1
+  },
+  getters:{
+        //到处都需要对count执行，某种操作时，将其写在getters中
+	getCount(state){
+		return state.count
+	}
+  },
+  mutations: {
+      //同步函数
+      increment(){
+          this.state.count++
+      }
+  },
+  actions: {
+      //异步函数处理
+      incrementAsync ({ commit }) {
+          setTimeout(() => {
+              commit('increment')
+          }, 1000)
+      }
+  }
+})
+在组件使用：this.$store.state.count访问count
+调用increment函数：this.$store.commit("increment")
+调用incrementAsync函数：this.$store.dispatch("incrementAsync")
+调用getCount函数：this.$store.getters.getCount
+
+
+使用mapState，mapGetters，mapActions
+import {mapState,mapGetters,mapActions} from 'vuex'; 
+...mapState({//对象展开运算符
+    // ...
+})
+
+
+
+
 
 
