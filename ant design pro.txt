@@ -1,0 +1,30 @@
+1.安装
+git clone --depth=1 https://github.com/ant-design/ant-design-pro.git my-project
+//depth用于指定克隆深度，为1即表示只克隆最近一次commit
+
+2.安装依赖
+npm install
+
+
+3.ant-design-vue vue版
+npm install ant-design-vue --save
+
+ant-design-vue-pro 管理平台
+git clone --depth=1 https://github.com/ruyangit/seed-workbench-ui.git
+
+npm install
+npm run serve
+npm run build
+
+
+4.AntV
+主要包含「数据驱动的高交互可视化图形语法」G2
+专注解决流程与关系分析的图表库 G6
+移动端图表库 F2
+地理空间数据可视化 L7 
+
+5.g2
+npm install g2 --save
+// 关闭 G2 的体验改进计划打点请求
+G2.track(false)
+

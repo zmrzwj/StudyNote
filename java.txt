@@ -1,0 +1,168 @@
+1.java安装
+Java 在/usr/local/java/，已卸载 环境变量在/etc/profile  source /etc/profile
+Java 在/usr/local/java/jdk8
+查看需要卸载掉包
+rpm -qa|grep java
+rpm -e -nodeps java-1.8.0-openjdk-1.8.0.191.b12-0.el7_5.x86_64
+(openjdk-headless也卸载了，其它的就不卸载了)
+
+
+
+下载jdk-8u171-linux-x64.tar.gz
+
+在/usr/local/下mkdir java
+把jdk-8u171-linux-x64.tar.gz移动到/usr/local/java下
+tar -zxvf jdk-8u171-linux-x64.tar.gz
+修改/etc/profile,在末尾添加
+export JAVA_HOME=/usr/local/java/jdk8
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export PATH=$JAVA_HOME/bin:$PATH
+等号与变量和路径之间不要加空格
+
+2.Java数组字符串输出
+System.out.println(Arrays.toString(array));
+
+
+3.字符流与字节流
+字符与字节，‘a’是字符，97是字节。
+字符流处理的单元为2个字节的Unicode字符，分别操作字符、字符数组或字符串。
+所有文件的储存是都是字节（byte）的储存。
+字节流在操作时不会用到缓冲区（内存），是直接对文件本身进行操作的。而字符流在操作时使用了缓冲区，通过缓冲区再操作文件。 
+字符流其实是通过转换流变化为字节流再进行IO操作。
+字符流到文件流的转换Java提供了两个转换流：InputStreamReader和OutputStreamWriter。
+为了提高数据的传输效率，特意引入缓冲流(Buffered Stream)的概念，为每一个流配置一个缓冲(Buffered)，BufferedReader类 ，BufferedWriter类。
+
+4.add-ons:译为附加软件，即插件，外挂的意思。
+
+5.TreeMap
+TreeMap 是一个有序的key-value集合，它是通过红黑树实现的.
+Iterator<Map.Entry<String, String>> iterator = map.entrySet().iterator();
+while (iterator.hasNext()) {
+    Map.Entry<String, String> entry = iterator.next();
+    System.out.println(entry.getKey() + "　：" + entry.getValue());
+}
+Map遍历最快。
+
+
+6.List遍历
+LinkedList 使用迭代器较快
+Iterator<String> it = list.iterator();
+while(it.hasNext()){
+    System.out.println(it.next());
+}
+ArrayList 使用get(index)
+List<String> list = new ArrayList<String>();
+for(int i = 0; i < list.size(); i++){
+    System.out.println(list.get(i));
+}
+
+
+7.Java socket
+Socket 和ServerSocket 是一对  他们是java.net下面实现socket通信的类
+SocketChannel 和ServerSocketChannel是一对   他们是java.nio下面实现通信的类 支持异步通信
+
+8.Netty
+Netty 是一个基于NIO的客户、服务器端编程框架，使用Netty 可以确保你快速和简单的开发出一个网络应用，例如实现了某种协议的客户，服务端应用。Netty相当简化和流线化了网络应用的编程开发过程，例如，TCP和UDP的socket服务开发。
+https://mvnrepository.com/artifact/io.netty/netty-all 查看最新的maven仓库
+
+9.NIO中都是使用缓冲区buffer
+在基本IO操作中，所有的数据都是以流的形式操作的，而在NIO中，则都是使用缓冲区，所有的读写操作都是使用缓冲区完成的。
+所有缓冲区都是抽象类Buffer的子类。Java NIO中的Buffer主要用于与NIO通道进行交互，数据是从通道读入到缓冲区，从缓冲区写入通道中的。
+缓冲区本质上是一块可以写入数据，然后可以从中读取数据的内存。这块内存被包装成NIO Buffer对象，并提供了一组方法，用来方便的访问该块内存。
+
+
+10.volatile 英 [ˈvɒlətaɪl] 
+可见性
+一个线程对变量更新，另外一个线程是否可以看见这个更新了的值.
+为什么不可见
+计算机为了提高整体运行效率，使得CPU不会直接与内存（主存）进行通信，会先使用缓存替代主存。
+使用缓存好处主要两点：一，缓存读写数据比内存读写数据速度更快，能更好地被CPU使用。二，如果缓存可以部分满足CPU对主存的需要，那么就会降低主存的读写频率，意味着降低总线的繁忙程度，整体上提高机器的执行速度。
+缓存有优点，但是同样也会带来一些问题：因为线程之间通过主存通信，主存是可以被多个CPU共享访问的，而缓存只能供当前的CPU访问，关键问题是一个缓存与主存同步数据的频率是没有严格约束的，那么也就是说CPU之间无法及时看到彼此最新更新的数据.
+
+有volatile变量修饰的共享变量进行写操作的时候会使用lock汇编指令，而lock指令(默认场景为多核处理器下)会引发了三件事情：
+将当前处理器缓存行的数据会写回到系统主存。
+写回主存操作会接着使其他存储了这个变量的缓存数据失效（缓存一致性协议保证）。
+禁止某些指令的重排序.
+i++并非是单个操作，所以并不能原子性完成。
+
+什么是重排序
+在JMM中，编译器(包括JIT)、CPU、缓存被允许做一些代码指令的重新排序以达到优化性能的目的。
+
+helper=new Helper
+操作1:分配内存空间
+操作2:初始化Helper对象
+操作3:将helper引用指向内存空间
+
+
+11.@Repository注解的作用及含义
+@Repository注解非常重要，它将类在web应用程序中的位置标识出来了，同时也让spring容器扫描的时候能将这个类找到并归入到可以使用自动注入的类中。
+注解还有@Service和@Controller，本质相同由于功能不同以不同名字区分。
+@Component 是一个泛化的概念，仅仅表示一个组件 (Bean) ，可以作用在任何层次。
+@Service 通常作用在业务层，但是目前该功能与 @Component 相同。
+@Constroller 通常作用在控制层，但是目前该功能与 @Component 相同。
+
+以上注解配合@Autowired实现自动注入实例，就不用自己在写new xxx;
+
+
+12.JSSE
+Java安全套接字扩展
+JSSE提供的加密功能
+密码算法	加密过程	密钥长度（位）
+RSA	身份验证和密钥交换	512或更大
+RC4	批量加密	128 128（40有效）
+DES	批量加密	64（56有效）64（40有效）
+三重DES	批量加密	192（112有效）
+AES	批量加密	256  128
+Diffie-Hellman	重要协议	1024，512
+DSA	认证	1024
+SunJSSE实现使用Java Cryptography Extension（JCE）来实现其所有加密算法
+
+13.JCA（Java Cryptography Architecture ）不含加密功能的
+JCE，Java Cryptography Extension 含加密功能的
+在早期JDK版本中，由于受美国的密码出口条例约束，Java中涉及加解密功能的API被限制出口，所以Java中安全组件被分成了两部分: 不含加密功能的JCA（Java Cryptography Architecture ）和含加密功能的JCE（Java Cryptography Extension）,在JDK1.1-1.3版本期间，JCE属于扩展包，仅供美国和加拿大的用户下载，JDK1.4+版本后，随JDK核心包一起分发.
+JCE的API都在javax.crypto包下.
+加解密功能由Cipher组件提供，其也是JCE中最核心的组件。
+JCA API在java.security下.
+清单：
+com.sun.security.auth.module	JndiLoginModule	Performs username/password authentication using LDAP or NIS
+com.sun.security.auth.module	KeyStoreLoginModule	Performs authentication based on key store login
+com.sun.security.auth.module	Krb5LoginModule	Performs authentication using Kerberos protocols
+java.lang	SecurityException	Indicates a security violation
+java.lang	SecurityManager	Mediates all access control decisions
+java.lang	System	Installs the SecurityManager
+java.security	AccessController	Called by default implementation of SecurityManager to make access control decisions
+java.security	Key	Represents a cryptographic key
+java.security	KeyStore	Represents a repository of keys and trusted certificates
+java.security	MessageDigest	Represents a message digest
+java.security	Permission	Represents access to a particular resource
+java.security	Policy	Encapsulates the security policy
+java.security	Provider	Encapsulates security service implementations
+java.security	Security	Manages security providers and security properties
+java.security	Signature	Creates and verifies digital signatures
+java.security.cert	Certificate	Represents a public key certificate
+java.security.cert	CertStore	Represents a repository of unrelated and typically untrusted certificates
+java.security.cert	CRL	Represents a CRL
+javax.crypto	Cipher	Performs encryption and decryption
+javax.crypto	KeyAgreement	Performs a key exchange
+javax.net.ssl	KeyManager	Manages keys used to perform SSL/TLS authentication
+javax.net.ssl	SSLEngine	Produces/consumes SSL/TLS packets, allowing the application freedom to choose a transport mechanism
+javax.net.ssl	SSLSocket	Represents a network socket that encapsulates SSL/TLS support on top of a normal stream socket
+javax.net.ssl	TrustManager	Makes decisions about who to trust in SSL/TLS interactions (for example, based on trusted certificates in key stores)
+javax.security.auth	Subject	Represents a user
+javax.security.auth.kerberos	KerberosPrincipal	Represents a Kerberos principal
+javax.security.auth.kerberos	KerberosTicket	Represents a Kerberos ticket
+javax.security.auth.kerberos	KerberosKey	Represents a Kerberos key
+javax.security.auth.kerberos	KerberosTab	Represents a Kerberos keytab file
+javax.security.auth.login	LoginContext	Supports pluggable authentication
+javax.security.auth.spi	LoginModule	Implements a specific authentication mechanism
+javax.security.sasl	Sasl	Creates SaslClient and SaslServer objects
+javax.security.sasl	SaslClient	Performs SASL authentication as a client
+javax.security.sasl	SaslServer	Performs SASL authentication as a server
+org.ietf.jgss	GSSContext	Encapsulates a GSS-API security context and provides the security services available via the context
+
+
+
+
+
+
+

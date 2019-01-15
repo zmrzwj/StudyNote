@@ -244,6 +244,185 @@ import {mapState,mapGetters,mapActions} from 'vuex';
 })
 
 
+13.路由懒加载
+方法1:
+需要plugin-syntax-dynamic-import
+npm install --save-dev @babel/plugin-syntax-dynamic-import
+const Foo = () => import('./Foo.vue')
+或
+const Warning = () => import(/* webpackChunkName: "group-Warning" */ './views/Warning');
+
+方法2:
+const Expert = resolve => require(['./views/Expert'], resolve);
+
+打包后js文件和css文件都会单独成一个文件
+
+
+14.图片资源加载
+ <img :src="logo"/>
+	data(){
+            return {
+                logo:require("../../assets/logo.png")
+            }
+        }
+
+
+15.history模式
+history模式需要后台配合
+nginx请配置：
+location /{
+    try_files $uri $uri/ /index.html;
+}
+try_files 用于按序检测文件是否存在，并返回第一个找到的文件，如果没有就继续往下匹配。
+$uri  当用户请求 http://blog.csdn.net/example 时，这里的 $uri 就是 /example。
+$uri/，增加了一个 /，也就是看有没有名为 /$root/example/ 的目录。
+又找不到，就会到 ry_files的最后一个选项 /index.html，发起一个内部 “子请求”，也就是相当于nginx发起一个 HTTP请求到 http://localhost/index.html。
+
+
+16.slot
+子组件：
+<template>
+    <div class="example">
+        <a-spin tip="Loading..." size="large"/>
+    </div>
+</template>
+<script>
+    export default {
+        name: "loading",
+    }
+</script>
+父组件：
+<Loading v-show="this.$store.state.loadingFlag">
+    <div>123</div>
+</Loading>
+其中的123不会显示，不会编译进Dom
+除非在子组件添加<slot></slot>（匿名插槽）
+
+<template>
+    <div class="example">
+        <a-spin tip="Loading..." size="large"/>
+	<slot></slot>
+    </div>
+</template>
+则<div>123</div>会取代子组件的<slot></slot>
+
+具名插槽
+<slot name="zwj"></slot>
+使用：<div slot=zwj>123</div>
+
+作用域插槽 
+我们可以叫它带数据的插槽
+匿名插槽
+<slot></slot>
+具名插槽
+<slot name="up"></slot>
+作用域插槽要求，在slot上面绑定数据
+<slot name="up" :data="data"></slot>
+在父组件：
+<child>
+      <template slot-scope="user">
+        <ul>
+          <li v-for="item in user.data">{{item}}</li>
+        </ul>
+      </template>
+</child>
+使用slot-scope接收子组件的数据
+
+
+17.vue使用animate.css
+npm install animate.css --save
+import animate from 'animate.css'
+Vue.use(animate)
+使用：
+    <transition name="fade"
+      enter-active-class="zoomIn"
+      leave-active-class="zoomOut">
+      <img v-show="show" class="animated" src="./assets/logo.png">
+    </transition>
+注意：class="animated" 必须要
+或写出如下形式：
+<transition name="fade"
+  enter-active-class="animated zoomIn"
+  leave-active-class="animated zoomOut">
+  <img v-show="show" src="./assets/logo.png">
+</transition>
+设置延时：
+class="animated delay-2s"
+
+多个元素切换时，需要通过 key 特性设置唯一的值来标记以让 Vue 区分它们
+<transition
+      enter-active-class="slideInRight"
+      leave-active-class="slideOutLeft">
+      <div id="div1" class="animated"  v-if="index === 1" key="div1">组件1</div>
+      <div id="div2" class="animated"  v-else key="div2">组件2</div>
+    </transition>
+
+列表过渡
+    <transition-group name="list" tag="p"
+      enter-active-class="animated rotateInUpLeft"
+      leave-active-class="animated rotateOutDownLeft position-absolute">
+      <span v-for="item in items" v-bind:key="item" class="list-item">
+        {{ item }}
+      </span>
+    </transition-group>
+
+  /** 方块元素的样式 **/
+  .list-item {
+    display: inline-block;
+    margin-right: 10px;
+    background-color: orange;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    color: #ffffff;
+  }
+  /** 移除过程中位置固定（确保排序过渡正常） **/
+  .position-absolute {
+  	position: absolute;
+  }
+  /*** 元素定位改变时动画 ***/
+  .list-move {
+	transition: transform 1s;
+  }
+
+v-move 特性，它会在元素的改变定位的过程中应用。像之前的类名一样，可以通过 name 属性来自定义前缀，也可以通过 move-class 属性手动设置。
+transition-group name="list"
+使用：.list-move定义v-move
+
+自定义动画时长
+<img v-show="show" class="animated fastest" src="./assets/logo.png">
+<style>
+.animated.fastest {
+  -webkit-animation-duration: 200ms;
+  animation-duration: 200ms;
+}
+
+animate 默认提供了如下 4 个样式来加快或减缓动画的播放：
+slow：动画持续 2 秒
+slower：动画持续 3 秒
+fast：动画持续 800 毫秒
+faster：动画持续 500 毫秒
+
+
+18.export函数
+ajax.js
+export function ajax(){
+}
+
+使用
+import {ajax} from "./ajax.js";
+
+
+19.history模式下请使用“/”,不要再配置“./”了。
+不然子路由会跳转错误。
+
+
+20.vue-router 404页面
+const My404 = resolve => require(['./components/404/404'], resolve);
+{path:'*',component:My404}
+
+
 
 
 

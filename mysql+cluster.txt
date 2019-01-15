@@ -57,7 +57,7 @@ chown -R mysql:mysql mysql/
 (可能问题：libaio.so.1: cannot open shared object file解决方法
 缺少安装包libaio和libaio-devel.命令行yum install libaio*。（apt-get install libaio*）自动安装这两个包)
 会有一行：
-2018-06-01T02:10:16.805014Z 1 [Note] A temporary password is generated for root@localhost: -;PRuEYe<7h8  gysQ5dRwr6/j
+2018-06-01T02:10:16.805014Z 1 [Note] A temporary password is generated for root@localhost: -;PRuEYe<7h8  gysQ5dRwr6/j q=rreO+oO8J=
 -;PRuEYe<7h8是初始的随机密码。
 
 设置开机启动：
@@ -89,7 +89,7 @@ SUCCESS!
 mysql -u root -p
 初始密码为：上面mysqld --initialize时root@localhost:后的随机字符串。
 登上后，请修改密码：
-set password = password("uestc@123456");
+set password = password("uestc@123456");(修改当前密码)
 
 mysql -u root -p登录错误：
 请把mysql整个chown给mysql用户
@@ -103,6 +103,7 @@ flush privileges;
  create user 'cddw'@'%' identified by 'uestc@123';
 授权：
 grant select on XS.* to 'cddw'@'%';//对数据库XS只有select权限
+grant select,insert,update,delete on EHome.* to 'cddw'@'%';
 
 Mysql5.7user表没有password字段了，改为authentication_string
 
@@ -369,6 +370,12 @@ ib_logfile1
 如果出现：the server quit without updating pid file .....
 请把你刚拷贝进来的数据的所有者给mysql:
 执行：chown -R mysql:mysql mysql/
+
+
+8.视图
+视图（view）是一种虚拟存在的表，是一个逻辑表，本身并不包含数据。作为一个select语句保存在数据字典中的。
+使用视图的用户完全不需要关心后面对应的表的结构、关联条件和筛选条件，对用户来说已经是过滤好的复合条件的结果集。
+create view v_name as select xxx from xxx where xxx;
 
 
 

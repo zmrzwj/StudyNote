@@ -92,4 +92,10 @@ edit configurations,然后选择remote,添加-agentlib:jdwp=transport=dt_socket,
 前提是先在project structure的artifacts配置好了xxx.jar（如果没有点击+,选JAR,选from modules with dependencies...）
 
 
+10.使用注意：
+最多给Spark分配75%的内存。
+如果你的单机内存大于200GB，建议在单个节点上启动多个worker JVM。
+
+
+
 	

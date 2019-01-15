@@ -42,3 +42,51 @@ mac系统各种一般自带apache服务以及php环境，但是当我们访问�
 5.echarts折线平滑
 贝塞尔曲线路径平滑算法
 
+
+6.获取width和height
+第一种通过内联样式
+    var box = document.getElementById('box');
+    var w = box.style.width;
+    var h = box.style.height;
+获取实际的大小
+clientWidth和clientHeight
+    var w = box.clientWidth;
+    var h = box.clientHeight;
+
+
+7.display: flex;
+水平居中
+	justify-content: center;
+垂直居中
+        align-items: center;
+
+
+8.es6 proxy
+proxy(target, handle)会拦截target对象的方法，如：get, set, apply,has等
+	    var data = {
+                zwj:1
+            }
+
+            var p = new Proxy(data,{
+                "get":function(target,key,proxy){
+                    const today = new Date();
+                    console.log(`GET request made for ${key} at ${today}`);
+                    console.log("target",target);
+                    console.log("key",key);
+                    console.log("proxy",proxy);
+                    return target[key]
+                },
+                "set":function (target, key, value, proxy) {
+                    console.log("target",target);
+                    console.log("key",key);
+                    console.log("value",value);
+                    console.log("proxy",proxy);
+
+                    target[key] = value
+                    return target;
+                }
+            })
+
+            p.zwj = 3;
+
+

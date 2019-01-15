@@ -63,7 +63,7 @@ Git push origin master:zwj
 
 //默认情况master分支不允许push
 git clone http://www.sccps.cn:82/xs/xs-intelligence-system.git后
-git checkout -b xxx(你名字的首字母，如邓带雨，git checkout -b ddy)(这步首创建分支并切换到此分子)
+git checkout -b xxx(你名字的首字母，如邓带雨，git checkout -b ddy)(这步是创建分支并切换到此分子)
 
 以后提交代码：
 git push -u origin xxx(如邓带雨，git push -u origin ddy)
@@ -77,6 +77,103 @@ $ tar -zxf git-1.7.2.2.tar.gz
 $ cd git-1.7.2.2
 $ make prefix=/usr/local all
 $ sudo make prefix=/usr/local install
+
+
+---------------centos7-------------
+前提条件：安装git
+离线下载依赖：
+yumdownloader openssh-server openssh-clients postfix cronie policycoreutils-python --resolve --destdir=/home/gitlab
+打包：
+tar -zcvf ./gitlab.tar.gz  gitlab/
+
+下载gitlab-ce
+https://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/yum/el7/
+
+下载汉化包：
+git clone https://gitlab.com/xhang/gitlab.git
+指定汉化包版本下载：
+git clone https://gitlab.com/xhang/gitlab.git -b v11.6.0-zh
+查看版本
+cat gitlab/VERSION
+汉化版本需与gitlab-ce版本一致
+
+安装：
+1.安装依赖：
+Cd /home/gitlab
+rpm -Uvh *.rpm --nodeps --force
+
+2.启动postfix，并设置为开机启动 (邮件服务)
+systemctl start postfix
+systemctl enable postfix
+
+3.安装gitlab-ce rpm包
+rpm -i gitlab-ce-11.6.0-ce.0.el7.x86_64.rpm
+
+4.执行指令配置gitlab。 
+gitlab-ctl reconfigure
+
+
+5.修改配置文件gitlab.rb
+vim /etc/gitlab/gitlab.rb
+将external_url变量的地址修改为gitlab所在centos的ip地址
+将nginx['listen_port'] = 8888
+修改端口：
+cd /var/opt/gitlab/nginx/conf
+vim gitlab-http.conf
+server {
+  listen *:8888;
+
+
+6.修改了配置文件，故需要重新加载配置内容。
+gitlab-ctl reconfigure
+gitlab-ctl restart
+
+7.查看gitlab版本 
+head -1 /opt/gitlab/version-manifest.txt
+gitlab-ce 11.6.0
+
+8.覆盖汉化包
+停止gitlab服务
+gitlab-ctl stop
+
+9.切换到gitlab汉化包所在的目录（即步骤二获取的汉化版gitlab） 
+cd /home/gitlab
+
+10.比较安装版与汉化版的区别，导出 patch 用的 diff 文件到/home下 
+git diff v11.6.0 v11.6.0-zh > ../11.6.0-zh.diff
+问题：
+    File to patch:
+	#这是因为补丁中有一些较新的文件，但是我们安装的gitlab并没有这个文件存在
+	#所以解决方法就是：跳过！！！
+	#跳过！！！
+	#跳过！！！
+	#跳过！！！
+	#出现这个错误时，一直按着回车跳过就行了！！！！
+
+
+11.将10.0.2-zh.diff作为补丁更新到gitlab中 
+yum install patch -y
+patch -d /opt/gitlab/embedded/service/gitlab-rails -p1 < 11.6.0-zh.diff
+注意：此代码有个错在app/helpers/members_helper.rb中最后多了一个end导致语法错误
+vim /opt/gitlab/embedded/service/gitlab-rails/app/helpers/members_helper.rb
+删除最后一个end（真是的，故意加的错吗，真讨厌）
+
+12.启动gitlab
+gitlab-ctl start
+
+13.重新配置gitlab 
+gitlab-ctl reconfigure
+
+
+14.访问http://192.168.50.51:8888
+问题：汉化后 502
+请使用gitlab-ctl tail unicorn查看错误信息,如果是members_helper.rb语法错误，检测错误信息。
+
+15.第一次访问会要求你改密码：
+改为uestc@123456
+
+
+
 
 
 

@@ -292,9 +292,17 @@ public class XsApplication extends SpringBootServletInitializer {
                 </exclusion>
             </exclusions>
 </dependency>
+或
+<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
+</dependency>
 在project settings点击artifacts:
 点击+，选择web application archive,勾选include in project build(或Build on make,视idea版本而定，勾选了才会产生war包不然就是个目录)，在下面点击+号选择Directory Content，选择你的项目目录整个目录哟，点击ok.
 点击build->Build Artifacts，选xs.war(war与war exploded的区别见6，如果没有先build一次idea会自动生成war和war exploded)，如果是第二次build就选择rebuild。
+
+server.contextPath=/prefix/其中prefix为前缀名。这个前缀会在war包中失效，取而代之的是war包名称。
 
 问题：Error:(12, 8) java: 无法访问javax.servlet.ServletException 找不到javax.servlet.ServletException的类文件
 Pom.xml添加
@@ -324,6 +332,58 @@ idea:
 -> 点击下一步 -> 填写工程名和保存路径 -> 点击下一步，工程建好后，会自动下载Maven相关的包
 创建运行环境：
 点击Run->Edit Configurations ，接着点击 + ，在新出来的界面，点击Application
+
+
+33.spring boot jdbc连接池
+<dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-jdbc</artifactId>
+</dependency>
+如果添加以上依赖那么已默认启用了数据库链接池
+常用连接池：dbcp,dbcp2，druid,c3p0,hikari
+hikari是性能最强的连接池，优化力度大。
+#指定数据源
+spring.datasource.type=com.zaxxer.hikari.HikariDataSource
+#指定连接维护的最小空闲连接数，当使用HikariCP时指定.
+spring.datasource.hikari.minimum-idle=10
+#指定连接池最大的连接数，包括使用中的和空闲的连接.
+spring.datasource.hikari.maximum-pool-size=30
+#指定连接池等待连接返回的最大等待时间，毫秒单位.
+spring.datasource.hikari.max-lifetime=500000
+
+
+34.springboot项目结构
+在com.xxx.xxx下
+entity
+    usr类
+service
+    使用dao的数据做逻辑操作
+dao
+    usrDao为接口
+    usrDaoImpl实现其接口
+controller
+    实现接口映射@REstController
+
+
+
+35.springboot拦截器
+与SpringBootApplication同级目录
+创建：TokenInterceptor类
+@Component
+public class TokenInterceptor implements HandlerInterceptor {
+
+	@Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler){}
+}
+再创建TokenConfig：
+@Configuration
+public class TokenConfig implements WebMvcConfigurer {
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new TokenInterceptor()).addPathPatterns("/**").excludePathPatterns("/login");
+    }
+}
+注意：这个路径不考虑server.servlet.context-path=/xxx添加的前缀。
 
 
 

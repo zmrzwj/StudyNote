@@ -136,6 +136,14 @@ rpm在/var/cache/yum/x86_64/7/base/packages/下
 tar -zcvf /home/perl-ExtUtils-MakeMaker.tar.gz ./packages/
 然后进入目录：
 rpm -Uvh *.rpm --nodeps --force
+U, --upgrade
+i, --install                     
+-v, --verbose 显示详细信息
+-h, --hash.   安装时以#显示安装进度
+--test    安装测试，并不实际安装
+--nodeps  忽略软件包的依赖关系强行安装
+--force   忽略软件包及文件的冲突
+--percent	以百分比的形式输出安装的进度
 
 16.yum下载安装包及其依赖不安装
 1)yum install --downloadonly xxx
@@ -152,6 +160,27 @@ ethtool enp3s1
 1)yum -y install peel-release
 2)yum -y install rtfs-3g
 3)grub2-mkconfig -o /boot/grub2/grub.cfg
+
+
+19.du -sh * 查看目录大小
+
+
+20.高并发linux参数调整
+ulimit -n 100000.    增大单个进程可以打开的最多文件描述符
+File-max /proc/sys/fs/file-max 是系统级别的，系统所有进程一共可以打开的文件数量。
+
+
+21.nc命令
+连接服务器端口
+nc 127.0.0.1 7878
+
+nc -l 8800
+功能：在本机上开启一个TCP服务器端口8800
+
+nc -nvz 127.0.0.1 500-505
+功能：扫描地址127.0.0.1上的500-505端口
+
+
 
 
 
