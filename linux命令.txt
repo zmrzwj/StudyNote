@@ -181,6 +181,40 @@ nc -nvz 127.0.0.1 500-505
 功能：扫描地址127.0.0.1上的500-505端口
 
 
+22.centos静态ip设置
+/etc/sysconfig/network-scripts/
+
+
+
+23.centos定时任务
+确认已安装crontab
+若没有安装请按命令安装
+yum install crontabs
+编辑定时任务：
+#crontab -e 
+0 4 * * *  /usr/local/bin/python /opt/aa.py
+M H D m d command
+M: 分（0-59） 
+H：时（0-23）
+D：天（1-31）
+m: 月（1-12）
+d: 周（0-6） 0为星期日
+（注意：python，aa.py请使用绝对路径）
+
+到秒级的定时任务：(每10秒执行一次)
+* * * * * /usr/local/bin/python /opt/aa.py
+* * * * * sleep 10; /usr/local/bin/python /opt/aa.py
+* * * * * sleep 20; /usr/local/bin/python /opt/aa.py
+* * * * * sleep 30; /usr/local/bin/python /opt/aa.py
+* * * * * sleep 40; /usr/local/bin/python /opt/aa.py
+* * * * * sleep 50; /usr/local/bin/python /opt/aa.py
+
+重新启动crond
+service crond restart
+
+
+
+
 
 
 

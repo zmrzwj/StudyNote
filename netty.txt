@@ -125,6 +125,167 @@ maven的pom中加入
 Hex.encodeHexString(receiveMsgBytes)
 
 
+14.netty客户端管理
+使用concurrentHashmap来管理
+
+
+15.maven工程打包为jar包
+pom配置
+<build>
+        <plugins>
+	    <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source><!-- 源代码使用的JDK版本 -->
+                    <target>1.8</target><!-- 需要生成的目标class文件的编译版本 -->
+                    <encoding>UTF-8</encoding><!-- 字符集编码 -->
+                </configuration>
+            </plugin>
+
+		<!-- 使用maven-assembly-plugin插件打包，包含项目本身的代码、资源以及所有的依赖包 -->
+	    <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>server.server</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+            </plugin>
+
+        </plugins>
+</build>
+
+在项目第一个目录下运行：
+mvn package assembly:single
+打包后会在target目录下生成一个xxx-jar-with-dependencies.jar文件。
+通过java -jar xxx.jar来运行
+
+如果想直接通过
+mvn package打包
+	<plugin>  
+            <groupId>org.apache.maven.plugins</groupId>  
+            <artifactId>maven-assembly-plugin</artifactId>  
+            <configuration>  
+                <archive>  
+                    <manifest>  
+                        <mainClass>xxg.Main</mainClass>  
+                    </manifest>  
+                </archive>  
+                <descriptorRefs>  
+                    <descriptorRef>jar-with-dependencies</descriptorRef>  
+                </descriptorRefs>  
+            </configuration>  
+            <executions>  
+                <execution>  
+                    <id>make-assembly</id>  
+                    <phase>package</phase>  
+                    <goals>  
+                        <goal>single</goal>  
+                    </goals>  
+                </execution>  
+            </executions>  
+        </plugin>   
+
+如果项目中用到spring Framework，用这种方式打出来的包运行时会出错
+使用maven-shade-plugin插件打包
+<build>  
+    <plugins>  
+  
+        <plugin>  
+            <groupId>org.apache.maven.plugins</groupId>  
+            <artifactId>maven-shade-plugin</artifactId>    
+            <executions>  
+                <execution>  
+                    <phase>package</phase>  
+                    <goals>  
+                        <goal>shade</goal>  
+                    </goals>  
+                    <configuration>  
+                        <transformers>  
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">  
+                                <mainClass>xxx.Main</mainClass>  
+                            </transformer>  
+                        </transformers>  
+                    </configuration>  
+                </execution>  
+            </executions>  
+        </plugin>  
+  
+    </plugins>  
+</build>  
+
+将依赖打到一个jar包中，运行时会出现读取XML schema文件出错。原因是Spring Framework的多个jar包中包含相同的文件spring.handlers和spring.schemas，如果生成一个jar包会互相覆盖。为了避免互相影响，可以使用AppendingTransformer来对文件内容追加合并.
+<build>  
+    <plugins>  
+  
+        <plugin>  
+            <groupId>org.apache.maven.plugins</groupId>  
+            <artifactId>maven-shade-plugin</artifactId>  
+            <executions>  
+                <execution>  
+                    <phase>package</phase>  
+                    <goals>  
+                        <goal>shade</goal>  
+                    </goals>  
+                    <configuration>  
+                        <transformers>  
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">  
+                                <mainClass>com.xxg.Main</mainClass>  
+                            </transformer>  
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">  
+                                <resource>META-INF/spring.handlers</resource>  
+                            </transformer>  
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">  
+                                <resource>META-INF/spring.schemas</resource>  
+                            </transformer>  
+                        </transformers>  
+                    </configuration>  
+                </execution>  
+            </executions>  
+        </plugin>  
+    </plugins>  
+</build>  
+
+
+16.netty解码器
+ByteToMessageDecoder
+累加字节流
+调用子类的decode方法进行解析
+将解析到的Bytebuf向下传
+
+
+17.netty百万连接优化
+不做任何优化，服务端最多连接到800、900的样子。
+vi /etc/security/limits.conf
+添加：
+* hard nofile 1000000
+* soft nofile 1000000
+//soft是一个警告值，而hard则是一个真正意义的阀值，超过就会报错
+* 代表针对所有用户
+            noproc 是代表最大进程数
+            nofile 是代表最大文件打开数 
+重启电脑
+limits.conf生效就必须保证/etc/pam.d/login中有：session    required   pam_limits.so
+系统全局最大文件句柄数
+vi /proc/sys/fs/file-max
+直接修改里面的数字，默认为10000，但这是临时的
+vi /etc/sysctl.conf
+修改fs.file-max = 1000000
+
+
+18.给应用添加线程池
+将pipeline.addLast(new ServerHandler());
+改为：
+private EventLoopGroup serverGroup = new NioEventLoopGroup(16);
+pipeline.addLast(serverGroup,new ServerHandler());
+
 
 
 

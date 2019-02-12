@@ -1,0 +1,9 @@
+1.简介
+Apache Flink是由Apache软件基金会开发的开源流处理框架，其核心是用Java和Scala编写的分布式流数据流引擎。Flink以数据并行和流水线方式执行任意流数据程序，Flink的流水线运行时系统可以执行批处理和流处理程序。此外，Flink的运行时本身也支持迭代算法的执行。与spark是竞品。
+
+2.Libraries支持
+支持机器学习（FlinkML）
+支持图分析（Gelly）
+支持关系数据处理（Table）
+支持复杂事件处理（CEP）
+

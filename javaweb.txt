@@ -387,6 +387,76 @@ public class TokenConfig implements WebMvcConfigurer {
 
 
 
+36.纯Java项目使用HikariCP
+Java 8
+<dependency>
+    <groupId>com.zaxxer</groupId>
+    <artifactId>HikariCP</artifactId>
+    <version>2.7.9</version>
+</dependency>
+
+private String url = "jdbc:mysql://127.0.0.1:3306/magnetic?characterEncoding=utf8&useSSL=false";
+    private String username = "root";
+    private String password = "123456";
+
+    private HikariDataSource ds;
+
+    public void start(){
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(this.url);
+        config.setUsername(this.username);
+        config.setPassword(this.password);
+        config.setDriverClassName("com.mysql.jdbc.Driver");
+        //config.setDataSourceClassName();
+
+        //是否自定义配置，为true时下面两个参数才生效
+        config.addDataSourceProperty("cachePrepStmts","true");
+        //连接池大小默认25，官方推荐250-500
+        config.addDataSourceProperty("prepStmtCacheSize","250");
+        //单条语句最大长度默认256，官方推荐2048
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        //新版本MySQL支持服务器端准备，开启能够得到显著性能提升
+        config.addDataSourceProperty("useServerPrepStmts", "true");
+        //池中维护的最小空闲连接数,minimumIdle强烈建议不要配置、默认值与maximumPoolSize相同
+        //config.addDataSourceProperty("minimumIdle", "10");
+        //池中最大连接数，包括闲置和使用中的连接
+        config.addDataSourceProperty("maximumPoolSize", "20");
+        //HikariCP将尝试通过仅基于jdbcUrl的DriverManager解析驱动程序，但对于一些较旧的驱动程序，还必须指定driverClassName
+        config.addDataSourceProperty("driverClassName", "com.mysql.jdbc.Driver");
+
+        this.ds = new HikariDataSource(config);
+    }
+
+
+报错：java.sql.SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 30000ms.
+原因:连接泄漏(在从池中借用之后连接没有关闭)。
+hikariDataSource.setIdleTimeout(60000);           //连接允许在池中闲置的最长时间
+hikariDataSource.setConnectionTimeout(60000);     //等待来自池的连接的最大毫秒数
+hikariDataSource.setValidationTimeout(3000);      //连接将被测试活动的最大时间量
+hikariDataSource.setLoginTimeout(5);              //
+hikariDataSource.setMaxLifetime(60000);           //池中连接最长生命周期
+
+
+37.spring缓存方案
+有guava cache、redis、tair、memcached等。
+Spring Boot默认情况下使用ConcurrentMapCacheManager作为缓存技术。
+@Cacheable注解可以使用缓存
+
+
+38.spring boot定时任务
+//表示每个星期1中午5点 "0 0 5 ? * 1"
+@Component
+public class ScheduledService{
+    @Scheduled(cron = "0 0 5 ? * 1")
+    public void cronService(){}
+}
+
+@SpringBootApplication
+@EnableScheduling
+public class EhomeApplication extends SpringBootServletInitializer{}
+
+
+
 
 
 

@@ -162,6 +162,168 @@ org.ietf.jgss	GSSContext	Encapsulates a GSS-API security context and provides th
 
 
 
+14.Thread和Runnable的区别
+想实现多线程，有两种手段，一种是继续Thread类，另外一种是实现Runable接口
+class MyThread extends Thread{
+	@Override
+	Public void run(){
+		
+	}
+}
+MyThread t = new MyThread();
+t.start();
+
+class MyThread implements Runnable{
+	@Override
+	public void run(){
+		
+	}	
+}
+MyThread t = new MyThread();
+t.start();
+
+在程序开发中只要是多线程肯定永远以实现Runnable接口为主。
+实现Runnable接口相比继承Thread类有如下好处：
+1、避免继承的局限，一个类可以继承多个接口。
+2、适合于资源的共享。
+
+
+15.synchronized关键字
+它包括两种用法：synchronized 方法和 synchronized 块
+声明为 synchronized 的成员函数中至多只有一个处于可执行状态，从而有效避免了类成员变量的访问冲突。
+synchronized 方法的缺陷：若将一个大的方法声明为synchronized 将会大大影响效率，典型地，若将线程类的方法 run() 声明为synchronized，由于在线程的整个生命期内它一直在运行，因此将导致它对本类任何 synchronized 方法的调用都永远不会成功。
+
+synchronized块：通过 synchronized关键字来声明synchronized块。语法如下：  
+synchronized(syncObject) {  
+//允许访问控制的代码  
+}  
+synchronized块是这样一个代码块，其中的代码必须获得对象 syncObject （如前所述，可以是类实例或类）的锁方能执行。
+由于可以针对任意代码块，且可任意指定上锁的对象，故灵活性较高。  
+对synchronized(this)的一些理解 
+1.当两个并发线程访问同一个对象object中的这个synchronized(this)同步代码块时，一个时间内只能有一个线程得到执行。
+2.synchronized (this)锁住的是对象，而不是代码。
+
+
+16.final
+它指的是“这是不可变的”.
+1.修饰数据
+用final关键字修饰的变量，只能进行一次赋值操作，并且在生存期内不可以改变它的值。更重要的是，final会告诉编译器，这个数据是不会修改的，那么编译器就可能会在编译时期就对该数据进行替换甚至执行计算，这样可以对我们的程序起到一点优化。
+2.修饰方法参数
+使用final修饰表示我们只会给它赋值一次且不会改变变量的值。如果变量是我们自己创建的，那么使用final修饰表示我们只会给它赋值一次且不会改变变量的值。
+3.修饰方法
+用final关键字修饰方法，它表示该方法不能被覆盖。
+4.修饰类
+了解了final关键字的其他用法，我们很容易可以想到使用final关键字修饰类的作用，那就是用final修饰的类是无法被继承的。
+
+
+17.AtomicInteger通过一种线程安全的加减操作接口
+static AtomicInteger ai=new AtomicInteger(0);
+ai.incrementAndGet();//增加
+
+
+18.java线程池
+Java通过Executors提供四种线程池，分别为：
+newCachedThreadPool创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程。
+newFixedThreadPool 创建一个定长线程池，可控制线程最大并发数，超出的线程会在队列中等待。
+newScheduledThreadPool 创建一个定长线程池，支持定时及周期性任务执行。
+newSingleThreadExecutor 创建一个单线程化的线程池，它只会用唯一的工作线程来执行任务，保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行。
+(1). newCachedThreadPool
+创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程。
+ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
+cachedThreadPool.execute(new Runnable() {
+        @Override
+        public void run() {
+            System.out.println(index);
+        }
+    });
+(2). newFixedThreadPool
+创建一个定长线程池，可控制线程最大并发数，超出的线程会在队列中等待。
+ExecutorService fixedThreadPool = Executors.newFixedThreadPool(3);//设置根据实际情况一步一步调大。
+fixedThreadPool.execute(new Runnable() {
+        @Override
+        public void run() {
+            try {
+                System.out.println(index);
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    });
+(3) newScheduledThreadPool
+创建一个定长线程池，支持定时及周期性任务执行。
+ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(5);
+scheduledThreadPool.schedule(new Runnable() {
+    @Override
+    public void run() {
+        System.out.println("delay 3 seconds");
+    }
+}, 3, TimeUnit.SECONDS);
+(4)、newSingleThreadExecutor
+创建一个单线程化的线程池，它只会用唯一的工作线程来执行任务，保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行
+ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+for (int i = 0; i < 10; i++) {
+    final int index = i;
+    singleThreadExecutor.execute(new Runnable() {
+
+        @Override
+        public void run() {
+            try {
+                System.out.println(index);
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    });
+}
+execute()与submit()
+execute()方法的入参为一个Runnable，返回值为void，这时候我们已经知道了execute()方法的来源以及其定义。
+submit()有返回值，而execute()没有;
+　　　例如，有个validation的task，希望该task执行完后告诉我它的执行结果，是成功还是失败，然后继续下面的操作。
+submit()可以进行Exception处理;
+　　　例如，如果task里会抛出checked或者unchecked exception，而你又希望外面的调用者能够感知这些exception并做出及时的处理，那么就需要用到submit，通过对Future.get()进行抛出异常的捕获，然后对其进行处理。
+
+
+
+
+19.Lock与synchronized有以下区别：
+1）Lock是一个接口，而synchronized是关键字。
+2）synchronized会自动释放锁，而Lock必须手动释放锁。
+3）Lock可以让等待锁的线程响应中断，而synchronized不会，线程会一直等待下去。
+4）通过Lock可以知道线程有没有拿到锁，而synchronized不能。
+5）Lock能提高多个线程读操作的效率。
+6）synchronized能锁住类、方法和代码块，而Lock是块范围内的
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1）List/Set/Map内部组成原理|区别
+2）mysql索引存储结构&如何调优/b-tree特点、计算复杂度及影响复杂度的因素。。。
+3）JVM运行组成与原理及调优
+4）Java类加载器运行原理
+5）Java中GC过程原理|使用的回收算法原理
+6）Redis中hash一致性实现及与hash其他区别
+7）Java多线程、线程池开发、管理Lock与Synchroined区别
+8）Spring IOC/AOP 原理；加载过程的。。。
+
+
 
 
 

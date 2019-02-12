@@ -1,0 +1,284 @@
+1.Apache Zookeeper，它是一个分布式配置和同步服务。 Zookeeper是Kafka代理和消费者之间的协调接口。 Kafka服务器通过Zookeeper集群共享信息。 Kafka在Zookeeper中存储基本元数据，例如关于主题，代理，消费者偏移(队列读取器)等的信息。
+ZooKeeper框架安装
+1)http://mirrors.hust.edu.cn/apache/zookeeper/
+解压到/usr/local下
+重命名为zookeeper
+cd zookeeper
+Mkdir data
+Mkdir logs
+
+2)配置
+在conf目录下的zoo_sample.cfg文件拷贝一份,命名为zoo.cfg
+修改为：
+tickTime=2000
+dataDir=/usr/local/zookeeper/data
+dataLogDir=/usr/local/zookeeper/logs
+clientPort=2181
+initLimit=5
+syncLimit=2
+server.1=192.168.1.102:2888:3888
+
+2888端口号是zookeeper服务之间通信的端口。
+3888是zookeeper与其他应用程序通信的端口。
+
+3）在/usr/local/zookeeper/data下创建文件myid
+Vim myid
+1
+在单点上进行安装配置，那么只有一个server.1
+
+4)添加环境变量
+vi /etc/profile
+export   ZOOKEEPER_HOME=/usr/local/zookeeper 
+export   PATH=$ZOOKEEPER_HOME/bin:$PATH
+
+5）启动ZooKeeper服务器
+zookeeper/bin/zkServer.sh start
+#查看进程
+jps
+#查看状态  
+./zkServer.sh status
+#服务器输出信息  
+tail -500f zookeeper.out 
+#停止zookeeper进程  
+./zkServer.sh stop 
+
+6)开机启动
+# 切换到/etc/rc.d/init.d/目录下  
+cd /etc/rc.d/init.d  
+  
+# 创建zookeeper文件  
+touch zookeeper  
+  
+#更新权限  
+chmod +x zookeeper  
+  
+#编辑文件，在zookeeper里面输入如下内容  
+#!/bin/bash  
+#chkconfig:2345 20 90  
+#description:zookeeper  
+#processname:zookeeper  
+export JAVA_HOME=/user/local/java/
+export PATH=$JAVA_HOME/bin:$PATH  
+case $1 in
+          start)su root /usr/local/zookeeper/bin/zkServer.sh start;;  
+          stop)su root /usr/local/zookeeper/bin/zkServer.sh stop;;  
+          status)su root /usr/local/zookeeper/bin/zkServer.sh status;;  
+          restart)su root /usr/local/zookeeper/bin/zkServer.sh restart;;  
+          *)  echo "require start|stop|status|restart"  ;;
+esac
+然后我们就可以用service zookeeper start/stop来启动停止zookeeper服务了
+使用命令把zookeeper添加到开机启动里面
+chkconfig zookeeper on  
+chkconfig --add zookeeper
+chkconfig --list 来看看我们添加的zookeeper是否在里面
+
+重启查看zookeeper状态：
+zkServer.sh status
+如果出问题：
+通过bin目录下面的zookeeper.out来查看问题原因
+
+
+2.相关概念
+Message(消息)：传递的数据对象，主要由四部分构成：offset(偏移量)、key、value、timestamp(插入时间)； 其中offset和timestamp在kafka集群中产生，key/value在producer发送数据的时候产生
+
+Broker(代理者)：Kafka集群中的机器/服务被成为broker， 是一个物理概念。
+
+Topic(主题)：维护Kafka上的消息类型被称为Topic，是一个逻辑概念。
+
+Partition(分区)：具体维护Kafka上的消息数据的最小单位，一个Topic可以包含多个分区（数据的产生和消费过程中，不需要关注数据具体存储的Partition在那个Broker上，只需要指定Topic即可，由Kafka负责将数据和对应的Partition关联上）
+
+Partition offset（分区偏移） 每个分区消息具有称为 offset 的唯一序列标识。
+
+Producer(生产者)：负责将数据发送到Kafka对应Topic的进程
+
+Consumer(消费者)：负责从对应Topic获取数据的进程
+
+Consumer Group(消费者组)：每个consumer都属于一个特定的group组，一个group组可以包含多个consumer，但一个组中只会有一个consumer消费数据。
+
+
+
+3.安装Kafka
+1）下载：https://kafka.apache.org/downloads
+提取tar
+启动服务器：
+启动zookeeper:
+(要先关闭zookeeper,zkServer.sh stop)
+在后台运行：./bin/zookeeper-server-start.sh -daemon config/zookeeper.properties &
+2）启动Kafka
+$ bin/kafka-server-start.sh config/server.properties
+在后台运行：bin/kafka-server-start.sh  config/server.properties &
+停止服务器
+$ bin/kafka-server-stop.sh config/server.properties
+3）jps
+您将看到以下响应 -
+821 QuorumPeerMain
+928 Kafka
+931 Jps
+4）创建topic：
+./bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic-name-zwj
+5)要获取Kafka服务器中的主题列表
+./bin/kafka-topics.sh --list --zookeeper localhost:2181
+6)生产者送消息
+./bin/kafka-console-producer.sh --broker-list localhost:9092 --topic topic-name-zwj
+接下来会等待你输入
+7）消费者接收消息
+./bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 -topic topic-name-zwj --from-beginning
+
+
+8)多broker:
+复制config/server.properties为:
+config/server0.properties、
+broker.id=0
+port=9092
+log.dirs=/tmp/kafka-logs-0
+config/server1.properties、
+broker.id=1
+port=9093
+log.dirs=/tmp/kafka-logs-1
+config/server2.properties
+broker.id=2
+port=9094
+log.dirs=/tmp/kafka-logs-2
+9)启动多个代理 - 在三台服务器上进行所有更改后，打开三个新终端，逐个启动每个代理。
+Broker1
+bin/kafka-server-start.sh config/server.properties
+Broker2
+bin/kafka-server-start.sh config/server-one.properties
+Broker3
+bin/kafka-server-start.sh config/server-two.properties
+10)创建主题
+此主题将复制因子值指定为三个，因为我们有三个不同的代理运行。
+>bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 
+-partitions 1 --topic Multibrokerapplication
+11)Describe 命令用于检查哪个代理正在侦听当前创建的主题，如下所示 -
+bin/kafka-topics.sh --describe --zookeeper localhost:2181 
+--topic Multibrokerappli-cation
+生产者以发送消息
+bin/kafka-console-producer.sh --broker-list localhost:9092 --topic Multibrokerapplication
+消费者以接收消息
+./bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 -topic Multibrokerapplica-tion --from-beginning
+
+删除主题
+./bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic topic-name-zwj
+
+
+
+
+4.kafka java API
+<!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka -->
+<dependency>
+    <groupId>org.apache.kafka</groupId>
+    <artifactId>kafka_2.12</artifactId>
+    <version>2.1.0</version>
+</dependency>
+1）生产者
+Properties props = new Properties();
+props.put("bootstrap.servers", "192.168.1.100:9092");
+        props.put("acks", "all");
+        props.put("retries", 0);
+        props.put("batch.size", 16384);
+        props.put("linger.ms", 1);
+        props.put("buffer.memory", 33554432);
+        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+参数设置备注：
+1）bootstrap.servers --设置生产者需要连接的kafka地址
+2）acks --回令类型
+3）retries --重试次数
+4）batch.size --批量提交大小
+5）linger.ms --提交延迟等待时间（等待时间内可以追加提交）
+6）buffer.memory --缓存大小
+7）key.serializer|value.serializer --序列化方法
+
+Producer<String, String> producer = new KafkaProducer<String, String>(props);
+使用KafkaProducer类的实例来创建一个Producer。
+
+消息序列化为二进制类型。本例是发送文本消息到Kafka集群，所以使用的是StringSerializer。
+发送Message到Kafka集群
+producer.send(new ProducerRecord<String, String>("HelloWorld", "my msg"));
+会发送my msg消息到HelloWorld这个Topic
+
+2）消费者
+Properties properties = new Properties();
+properties.put("bootstrap.servers", "192.168.1.100:9092");
+        properties.put("group.id", "group-1");
+        properties.put("enable.auto.commit", "true");
+        properties.put("auto.commit.interval.ms", "1000");
+        properties.put("auto.offset.reset", "earliest");
+        properties.put("session.timeout.ms", "30000");
+        properties.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        properties.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+bootstrap.servers
+　　  和Producer一样，是指向Kafka集群的IP地址，以逗号分隔。
+group.id
+　　   Consumer分组ID。
+key.deserializer and value.deserializer
+　　   发序列化。Consumer把来自Kafka集群的二进制消息反序列化为指定的类型。因本例中的Producer使用的是String类型，所以调用StringDeserializer来反序列化。
+
+KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<>(properties);
+kafkaConsumer.subscribe(Arrays.asList("HelloWorld"));
+使用KafkaConsumer类的实例来创建一个Consumer。
+
+Consumer订阅了Topic为HelloWorld的消息，Consumer调用poll方法来轮循Kafka集群的消息，其中的参数100是超时时间（Consumer等待直到Kafka集群中没有消息为止）： 
+        kafkaConsumer.subscribe(Arrays.asList("HelloWorld"));
+        while (true) {
+            ConsumerRecords<String, String> records = kafkaConsumer.poll(100);
+            for (ConsumerRecord<String, String> record : records) {
+                System.out.printf("offset = %d, value = %s", record.offset(), record.value());
+                System.out.println();
+            }
+        }
+
+
+
+
+5.flume
+Flume是Cloudera提供的一个高可用的，高可靠的，分布式的海量日志采集、聚合和传输的系统，Flume支持在日志系统中定制各类数据发送方，用于收集数据；同时，Flume提供对数据进行简单处理，并写到各种数据接受方（可定制）的能力。
+Flume 初始的发行版本统称为 Flume OG（original generation）,但随着 Flume 功能的扩展，Flume OG 代码工程臃肿、核心组件设计不合理、核心配置不标准等缺点暴露出来，尤其 Flume OG 的最后一个发行版本 0.94.0 中，日志传输不稳定的现象尤为严重。为了解决这些问题，cloudera 对Flume 进行了里程碑式的改动：重构核心组件、核心配置以及代码架构，重构后的版本统称为 Flume NG（next generation）.
+http://flume.apache.org/download.html
+下载apache-flume-1.x.x-bin.tar.gz
+解压tar -zxvf apache-flume-1.x.x-bin.tar.gz
+Mv apache-flume-1.x.x-bin apache-flume
+Cd apache-flume
+cp conf/flume-conf.properties.template conf/flume.conf
+对flume.conf进行修改：
+Flume分布式系统中最核心的角色是agent，flume采集系统就是由一个个agent所连接起来形成。
+每一个agent相当于一个数据传递员，内部有三个组件：
+	Source：采集源，用于跟数据源对接，以获取数据.
+	Sink：下沉地，采集数据的传送目的，用于往下一级agent传递数据或者往最终存储系统传递数据。
+	Channel：angent内部的数据传输通道，用于从source将数据传递到sink。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Flink 
+
+Flume 
+
+
+
+
+

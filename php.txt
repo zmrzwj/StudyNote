@@ -1,0 +1,2 @@
+1.查看php状态
+ps -ef | grep php-fpm

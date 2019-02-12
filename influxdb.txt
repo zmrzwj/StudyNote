@@ -1,0 +1,312 @@
+1.下载：
+https://portal.influxdata.com/downloads/
+离线包：
+Mac OS:
+https://dl.influxdata.com/influxdb/releases/influxdb-1.7.3_darwin_amd64.tar.gz
+Windows:
+https://dl.influxdata.com/influxdb/releases/influxdb-1.7.3_windows_amd64.zip
+Linux 64:
+https://dl.influxdata.com/influxdb/releases/influxdb-1.7.3_linux_amd64.tar.gz
+Linux 32:
+https://dl.influxdata.com/influxdb/releases/influxdb-1.7.3_linux_i386.tar.gz
+Linux ARM:
+https://dl.influxdata.com/influxdb/releases/influxdb-1.7.3_linux_armhf.tar.gz
+
+2.启动
+通过包安装的，可以使用如下语句启动服务端：
+sudo service influxdb start
+直接下载的二进制包，则通过如下方式启动服务端：
+进入InfluxDB目录下的usr/bin文件夹，执行：
+./influxd
+启动客户端：
+在usr/bin下执行
+./influx
+配置文件：influxdb/etc/influxdb/influxdb.conf
+
+web界面
+新版本使用Chronograf，原来的web admin界面没有了
+下载Chronograf
+https://portal.influxdata.com/downloads/
+解压运行./usr/bin/chronograf
+
+telegraf是一个数据收集器，负责收集所有的原始数据，格式化后存入influxdb。telegraf内置了大量的数据输入、输出和分析插件，能够收集php-fpm、nginx、access log、mysql、redis等组件的监控数据。telegraf的扩展性很强，开源社区也十分活跃，来自世界各地的开发者们会源源不断地贡献新的插件。
+
+kapacitor是一个可以按照预先编写好的规则，实时地订阅influxdb数据或者批量查询数据，并进行报警(邮件、短信、日志、exec等方式)的工具。官方为它设计了一个tickscript语言，可以方便地编写规则脚本。
+
+Mac安装telegraf：
+brew install telegraf
+mac安装kapacitor：
+brew install kapacitor
+
+
+
+3.创建 admin 帐号密码并赋予所有数据库权限
+创建
+create user admin with password 'admin'
+赋权
+grant all privileges to admin
+修改用户
+set password for admin='admin'
+删除
+drop user admin
+撤销权限
+revoke all on mydb from admin
+查看权限
+Show grants for admin
+
+打开认证：
+vi /etc/influxdb/influxdb.conf
+把 [http] 标签下的 auth-enabled 选项值改为 true
+[http]  
+enabled = true  
+bind-address = ":8086"  
+auth-enabled = true
+log-enabled = true  
+
+命令行 CLI 登录
+$ influx -username admin -password admin
+
+使用HTTP API写数据：
+
+用户名密码写在URL中
+curl -i -X POST "http://localhost:8086/write?db=mydb&u=admin&p=admin"
+
+
+
+
+4.基本概念
+influxDB中的名词	传统数据库中的概念
+database	数据库
+measurement	数据库中的表
+points	表里面的一行数据
+InfluxDB中独有的概念
+1）Point
+Point由时间戳（time）、数据（field）、标签（tags）组成。
+Point相当于传统数据库里的一行数据，如下表所示：
+Point属性	传统数据库中的概念
+time	每个数据记录时间，是数据库中的主索引(会自动生成)
+fields	各种记录值（没有索引的属性）也就是记录的值：温度， 湿度
+tags	各种有索引的属性：地区，海拔 
+2）series
+所有在数据库中的数据，都需要通过图表来展示，而这个series表示这个表里面的数据，可以在图表上画成几条线：通过tags排列组合算出来。
+
+
+5.基本操作
+1）显示数据库：
+> show databases
+2）新建数据库：
+> create database test
+3）删除数据库
+> drop database test
+4）使用某个数据库
+> use test
+5)显示所有表
+> show measurements
+6)新建表
+InfluxDB中没有显式的新建表的语句，只能通过insert数据的方式来建立新表.
+insert test,id=1 v1=123,v2=1234
+test为表名
+id=1为tag
+v1=123,v2=1234为fields,多个tag逗号隔开
+7）删除表
+> drop measurement test
+8）增加数据
+增加数据采用insert的方式，要注意的是 InfluxDB的insert中，表名与数据之间用逗号（,）分隔，tag和field之间用 空格分隔，多个tag或者多个field之间用逗号（,）分隔。
+9）查询数据
+查询语句与SQL一样
+select * from test
+10)修改和删除数据
+InfluxDB属于时序数据库，没有提供修改和删除数据的方法。
+11)series操作
+series表示这个表里面的数据，可以在图表上画成几条线，series主要通过tags排列组合算出来。
+show series from test
+
+
+
+6.HTTP API
+1)建立数据库
+curl -POST http://localhost:8086/query --data-urlencode "q=CREATE DATABASE testdb"
+2)删除数据库
+curl -POST http://localhost:8086/query --data-urlencode "q=DROP DATABASE testdb"
+3)添加数据
+InfluxDB通过HTTP API添加数据主要使用如下格式：
+curl -i -XPOST 'http://localhost:8086/write?db=testdb' --data-binary 'cpu_load_short,host=server01,region=us-west value=0.64 1434055562000000000'
+4)InfluxDB通过HTTP API添加多条数据
+InfluxDB通过HTTP API添加多条数据与添加单条数据相似，示例如下：
+curl -i -XPOST 'http://localhost:8086/write?db=testdb' --data-binary 'cpu_load_short,host=server02 value=0.67
+cpu_load_short,host=server02,region=us-west value=0.55 1422568543702900257
+cpu_load_short,direction=in,host=server01,region=us-west value=2.0 1422568543702900257'
+
+
+
+7.策略
+1）查看数据库策略
+show retention policies on test
+name--名称，此示例名称为 default
+duration--持续时间，0代表无限制
+shardGroupDuration--shardGroup的存储时间，shardGroup是InfluxDB的一个基本储存结构，应该大于这个时间的数据在查询效率上应该有所降低。
+replicaN--全称是REPLICATION，副本个数
+default--是否是默认策略
+2）新建策略
+create retention policy "2_hours" on "test" duration 2h replication 1 default 
+在test库添加了一个2小时的策略，
+策略名字叫做2_hours，
+duration保存2小时，2小时之前的数据将被删除，h（小时），w（星期）,d(天)
+replication 副本为1，
+default 设置为默认策略。
+3）修改策略
+alter retention policy "rp_name" on db_name" duration 3w default
+
+
+
+8.连续查询
+当数据超过保存策略里指定的时间之后，就会被删除。如果我们不想完全删除掉，比如做一个数据统计采样：把原先每秒的数据，存为每小时的数据，让数据占用的空间大大减少（以降低精度为代价）。这就需要InfluxDB提供的：连续查询（Continuous Queries）。
+查看当前的查询策略
+show continuous queries
+
+创建Continuous Queries
+Create continuous query cq_30m on testDB begin select mean(temperature) into weather30m from weather group by time(30m) end
+注释如下：
+cq_30m：连续查询的名字
+testDB：具体的数据库名
+mean(temperature): 算平均温度
+weather： 当前表名
+weather30m： 存新数据的表名
+30m：时间间隔为30分钟
+当我们插入新数据之后，通过SHOW MEASUREMENTS查询发现。可以发现数据库中多了一张名为weather30m(里面已经存着计算好的数据了)。这一切都是通过Continuous Queries自动完成的。
+
+删除Continuous Queries
+Drop continuous query <策略名> on <database_name>
+
+
+
+9.聚合查询
+count()   
+返回一个（field）字段中的非空值的数量。
+select count(v1) from test
+V1为fields 
+distinct()   
+返回一个字段（field）的唯一值。
+select distinct(v1) from test
+mean()   
+返回一个字段（field）中的值的算术平均值（平均值）。字段类型必须是长整型或float64。
+median()  
+从单个字段（field）中的排序值返回中间值（中位数）。字段值的类型必须是长整型或float64格式。
+spread() 
+返回字段的最小值和最大值之间的差值。数据的类型必须是长整型或float64。 
+sum()
+返回一个字段中的所有值的和。字段的类型必须是长整型或float64。
+top()
+返回一个字段中最大的N个值，字段类型必须是长整型或float64类型。
+select top(v1,3) from test
+返回表中test字段中最大的三个值。
+bottom()函数
+作用：返回一个字段中最小的N个值。字段类型必须是长整型或float64类型。
+first()函数
+返回一个字段中最老的取值。
+last()函数
+返回一个字段中最新的取值。
+max()函数
+返回一个字段中的最大值。该字段类型必须是长整型，float64，或布尔类型。
+min()函数
+返回一个字段中的最小值。该字段类型必须是长整型，float64，或布尔类型。
+percentile()函数
+返回排序值排位为N的百分值。字段的类型必须是长整型或float64。
+derivative()函数
+返回一个字段在一个series中的变化率。
+difference()函数
+返回一个字段中连续的时间值之间的差异。字段类型必须是长整型或float64。
+elapsed()函数
+返回一个字段在连续的时间间隔间的差异，间隔单位可选，默认为1纳秒。
+u(纳秒),ms(毫秒),s(秒),m(分钟),h(小时),d(天),w(周)
+moving_average()函数
+返回一个连续字段值的移动平均值，字段类型必须是长整形或者float64类型。
+non_negative_derivative()函数
+返回在一个series中的一个字段中值的变化的非负速率。
+stddev()函数
+返回一个字段中的值的标准偏差。值的类型必须是长整型或float64类型。
+
+
+
+10.数据备份
+1）备份元数据
+influxd backup <备份路径>
+可以通过 -database 参数来指定备份的数据库。
+可以使用 -host 参数实现数据的远程备份，端口一般是8088
+influxd backup -database mydatabase -host 10.0.0.1:8088 /tmp/mybackpath
+2)数据恢复
+influxd restore [ -metadir | -datadir ] <path-to-meta-or-data-directory> <path-to-backup>
+必要参数：
+-metadir <恢复的数据路径>
+或
+-datadir <备份数据的路径>
+influxd restore -database telegraf -datadir /var/lib/influxdb/data /tmp/backup  
+
+
+
+11.管理
+列出正在执行的语句：
+show queries
+停止语句：
+kill query <qid>
+
+
+12.influxdb-java
+mevan依赖：
+	<dependency>
+            <groupId>org.influxdb</groupId>
+            <artifactId>influxdb-java</artifactId>
+            <version>2.14</version>
+        </dependency>
+/**连接时序数据库；获得InfluxDB**/
+    public InfluxDB influxDBBuild(){
+        if(influxDB == null){
+            influxDB = InfluxDBFactory.connect(url,username,password);
+            influxDB.setDatabase(database);
+        }
+
+        return influxDB;
+    }
+
+/**
+     * 插入
+     * @param measurement 表
+     * @param tags 标签
+     * @param fields 字段
+     */
+    public void insert(String measurement, Map<String, String> tags, Map<String, Object> fields){
+        Point.Builder builder = Point.measurement(measurement);
+        builder.tag(tags);
+        builder.fields(fields);
+
+        influxDB.write(database, "", builder.build());
+    }
+
+/**
+     * 查询
+     * @param command 查询语句
+     * @return
+     */
+    public QueryResult query(String command){
+        return influxDB.query(new Query(command,database));
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

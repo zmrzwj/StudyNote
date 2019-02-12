@@ -1,0 +1,24 @@
+1.下载go：
+https://golang.org/dl/
+>go version
+检查go版本
+
+2.IDE
+jetbrains GoLang
+https://www.jetbrains.com/go/whatsnew/
+
+3.helloworld
+创建项目后，要创建main文件夹，在main文件夹下创建main文件，在里面写main方法。
+注意：语言的约定，必须是main包main方法
+1.代码第一行写明package；上例中，使用一个文件单独运行的程序必须放在package main下面，否则在go run运行时会报错：”go run: cannot run non-main package“
+import 包名必须带引号；多个包名可以使用多次import；也可以将包名用引号括起来后，用换行符连接，然后在最外层包裹圆括号
+2.import不能引用代码中没有使用的包，否则编译时会报错：”imported and not used: xxx“
+”{“必须紧跟代码，不能在新行中出现；
+3.main作为程序入口，不能携带参数，命令行参数使用os.Args变量获取
+4.注释有块注释/* */和单行注释// 两种；
+5.定义func格式： func func_name(输入参数)(返回参数——可省略){} 
+6.func定义不支持重载（overload）
+
+
+4.
+

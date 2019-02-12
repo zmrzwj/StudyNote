@@ -1,0 +1,89 @@
+1.安装
+http://storm.apache.org/downloads.html
+下载tar.gz
+解压
+tar -zxvf apache-storm-1.2.x.tar.gz
+Mv apache-storm-1.2.x storm
+cd storm 
+Mkdir data
+vi conf/storm.yaml
+去掉storm.zookeeper.servers:前面的注释，修改为集群中所有部署zookeeper的主机，当然都可以自己手动添加。
+storm.zookeeper.servers:
+ - "localhost"  #单机为localhost
+增加storm.local.dir选项，指定nimbus，supervisor进程用于存储少量的状态数据。
+storm.local.dir:"/usr/local/storm/data"
+指定supervisor工作节点，需要配置该节点可以运行的worker数量，每个worker占用一个端口用于接收消息，最多分配5个；默认情况下每个节点可以运行4个worker，分别在6700、6701、6702、6703端口，这里定义3个端口，代表最多运行3个worker。
+supervisor.slots.ports:
+ - 6700
+ - 6701
+ - 6702
+ - 6703
+设置集群主机,从主机下载拓扑以及配置文件,主机上运行的就是nimbus，而其他节点就是supervisor进程:
+nimbus.host: "localhost"
+storm.zookeeper.port: 2181
+nimbus.seeds：工作节点需要知道哪些机器是主机的候选者才能下载拓扑罐和confs:
+nimbus.seeds:["127.0.0.1"] #单机设置为"127.0.0.1"
+webui界面配置:
+ui.host: 0.0.0.0
+ui.port: 8080
+
+如果是集群每台机器都做相同的设置。
+启动：
+Master上启动nimbus进程
+bin/storm nimbus &
+在所有的Slave上启动supervisor进程
+bin/storm supervisor &
+Master上启动UI进程
+bin/storm ui &
+查看进程
+jps
+web登录查看
+localhost:8080
+
+
+2.Tuple
+Tuple是Storm中的主要数据结构。它是有序元素的列表。默认情况下，Tuple支持所有数据类型。
+Stream	
+流是元组的无序序列。
+Spouts	
+流的源。通常，Storm从原始数据源接受输入数据。否则，您可以编写spouts以从数据源读取数据。
+Bolts
+是逻辑处理单元。Spouts将数据传递到Bolts和Bolts过程，并产生新的输出流。
+
+
+3.集群概念
+Nimbus（主节点）	
+Nimbus是Storm集群的主节点。集群中的所有其他节点称为工作节点。
+Supervisor（工作节点）	
+遵循指令的节点被称为Supervisors。Supervisor有多个工作进程，它管理工作进程以完成由nimbus分配的任务。
+Worker process（工作进程）	
+工作进程将执行与特定拓扑相关的任务。
+Executor（执行者）
+执行器只是工作进程产生的单个线程。
+Task（任务）	
+任务执行实际的数据处理。所以，它是一个spout或bolt。
+topology
+拓扑
+
+
+4.maven
+<!-- https://mvnrepository.com/artifact/org.apache.storm/storm-core -->
+<dependency>
+    <groupId>org.apache.storm</groupId>
+    <artifactId>storm-core</artifactId>
+    <version>1.2.2</version>
+    <scope>provided</scope>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/org.apache.storm/storm-kafka -->
+<dependency>
+    <groupId>org.apache.storm</groupId>
+    <artifactId>storm-kafka</artifactId>
+    <version>1.2.2</version>
+    <scope>provided</scope>
+</dependency>
+
+
+
+
+
