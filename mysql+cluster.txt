@@ -404,6 +404,61 @@ SELECT t.* FROM (select * from `AIR_DATA` order by `create_time` desc limit 10) 
 GROUP BY没有排序功能,需要添加limit 10让数据进行排序。
 
 
+13.FROM DUAL where not exists判断数据是否存在
+insert into USER_DEVICE(user_id,device_id,device_name,device_position) values(?,?,?,?) FROM DUAL where not exists(SELECT count(1) from USER_DEVICE where user_id = ? and device_id = ? );
+
+
+
+
+
+-----------------------------------------mysql配置项--------------------------------------
+
+skip-name-resolve
+# 禁止MySQL对外部连接进行DNS解析
+
+back_log = 600
+#back_log值指出在MySQL暂时停止回答新请求之前的短时间内多少个请求可以被存在堆栈中。
+
+max_connections = 1000
+# MySQL的最大连接数，如果服务器的并发连接请求量比较大，建议调高此值，以增加并行连接数量，当然这建立在机器能支撑的情况下。
+
+max_connect_errors = 6000
+# 对于同一主机，如果有超出该参数值个数的中断错误连接，则该主机将被禁止连接。
+
+open_files_limit = 65535
+# MySQL打开的文件描述符限制，默认最小1024;
+
+table_open_cache = 128
+# MySQL每打开一个表，都会读入一些数据到table_open_cache缓存中。
+
+max_allowed_packet = 4M
+# 接受的数据包大小；增加该变量的值十分安全，这是因为仅当需要时才会分配额外内存。
+
+read_buffer_size = 2M
+# MySQL读入缓冲区大小。对表进行顺序扫描的请求将分配一个读入缓冲区，MySQL会为它分配一段内存缓冲区。read_buffer_size变量控制这一缓冲区的大小。
+# 如果对表的顺序扫描请求非常频繁，并且你认为频繁扫描进行得太慢，可以通过增加该变量值以及内存缓冲区大小提高其性能。
+
+sort_buffer_size = 8M
+# MySQL执行排序使用的缓冲大小。如果想要增加ORDER BY的速度，首先看是否可以让MySQL使用索引而不是额外的排序阶段。
+# 如果不能，可以尝试增加sort_buffer_size变量的大小
+
+query_cache_limit = 2M
+#指定单个查询能够使用的缓冲区大小，默认1M
+
+transaction_isolation = REPEATABLE-READ
+# MySQL支持4种事务隔离级别，他们分别是：
+# READ-UNCOMMITTED, READ-COMMITTED, REPEATABLE-READ, SERIALIZABLE.
+
+query_cache_size = 8M
+#MySQL的查询缓冲大小（从4.0.1开始，MySQL提供了查询缓冲机制）使用查询缓冲
+
+query_cache_limit = 2M
+#指定单个查询能够使用的缓冲区大小，默认1M
+
+key_buffer_size = 4M
+#指定用于索引的缓冲区大小，增加它可得到更好处理的索引(对所有读和多重写)，到你能负担得起那样多。如果你使它太大，系统将开始换页并且真的变慢了。
+
+
 
 
 

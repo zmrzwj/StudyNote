@@ -287,6 +287,36 @@ private EventLoopGroup serverGroup = new NioEventLoopGroup(16);
 pipeline.addLast(serverGroup,new ServerHandler());
 
 
+19.centos jar开机启动
+编写注册服务
+在/etc/systemd/system下编写脚本
+# cd /etc/systemd/system
+#vi dwehome.service
+[Unit]
+Description=dwehome-service
+After=network.target
+[Service]
+Type=forking
+ExecStart=/usr/local/java/bin/java -jar /dwehome/dwehome.jar
+PrivateTmp=true
+[Install]
+WantedBy=multi-user.target
+
+说明：PrivateTmp 设置使用这个属性的service，都会使用私有的tmp目录。
+/tmp目录一般是所有用户和所有service都共享的，对于所有用户和service来说，都会有写和读的权限。
+
+服务操作命令
+systemctl  enable   dwehome    #开机自启动
+systemctl  stop  dwehome  #停止
+systemctl  start dwehome  #启动
+
+问题：
+linux下systemctl enable （service名）时出现file exists的解决办法：
+systemctl disable （服务名）
+
+
+
+
 
 
 

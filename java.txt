@@ -298,7 +298,22 @@ submit()可以进行Exception处理;
 6）synchronized能锁住类、方法和代码块，而Lock是块范围内的
 
 
+20.jstack
+jstack -l pid
+jstack是java虚拟机自带的一种堆栈跟踪工具。
 
+jmap
+JVM堆中对象情况
+jmap -heap pid
+查看堆配置情况和使用情况
+jmap -histo pid
+查看详细的内存对象创建情况
+jmap -dump:format=b,file=文件名 pid
+使用jmap 生成快照文件
+
+jconsole 
+是一个内置 Java 性能分析器
+远程连接
 
 
 

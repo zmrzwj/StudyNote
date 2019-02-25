@@ -1,0 +1,29 @@
+1.flume
+Flume是Cloudera提供的一个高可用的，高可靠的，分布式的海量日志采集、聚合和传输的系统，Flume支持在日志系统中定制各类数据发送方，用于收集数据；同时，Flume提供对数据进行简单处理，并写到各种数据接受方（可定制）的能力。
+Flume 初始的发行版本统称为 Flume OG（original generation）,但随着 Flume 功能的扩展，Flume OG 代码工程臃肿、核心组件设计不合理、核心配置不标准等缺点暴露出来，尤其 Flume OG 的最后一个发行版本 0.94.0 中，日志传输不稳定的现象尤为严重。为了解决这些问题，cloudera 对Flume 进行了里程碑式的改动：重构核心组件、核心配置以及代码架构，重构后的版本统称为 Flume NG（next generation）.
+http://flume.apache.org/download.html
+下载apache-flume-1.x.x-bin.tar.gz
+解压tar -zxvf apache-flume-1.x.x-bin.tar.gz
+Mv apache-flume-1.x.x-bin apache-flume
+Cd apache-flume
+cp conf/flume-conf.properties.template conf/flume.conf
+对flume.conf进行修改：
+Flume分布式系统中最核心的角色是agent，flume采集系统就是由一个个agent所连接起来形成。
+每一个agent相当于一个数据传递员，内部有三个组件：
+	Source：采集源，用于跟数据源对接，以获取数据.
+	Sink：下沉地，采集数据的传送目的，用于往下一级agent传递数据或者往最终存储系统传递数据。
+	Channel：angent内部的数据传输通道，用于从source将数据传递到sink。
+配置环境变量：
+vi /etc/profile
+FLUME_HOME=/usr/local/flume
+PATH=$PATH:$FLUME_HOME/bin
+
+cd /flume/conf
+cp flume-env.sh.template flume-env.sh
+
+vi flume-env.sh
+添加
+export JAVA_HOME=/usr/local/java
+
+
+

@@ -20,6 +20,22 @@ server.1=192.168.1.102:2888:3888
 
 2888端口号是zookeeper服务之间通信的端口。
 3888是zookeeper与其他应用程序通信的端口。
+#tickTime：
+这个时间是作为 Zookeeper 服务器之间或客户端与服务器之间维持心跳的时间间隔。
+#clientPort：
+这个端口就是客户端连接 Zookeeper 服务器的端口，Zookeeper 会监听这个端口，接受客户端的访问请求。
+#dataDir：
+快照日志的存储路径
+#dataLogDir：
+事物日志的存储路径，如果不配置这个那么事物日志会默认存储到dataDir制定的目录，这样会严重影响zk的性能，当zk吞吐量较大的时候，产生的事物日志、快照日志太多。
+#syncLimit：
+这个配置项标识 Leader 与Follower 之间发送消息，请求和应答时间长度，最长不能超过多少个 tickTime 的时间长度，总的时间长度就是5*2000=10秒。
+
+如果配置集群：
+server.1=192.168.7.100:12888:13888
+server.2=192.168.7.101:12888:13888
+server.3=192.168.7.107:12888:13888
+#192.168.7.10x为集群里的IP地址，第一个端口是master和slave之间的通信端口，默认是2888，第二个端口是leader选举的端口，集群刚启动的时候选举或者leader挂掉之后进行新的选举的端口默认是3888
 
 3）在/usr/local/zookeeper/data下创建文件myid
 Vim myid
@@ -60,17 +76,31 @@ chmod +x zookeeper
 export JAVA_HOME=/user/local/java/
 export PATH=$JAVA_HOME/bin:$PATH  
 case $1 in
-          start)su root /usr/local/zookeeper/bin/zkServer.sh start;;  
-          stop)su root /usr/local/zookeeper/bin/zkServer.sh stop;;  
-          status)su root /usr/local/zookeeper/bin/zkServer.sh status;;  
-          restart)su root /usr/local/zookeeper/bin/zkServer.sh restart;;  
-          *)  echo "require start|stop|status|restart"  ;;
+          start)
+		/usr/local/zookeeper/bin/zkServer.sh start
+		;;  
+          stop)
+		/usr/local/zookeeper/bin/zkServer.sh stop
+		;;  
+          status)
+		/usr/local/zookeeper/bin/zkServer.sh status
+		;;  
+          restart)
+		/usr/local/zookeeper/bin/zkServer.sh restart
+		;;  
+          *)  
+		echo "require start|stop|status|restart"
+		;;
 esac
+修改此文件权限
+chmod 755 zookeeper
 然后我们就可以用service zookeeper start/stop来启动停止zookeeper服务了
+测试命令
+service zookeeper status
 使用命令把zookeeper添加到开机启动里面
-chkconfig zookeeper on  
 chkconfig --add zookeeper
 chkconfig --list 来看看我们添加的zookeeper是否在里面
+chkconfig zookeeper on
 
 重启查看zookeeper状态：
 zkServer.sh status
@@ -103,26 +133,74 @@ Consumer Group(消费者组)：每个consumer都属于一个特定的group组，
 启动服务器：
 启动zookeeper:
 (要先关闭zookeeper,zkServer.sh stop)
+2)启动zookeeper
 在后台运行：./bin/zookeeper-server-start.sh -daemon config/zookeeper.properties &
-2）启动Kafka
+3）启动Kafka
 $ bin/kafka-server-start.sh config/server.properties
-在后台运行：bin/kafka-server-start.sh  config/server.properties &
+在后台运行：bin/kafka-server-start.sh -daemon config/server.properties &
 停止服务器
 $ bin/kafka-server-stop.sh config/server.properties
-3）jps
+4）jps
 您将看到以下响应 -
 821 QuorumPeerMain
 928 Kafka
 931 Jps
-4）创建topic：
+5）创建topic：
 ./bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic-name-zwj
-5)要获取Kafka服务器中的主题列表
+6)要获取Kafka服务器中的主题列表
 ./bin/kafka-topics.sh --list --zookeeper localhost:2181
-6)生产者送消息
+7)生产者送消息
 ./bin/kafka-console-producer.sh --broker-list localhost:9092 --topic topic-name-zwj
 接下来会等待你输入
-7）消费者接收消息
+8）消费者接收消息
 ./bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 -topic topic-name-zwj --from-beginning
+说明：
+	replication-factor：每个partition的副本个数。任意将每一个分区复制到n个broker上。
+	partitions：这个topic的partition的数量。
+9)查看topic状态
+./bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic topic-name-zwj
+
+Kafka开机启动：
+cd /etc/rc.d/init.d/
+vi kafka
+内容
+#!/bin/bash
+
+export JAVA_HOME=/usr/local/java
+export PATH=$JAVA_HOME/bin:$PATH
+
+#chkconfig:2345 20 90
+#description:kafka
+#processname:kafka
+case $1 in
+	start) 
+		/usr/local/kafka/bin/kafka-server-start.sh -daemon /usr/local/kafka/config/server.properties
+              ;;
+	stop)
+               /usr/local/kafka/bin/kafka-server-stop.sh
+              ;;
+          status)
+              jps
+              ;;
+          restart)
+              /usr/local/kafka/bin/kafka-server-stop.sh
+              /usr/local/kafka/bin/kafka-server-start.sh -daemon /usr/local/kafka/config/server.properties
+              ;;
+          *)
+              echo "require start|stop|status|restart"
+              ;;
+esac
+修改权限
+chmod 755 kafka
+测试命令
+service kafka status
+添加到服务列表
+chkconfig --add kafka
+验证
+chkconfig --list
+设置为开机启动
+chkconfig kafka on
+
 
 
 8)多broker:
@@ -138,21 +216,22 @@ log.dirs=/tmp/kafka-logs-1
 config/server2.properties
 broker.id=2
 port=9094
-log.dirs=/tmp/kafka-logs-2
+log.dirs=/tmp/kafka-logs
+#log.dirs必须保证目录存在，不会根据配置文件自动生成，数据存放目录
 9)启动多个代理 - 在三台服务器上进行所有更改后，打开三个新终端，逐个启动每个代理。
 Broker1
-bin/kafka-server-start.sh config/server.properties
+bin/kafka-server-start.sh -daemon config/server.properties &
 Broker2
-bin/kafka-server-start.sh config/server-one.properties
+bin/kafka-server-start.sh -daemon config/server-one.properties &
 Broker3
-bin/kafka-server-start.sh config/server-two.properties
+bin/kafka-server-start.sh -daemon config/server-two.properties &
 10)创建主题
 此主题将复制因子值指定为三个，因为我们有三个不同的代理运行。
 >bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 
 -partitions 1 --topic Multibrokerapplication
 11)Describe 命令用于检查哪个代理正在侦听当前创建的主题，如下所示 -
 bin/kafka-topics.sh --describe --zookeeper localhost:2181 
---topic Multibrokerappli-cation
+--topic Multibrokerapplication
 生产者以发送消息
 bin/kafka-console-producer.sh --broker-list localhost:9092 --topic Multibrokerapplication
 消费者以接收消息
@@ -161,6 +240,12 @@ bin/kafka-console-producer.sh --broker-list localhost:9092 --topic Multibrokerap
 删除主题
 ./bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic topic-name-zwj
 
+当zookeeper为集群时，需要配置：zookeeper.connect=192.168.7.100:12181,192.168.7.101:12181,192.168.7.107:1218 
+#设置zookeeper的连接端口
+Kafka为集群需要额外配置：
+	host.name=192.168.7.100 #每台机器配置对应的IP
+	zookeeper.connection.timeout.ms
+	#默认为6000,但是最好改大点，不然容易超时，但也不能太大，太大影响效率。
 
 
 
@@ -229,24 +314,21 @@ Consumer订阅了Topic为HelloWorld的消息，Consumer调用poll方法来轮循
             }
         }
 
+问题：
+1. java.lang.IllegalStateException: No entry found for connection 2147483647
+需要检查Kafka中server.properties中地址注释对于部署有无影响。
+server.properties的问题，其中的语句：
+#listeners=PLAINTEXT://hostname:9092
+需要取消注释，并且添加你的主机名，我的容器主机名为kafkaserver。
+2.生产者阻塞或消费者阻塞
+listeners=PLAINTEXT://192.168.1.100:9092 
+advertised.listeners=PLAINTEXT://192.168.1.100:9092
+#这个IP要与properties.put的IP一样
+并且如果使用命令行：
+./bin/kafka-console-consumer.sh --bootstrap-server 192.168.1.100:9092 -topic topic-name-zwj --from-beginning #localhost要变成ip
 
 
 
-5.flume
-Flume是Cloudera提供的一个高可用的，高可靠的，分布式的海量日志采集、聚合和传输的系统，Flume支持在日志系统中定制各类数据发送方，用于收集数据；同时，Flume提供对数据进行简单处理，并写到各种数据接受方（可定制）的能力。
-Flume 初始的发行版本统称为 Flume OG（original generation）,但随着 Flume 功能的扩展，Flume OG 代码工程臃肿、核心组件设计不合理、核心配置不标准等缺点暴露出来，尤其 Flume OG 的最后一个发行版本 0.94.0 中，日志传输不稳定的现象尤为严重。为了解决这些问题，cloudera 对Flume 进行了里程碑式的改动：重构核心组件、核心配置以及代码架构，重构后的版本统称为 Flume NG（next generation）.
-http://flume.apache.org/download.html
-下载apache-flume-1.x.x-bin.tar.gz
-解压tar -zxvf apache-flume-1.x.x-bin.tar.gz
-Mv apache-flume-1.x.x-bin apache-flume
-Cd apache-flume
-cp conf/flume-conf.properties.template conf/flume.conf
-对flume.conf进行修改：
-Flume分布式系统中最核心的角色是agent，flume采集系统就是由一个个agent所连接起来形成。
-每一个agent相当于一个数据传递员，内部有三个组件：
-	Source：采集源，用于跟数据源对接，以获取数据.
-	Sink：下沉地，采集数据的传送目的，用于往下一级agent传递数据或者往最终存储系统传递数据。
-	Channel：angent内部的数据传输通道，用于从source将数据传递到sink。
 
 
 

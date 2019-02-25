@@ -1,0 +1,6 @@
+1.rtmp
+1：RTSP RTMP HTTP都是在应用应用层。
+2： 理论上RTSP RTMPHTTP都可以做直播和点播，但一般做直播用RTSP RTMP，做点播用HTTP。做视频会议的时候原来用SIP协议，现在基本上被RTMP协议取代了。
+nginx-rtmp:https://github.com/arut/nginx-rtmp-module
+
+大多数情况下，如果要存储图片、文件、视频等大文件对象，建议存成本地文件(提高性能的话采用分布式存储)，不建议直接存储到数据库中。HDFS对于视频网站来说是不错的选择。

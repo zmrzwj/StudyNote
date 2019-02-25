@@ -173,6 +173,19 @@ gitlab-ctl reconfigure
 改为uestc@123456
 
 
+16.修改密码
+命令行：
+#gitlab-rails console production
+
+irb(main):001:0>u = User.where(id:1).first
+irb(main):002:0> u.password='18215606560'
+irb(main):003:0> u.password_confirmation='18215606560'
+irb(main):006:0> u.save!
+
+
+
+
+
 
 
 

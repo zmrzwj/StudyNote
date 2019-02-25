@@ -7,3 +7,32 @@ Apache Flink是由Apache软件基金会开发的开源流处理框架，其核�
 支持关系数据处理（Table）
 支持复杂事件处理（CEP）
 
+3.下载
+https://flink.apache.org/downloads.html
+用户使用flink不需要任何hadoop依赖，可以使用没有捆绑任何hadoop库的版本。如果计划和hadoop一起使用(YARN上运行, 连接HDFS,连接HBase, 或者使用基于hadoop文件系统的连接器)，可以选择和hadoop匹配的版本捆绑下载。
+
+
+
+
+
+4.API
+<dependencies>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-java</artifactId>
+            <version>1.7.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-streaming-java_2.11</artifactId>
+            <version>1.7.1</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.flink/flink-clients -->
+	<dependency>
+    		<groupId>org.apache.flink</groupId>
+    		<artifactId>flink-clients_2.12</artifactId>
+    		<version>1.7.1</version>
+	</dependency>
+    </dependencies>
+
