@@ -26,4 +26,253 @@ vi flume-env.sh
 export JAVA_HOME=/usr/local/java
 
 
+2.flume使用测试
+添加配置文件
+cd flume/conf/
+vi flume.conf
+输入以下内容:
+# 指定Agent的组件名称
+a1.sources = r1
+a1.sinks = k1
+a1.channels = c1
+# 指定Flume source(要监听的路径)
+a1.sources.r1.type = spooldir
+a1.sources.r1.spoolDir = /home/zwj
+a1.sources.r1.fileHeader = true
+# 指定Flume sink
+a1.sinks.k1.type = logger
+# 指定Flume channel
+a1.channels.c1.type = memory
+a1.channels.c1.capacity = 1000
+a1.channels.c1.transactionCapacity = 100
+# 绑定source和sink到channel上
+a1.sources.r1.channels = c1
+a1.sinks.k1.channel = c1
+
+Cd flume
+bin/flume-ng agent --conf conf --conf-file conf/flume.conf --name a1 -Dflume.root.logger=INFO,console
+
+Cd /home/zwj
+vi test.log
+Hello,wrold
+保存后会看到控制台打印数据
+
+
+3.sources类型
+1)avro:接受来自外部AVRO客户端的事件流,可以接受通过flume提供的Avro客户端发送的日志信息。(flume提供了一个avro客户端)
+    a1.sources.r1.type  =  avro
+    a1.sources.r1.bind  =  0.0.0.0
+    a1.sources.r1.port  =  44444
+启动：bin/flume-ng agent --conf conf --conf-file conf/avro.conf --name a1 -Dflume.root.logger=INFO,console
+运行avro客户端：
+bin/flume-ng avro-client --conf ./conf --host 0.0.0.0 --port 44444 --filename ./mydata/log1.txt
+
+2)thrift:监听thrift端口和从外部thrift client接收
+    a1.sources.r1.type  =  thrift
+    a1.sources.r1.bind  =  0.0.0.0
+    a1.sources.r1.port  =  4141
+
+3)exec:监听一个指定的命令，获取一条命令的结果作为它的数据源 
+tail -F file指令，即只要应用程序向日志(文件)里面写数据，source组件就可以获取到日志(文件)中最新的内容。
+如果要使用tail命令，必选使得file足够大才能看到输出内容
+    a1.sources.r1.type = exec
+    a1.sources.r1.channels = c1
+    a1.sources.r1.command = tail -F /home/zwj/log_exec_tail
+启动agent:
+bin/flume-ng agent -n a1 -c conf -f conf/exec_tail.conf -Dflume.root.logger=INFO,console
+$ for i in {1..100};do echo "exec tail$i" >> /home/zwj/log_exec_tail done
+
+4)spooling:将监视该目录，并将解析新文件的出现。
+注意:放置到自动搜集目录下的文件不能修改，如果修改，则flume会报错。另外，也不能产生重名的文件，如果有重名的文件被放置进来，则flume会报错。
+a1.sources.r1.type  = spooldir
+a1.sources.r1.spoolDir=/home/zwj
+启动flume：
+    Bin/flume-ng agent --conf ./conf --conf-file ./conf/spool.conf --name a1 -Dflume.root.logger=INFO,console
+ 向指定目录中传输文件，发现flume收集到了该文件，将文件中的每一行都作为日志来处理
+
+5）netcat:用来监听一个指定端口，并将接收到的数据的每一行转换为一个事件
+    a1.sources.r1.type  =  netcat
+    a1.sources.r1.bind  =  0.0.0.0
+    a1.sources.r1.port  =  7878
+具启动agent
+bin/flume-ng agent --conf conf --conf-file conf/netcat.conf --name a1 -Dflume.root.logger=INFO,console
+发送数据:
+在windows中通过telnet命令连接flume所在机器的7878端口发送数据。
+
+6)http:接受HTTP的GET和POST请求作为Flume的事件,其中GET方式应该只用于试验。
+如果通道已满，无法再将Event加入Channel，则Source返回503的HTTP状态码，表示暂时不可用。
+    a1.sources.r1.type  = http
+    a1.sources.r1.port  = 8080
+启动flume:
+Bin/flume-ng agent --conf ./conf --conf-file ./conf/http.conf --name a1 -Dflume.root.logger=INFO,console
+通过命令发送HTTP请求到指定端口：
+    curl -X POST -d '[{ "headers" :{"a" : "a1","b" : "b1"},"body" : "hello~http~flume~"}]' http://0.0.0.0:8080
+
+7)syslogtcp:监听TCP的端口做为数据源 
+    a1.sources.r1.type = syslogtcp
+    a1.sources.r1.port = 5140
+    a1.sources.r1.host = localhost
+    a1.sources.r1.channels = c1
+启动flume agent:
+bin/flume-ng agent -n a1 -c conf -f conf/syslog_tcp.conf -Dflume.root.logger=INFO,console
+测试产生syslog:
+echo "hello idoall.org syslog" | nc localhost 5140
+
+8）自定义Source
+需要实现Java类，类需要做一下工作：
+（1）创建一个类，继承自 AbstractSource 并实现 Configurable 和( EventDrivenSource 或者PollableSource )
+（2）实现相关方法
+	<dependency>
+            <groupId>org.apache.flume</groupId>
+            <artifactId>flume-ng-core</artifactId>
+            <version>1.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.flume</groupId>
+            <artifactId>flume-ng-configuration</artifactId>
+            <version>1.6.0</version>
+        </dependency>
+package com.zwj.flume;
+public class SequenceSource extends AbstractSource implements Configurable ,EventDrivenSource {
+    xxxxx
+}
+具体参考：https://www.jianshu.com/p/fb9b2ff03475
+（3）代码打jar包
+（4）放到FLUME_HOME目录的lib文件夹下
+（5）编写配置文件
+	a1.sources.r1.type = com.zwj.flume.SequenceSource #包名
+	a1.sources.r1.batchSize = 5
+
+4.sink类型
+1）hdfs:把events写进Hadoop分布式文件系统（HDFS）
+a1.sinks.k1.type = hdfs
+a1.sinks.k1.channel = c1
+a1.sinks.k1.hdfs.path = hdfs://localhost:8020/user/flume/   #hdfs的路径，需要包含文件系统标识 
+a1.sinks.k1.hdfs.filePrefix = syslog                        #写入hdfs的文件名前缀
+a1.sinks.k1.hdfs.round = true                               #默认:false,是否启用时间上的”舍弃”
+a1.sinks.k1.hdfs.roundValue = 10                            #默认值:1,时间上进行“舍弃”的值
+a1.sinks.k1.hdfs.roundUnit = minute                         #默认值:econds,时间上进行舍弃的单位
+
+2)file roll:在本地文件系统中存储事件
+    a1.sinks.k1.type = file_roll
+    a1.sinks.k1.sink.directory = /home/zwj/mysink
+启动flume：
+bin/flume-ng agent --conf ./conf --conf-file ./conf/file_roll.conf --name a1 -Dflume.root.logger=INFO,console
+
+3)logger:记录指定级别（比如INFO，DEBUG，ERROR等）的日志，通常用于调试
+    a1.sinks.s1.type=logger
+
+4) Null:当接收到channel时丢弃所有events。
+    a1.sinks.k1.type = null
+
+5)base
+a1.sinks.k1.type = org.apache.flume.sink.hbase.HBaseSink 
+a1.sinks.k1. table = hbase_table  //HBase表名
+a1.sinks.hbaseSink-1.columnFamily = familycolumn-1  //HBase表的列族名称
+a1.sinks.hbaseSink-1.serializer= org.apache.flume.sink.hbase.SimpleHbaseEventSerializer
+a1.sinks.hbaseSink-1.serializer.payloadColumn = columnname  //HBase表的列族下的某个列名称
+
+采用异步模式写数据到HBase：
+a1.sinks.k1.type = org.apache.flume.sink.hbase.AsyncHBaseSink
+a1.sinks.hbaseSink-3.table = test_hbase_table
+a1.sinks.hbaseSink-3.columnFamily = familycolumn-3
+a1.sinks.hbaseSink-3.serializer=org.apache.flume.sink.hbase.SimpleAsyncHbaseEventSerializer
+a1.sinks.hbaseSink-3.serializer.payloadColumn = columnname   
+
+6）elasticsearch：
+a1.sinks.elasticsearch.type=org.apache.flume.sink.elasticsearch.ElasticSearchSink 
+a1.sinks.elasticsearch.hostNames=127.0.0.1:9300,127.0.0.2:9300
+a1.sinks.elasticsearch.indexName=foo_index
+a1.sinks.elasticsearch.indexType=bar_type
+a1.sinks.elasticsearch.clusterName=elasticsearch #集群名
+a1.sinks.elasticsearch.batchSize=100 #每个事务写入多少个event
+a1.sinks.elasticsearch.serializer=org.apache.flume.sink.elasticsearch.ElasticSearchLogStashEventSerializer
+
+7）kafka:实现可以导出数据到一个Kafka topic
+a1.sinks.k1.type=org.apache.flume.sink.kafka.KafkaSink
+a1.sinks.k1.kafka.topic=mytopic
+a1.sinks.k1.kafka.flumeBatchSize = 20
+a1.sinks.k1.kafka.producer.acks = 1
+a1.sinks.k1.kafka.producer.linger.ms = 1
+a1.sinks.k1.brokerList = 10.208.129.3:9092,10.208.129.4:9092,10.208.129.5:9092
+a1.sinks.k1.metadata.broker.list = 10.208.129.3:9092,10.208.129.4:9092,10.208.129.5:9092
+a1.sinks.k1.serializer.class=kafka.serializer.DefaultEncoder
+a1.sinks.k1.channel = c1
+或
+a1.sinks.mysink.channel =c1
+a1.sinks.mysink.type = org.apache.flume.sink.kafka.KafkaSink
+a1.sinks.mysink.kafka.bootstrap.servers=master:9092,slave1:9092,slave2:9092
+a1.sinks.mysink.kafka.topic=mytopic
+a1.sinks.mysink.kafka.flumeBatchSize=20
+a1.sinks.mysink.kafka.producer.acks=1
+a1.sinks.mysink.kafka.producer.linger.ms=1
+
+8)http:发送到http post
+a1.sinks.k1.type = http
+a1.sinks.k1.channel = c1
+a1.sinks.k1.endpoint = http://localhost:8080/uri
+a1.sinks.k1.connectTimeout = 2000
+a1.sinks.k1.requestTimeout = 2000
+a1.sinks.k1.acceptHeader = application / json
+a1.sinks.k1.contentTypeHeader = application / json
+a1.sinks.k1.defaultBackoff = true
+a1.sinks.k1.defaultRollback = true
+a1.sinks.k1.defaultIncrementMetrics = false
+a1.sinks.k1.backoff.4XX = false
+a1.sinks.k1.rollback.4XX = false
+a1.sinks.k1.incrementMetrics.4XX = true
+a1.sinks.k1.backoff.200 = false
+a1.sinks.k1.rollback.200 = false
+a1.sinks.k1.incrementMetrics.200 = true
+
+9)多sink
+一个源到多个通道。有两种模式的Fan out，分别是复制replicating和复用multiplexing
+a1.sources = r1
+a1.sinks = k1 k2
+a1.channels = c1 c2
+a1.sources.r1.selector.type = replicating
+a1.sources.r1.type = http
+a1.sources.r1.port = 5140
+a1.sources.r1.channels = c1 c2
+######to kafka#####
+a1.sinks.k1.type = org.apache.flume.sink.kafka.KafkaSink
+a1.sinks.k1.topic = test
+a1.sinks.k1.brokerList = 192.168.206.10:9092
+a1.sinks.k1.requiredAcks = 1
+a1.sinks.k1.batchSize = 20
+#####to hdfs#####
+a1.sinks.k2.type = hdfs
+a1.sinks.k2.hdfs.path = hdfs://master:9000/flume/%Y%m%d
+a1.sinks.k2.hdfs.filePrefix = log_%H_%M
+a1.sinks.k2.hdfs.fileSuffix = .log
+a1.sinks.k2.hdfs.useLocalTimeStamp = true
+a1.sinks.k2.hdfs.writeFormat = Text
+a1.sinks.k2.hdfs.fileType = DataStream
+
+10) Custom Sink
+a1.channels = c1
+a1.sinks = k1
+a1.sinks.k1.type = org.example.MySink #自己实现的代码包
+a1.sinks.k1.channel = c1
+public class MysqlSinker extends AbstractSink implements Configurable {
+	// 在整个sink结束时执行一遍
+    @Override
+    public synchronized void stop() {
+        // TODO Auto-generated method stub
+        super.stop();
+    }
+    
+    // 在整个sink开始时执行一遍，用来初始化数据库连接
+    @Override
+    public synchronized void start() {}
+
+    // 不断循环调用，处理消息Event（本例就是插入数据库）
+    public Status process() throws EventDeliveryException {}
+
+}
+参考：https://www.jianshu.com/p/70911083784c?utm_source=oschina-app
+
+
+
+
 

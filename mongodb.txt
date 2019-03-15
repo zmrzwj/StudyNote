@@ -1,17 +1,314 @@
 1.mongodb安装
+1)下载：https://www.mongodb.com/download-center/community
+下载：mongodb-linux-x86_64-4.0.6.tgz
+tar -zxvf mongodb-linux-x86_64-4.0.6.tgz
+Mv mongodb-linux-x86_64-4.0.6 mongodb
+vi /etc/profile 添加环境变量
+mongodb目录下新建一个名为db的文件夹，用来存放数据库
+mongodb目录下新建一个名为logs的文件夹，用来存放日志
+
+2)配置
+cd mongodb/bin
+vi mongodb.conf
+# 设置端口号（默认的端口号是 27017）
+port=27017
+# 设置数据文件的存放目录
+dbpath = /usr/local/mongodb/db
+# 设置为以守护进程的方式运行，即在后台运行
+fork = true
+# 设置日志文件的存放目录及其日志文件名
+logpath = /usr/local/mongodb/logs/mongodb.log
+#使用追加的方式写日志
+logappend=true  
+#最大同时连接数 ,默认2000  
+maxConns=100 
+#这样就可外部访问了 
+bind_ip = 0.0.0.0  
+journal=true #每次写入会记录一条操作日志
+#storageEngine=wiredTiger  #存储引擎有mmapv1、wiretiger、mongorocks
+#noauth=true #不启用验证  
+#auth = on #启用验证
+
+简单的参数说明： 
+–logpath 日志文件路径 
+–master 指定为主机器 
+–slave 指定为从机器 
+–source 指定主机器的IP地址 
+–pologSize 指定日志文件大小不超过64M.因为resync是非常操作量大且耗时，最好通过设置一个足够大的oplogSize来避免resync(默认的 oplog大小是空闲磁盘大小的5%)。 
+–logappend 日志文件末尾添加 
+–port 启用端口号 
+–fork 在后台运行 
+–only 指定只复制哪一个数据库 
+–slavedelay 指从复制检测的时间间隔 
+–auth 是否需要验证权限登录(用户名和密码) 
+–noauth 不需要验证权限登录(用户名和密码) 
+
+命令启动mongod --config /usr/local/mongodb/bin/mongodb.conf
+下载Robo 3T，免费图形工具https://robomongo.org/download
 
 
 2.基本使用
+进入mongodb shell：
+bin/mongo
+添加用户和密码
+db.auth('admin','Admin@01')
+
+创建数据库：
+Use test
+
+查看数据库
+show dbs
+
+插入数据
+db.test.insert({"name":"zwj"})
+
+删除数据库(先use数据库)
+db.dropDatabase()
+
+创建集合
+db.createClollection(name, options) #options可选
+Options参数：
+	capped 如果为 true，则创建固定集合。固定集合是指有着固定大小的集合，当达到最大值时，它会自动覆盖最早的文档。当该值为 true 时，必须指定 size 参数。
+	autoIndexId（可选）如为 true，自动在 _id 字段创建索引。默认为 false。
+	size（可选）为固定集合指定一个最大值（以字节计）。如果 capped 为 true，也需要指定该字段。
+	max（可选）指定固定集合中包含文档的最大数量。
+
+查看collections
+show collections
+
+删除集合
+db.xxx.drop() #xxx为集合名
+
+插入文档
+db.xxx.insert(document)
+
+查看文档
+db.xxx.find()
+
+更新文档
+db.xxx.update(
+<query>,
+   <update>,
+   {
+     upsert: <boolean>,
+     multi: <boolean>,
+     writeConcern: <document>
+   }
+)
+参数说明：
+query : update的查询条件，类似sql update查询内where后面的。
+update : update的对象和一些更新的操作符（如$,$inc...）等，也可以理解为sql update查询内set后面的
+upsert : 可选，这个参数的意思是，如果不存在update的记录，是否插入objNew,true为插入，默认是false，不插入。
+multi : 可选，mongodb 默认是false,只更新找到的第一条记录，如果这个参数为true,就把按条件查出来多条记录全部更新。
+writeConcern :可选，抛出异常的级别。
+db.test.update({"name":"zwj"},{$set:{"name":"zwj"})
+
+删除文档
+db.collection.remove(
+   <query>,
+   {
+     justOne: <boolean>,
+     writeConcern: <document>
+   }
+)
+参数说明：
+query :（可选）删除的文档的条件。
+justOne : （可选）如果设为 true 或 1，则只删除一个文档，如果不设置该参数，或使用默认值 false，则删除所有匹配条件的文档。
+writeConcern :（可选）抛出异常的级别。
+Db.test.remove({"name":"zww"})
+
+查询文档：
+db.test.find(query, projection)
+query ：可选，使用查询操作符指定查询条件。
+projection ：可选，使用投影操作符指定返回的键。查询时返回文档中所有键值， 只需省略该参数即可（默认省略）。
+db.test.find().pretty()
+pretty()方法以格式化的方式来显示所有文档。
+
+Mongodb与关系型数据库语句比较：
+db.col.find({"by":"菜鸟教程"}).pretty()	where by = '菜鸟教程'
+db.col.find({"likes":{$lt:50}}).pretty()	where likes < 50
+db.col.find({"likes":{$ne:50}}).pretty()	where likes != 50
+
+AND条件
+db.col.find({key1:value1, key2:value2}).pretty()
+
+OR条件
+db.col.find(
+   {
+      $or: [
+         {key1: value1}, {key2:value2}
+      ]
+   }
+).pretty()
+
+limit() 方法
+db.col.find({},{"title":"zzz"}).limit(2)
+skip()方法来跳过指定数量的数据
+db.col.find({},{"title":"zzz"}).limit(1).skip(1) //只会显示第二条文档数据
+
+排序：
+db.test.find().sort({"name":1}) #数据按字段name的升序排列，-1则为降序排列。
+
+索引
+db.test.createIndex({"name":-1}, options)
+Key 值为你要创建的索引字段，1为指定按升序创建索引，如果你想按降序来创建索引指定为-1即可.
+Options列表：
+background  建索引过程会阻塞其它数据库操作，background可指定以后台方式创建索引，即增加"background"可选参数。"background" 默认值为false。
+unique  建立的索引是否唯一。指定为true创建唯一索引。默认值为false.
+name  索引的名称。如果未指定，MongoDB的通过连接索引的字段名和排序顺序生成一个索引名称。
+dropDups  3.0+版本已废弃。在建立唯一索引时是否删除重复记录,指定 true 创建唯一索引。默认值为 false.
+sparse  对文档中不存在的字段数据不启用索引；这个参数需要特别注意，如果设置为true的话，在索引字段中不会查询出不包含对应字段的文档.默认值为 false.
+expireAfterSeconds  指定一个以秒为单位的数值，完成 TTL设定，设定集合的生存时间。
+v  索引的版本号。默认的索引版本取决于mongod创建索引时运行的版本。
+weights  索引权重值，数值在 1 到 99,999 之间，表示该索引相对于其他索引字段的得分权重。
+default_language  对于文本索引，该参数决定了停用词及词干和词器的规则的列表。 
+language_override  对于文本索引，该参数指定了包含在文档中的字段名，语言覆盖默认.默认为英语
+
+聚合查询
+db.text.aggregate([{$group : {_id : "$by_user", num_tutorial : {$sum : 1}}}])
+$sum	计算总和
+$avg	计算平均值
+$min	获取集合中所有文档对应值得最小值
+$max	获取集合中所有文档对应值得最大值
+$first	根据资源文档的排序获取第一个文档数据
+$last	根据资源文档的排序获取最后一个文档数据
+$project：修改输入文档的结构。可以用来重命名、增加或删除域，也可以用于创建计算结果以及嵌套文档。
+$match：用于过滤数据，只输出符合条件的文档。$match使用MongoDB的标准查询操作。
+$limit：用来限制MongoDB聚合管道返回的文档数。
+$skip：在聚合管道中跳过指定数量的文档，并返回余下的文档。
+$unwind：将文档中的某一个数组类型字段拆分成多条，每条包含数组中的一个值。
+$group：将集合中的文档分组，可用于统计结果。
+$sort：将输入文档排序后输出。
+$geoNear：输出接近某一地理位置的有序文档。
+
+数据备份
+>mongodump -h dbhost -d dbname -o dbdirectory
+-h：
+MongDB所在服务器地址，例如：127.0.0.1，当然也可以指定端口号：127.0.0.1:27017
+-d：
+需要备份的数据库实例，例如：test
+-o：
+备份的数据存放位置
+
+数据恢复
+mongorestore -h <hostname><:port> -d dbname <path>
+--host <:port>, -h <:port>：
+MongoDB所在服务器地址，默认为： localhost:27017
+--db , -d ：
+需要恢复的数据库实例，例如：test，当然这个名称也可以和备份时候的不一样，比如test2
+--drop：
+恢复的时候，先删除当前数据，然后恢复备份的数据。就是说，恢复后，备份后添加修改的数据都会被删除，慎用哦！
+<path>：
+mongorestore 最后的一个参数，设置备份数据所在位置，例如：c:\data\dump\test。
+你不能同时指定 <path> 和 --dir 选项，--dir也可以设置备份目录。
+--dir：
+指定备份的目录
+
+MongoDB 监控
+>mongostat
+mongotop用来跟踪一个MongoDB的实例
+>mongotop
 
 
 
 3.java api
+java的MongoDB驱动当前一共有4个库,优先推荐mongodb-driver-sync
+mongodb-driver-sync
+这个库只有MongoCollection接口，并且不包含废弃的API。
+mongodb-driver-legacy
+这个驱动带有com.mongodb.MongoClient这个入口，核心类是com.mongodb.DB, com.mongodb.DBCollection和com.mongodb.DBCursor，很多网上的样例用的是这两个类。
+mongodb-driver-async
+异步的Java驱动
+maven仓库在：https://mongodb.github.io/mongo-java-driver/ 
+<dependencies>
+    <dependency>
+        <groupId>org.mongodb</groupId>
+        <artifactId>mongodb-driver-sync</artifactId>
+        <version>3.10.1</version>
+    </dependency>
+</dependencies>
+API文档：http://mongodb.github.io/mongo-java-driver/3.10/driver/getting-started/installation/
+
+
+
 
 
 
 
 4.集群搭建
+1）副本集模式
+mongodb的副本集相当于具有自动故障恢复的主从集群，主从集群和副本集最明显的特征为副本集没有固定的“主节点”，整个集群会通过一定的算法选举出主节点，目前MongoDB官方已经不建议使用主从模式了，在主从模式下，如果主数据库宕机，从数据库无法自动接管主数据库，从而无法接入数据，取而代之的就是MongoDB副本集模式，主服务器负责整个副本集的读写，副本集定期同步数据备份，副本集中的副本节点在主节点挂掉后通过心跳机制检测到后副本节点就会选举一个新的主服务器，这一切对于应用服务器无需关心。
+2）复制原理
+mongodb的复制至少需要两个节点。其中一个是主节点，负责处理客户端请求，其余的都是从节点，负责复制主节点上的数据。
+mongodb各个节点常见的搭配方式为：一主一从、一主多从。
+主节点记录在其上的所有操作oplog，从节点定期轮询主节点获取这些操作，然后对自己的数据副本执行这些操作，从而保证从节点的数据与主节点一致。
+3）副本集特征：
+N 个节点的集群
+任何节点可作为主节点
+所有写入操作都在主节点上
+自动故障转移
+自动恢复
+4）Bully(ˈbʊli,拼音buli)算法
+如果副本集中主节点宕掉后，需要使用bully算法进行选举主节点，其主要思想为每个成员均可以声明自己为主节点并通知其他节点，别的节点可以选择接受这个声明或是拒绝并进入主节点竞争，只有被其他节点接受的节点才可以当主节点，
+节点按照一些属性来判断谁应该胜出。这个属性可以是一个静态ID，也可以是更新的度量像最近一次事务ID（最新的节点会胜出）。
+官方描述：
+得到每个服务器节点的最后操作时间戳。每个mongodb都有oplog机制会记录本机的操作，方便和主服务器进行对比数据是否同步还可以用于错误恢复。
+如果集群中大部分服务器down机了，保留活着的节点都为 secondary状态并停止，不选举了。
+如果集群中选举出来的主节点或者所有从节点最后一次同步时间看起来很旧了，停止选举等待人来操作。
+如果上面都没有问题就选择最后操作时间戳最新（保证数据是最新的）的服务器节点作为主节点。
+5）Replica Set成员
+一个Replica Set中的成员角色有三种：Primary，Secondary和Arbiter(仲裁节点)。
+Primary：接收来自客户端的所有的写操作，一个Replica Set中有且只有一个Primary。Primary如果宕掉，Replica Set会自动选举一个Secondary成为Primary。Primary将它data sets的所有操作都记录到oplog中。
+Secondary:Secondary从Primary复制oplog，然后将oplog中的操作应用到自己的data sets。Secondary和Primary之间是异步复制，也就是Secondary中的数据可能不是最新的。默认情况下，Secondary不可读不可写，但是可以通过设置运行客户端从Secondary读。
+一个Replica Set可以最多拥有12个成员，但是只有7个成员可以同时参与投票选举成为Primary，如果成员数量超过12，就需要使用Master-Slave主从复制方式。
+部署一个Replica Set至少需要三个成员，一个Arbiter，一个Secondary和一个Primary或者一个Primary，两个Secondary。
+
+sharding集群包含3个角色：mongos，configsvr，shardsvr
+对于一个集群来说mongos相当于master，负责对外提供服务，shardsvr相当于slave，负责分片存储数据，而configsvr相当于router，负责记录分片元信息。这3种角色中的任何一个角色中的子节点都是一个replication
+
+6）配置文件
+除了配置文件不同其它一样。
+配置文件不同处：
+#副本集名称
+replSet=rep
+#declare this is a shard db of a cluster;
+shardsvr = true
+
+7）配置集群：
+副本集部署
+挑选任意一台mongodb进行登录
+>use admin                #切换到admin数据库
+>config = {_id:"RS",members:[                #定义副本集配置
+{_id:0,host:"172.20.6.10:27017"},
+{_id:1,host:"172.20.6.11:27017"},
+{_id:2,host:"172.20.6.12:27017"},]
+}
+>rs.initiate(config);        #初始化副本集配置
+> rs.status();                #查看副本集状态
+
+8)测试
+在主节点创建数据库，并创建集合，插入文档，在secondary查看文档
+就是use tested, db.ceateCollection("test"),db.test.insert("xxx":"","ccc":"vvv")
+mongodb默认是从主节点读写数据的，副本节点上不允许读，需要设置副本节点可以读。
+db.getMongo().setSlaveOk();            #设置副本节点可读
+数据已经同步到secondary上，但是无法在secondary上进行数据的增删改操作。
+
+如果考虑到主服务器的复制压力过大，可以制作仲裁节点，其中的仲裁节点不存储数据，只是负责故障转移的群体投票，这样就少了数据复制的压力。
+删除节点：
+rs.remove("172.20.6.12:27017")            #删除节点
+添加节点
+rs.add("172.20.6.12:27017")                #添加节点
+rs.addArb("172.20.6.12:27017")               #添加arbiter节点
+
 
 
 
 5.集群使用
+
+
+
+
+
+
+
+

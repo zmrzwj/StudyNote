@@ -1,5 +1,7 @@
 1.mac的python在/usr/bin/python默认为2.7
 查看whereis python
+py文件utf-8声明：
+#-*- coding:utf-8 -*-
 
 2.mac安装python3
 官网下载python3的dmg,双击安装即可，安装完成路径为/usr/local/bin/python3
@@ -19,7 +21,7 @@ pip install PyMySQL
 peewee
 pip install peewee;
 SQLAlchemy
-如果想找一种既支持原生 SQL，又支持 ORM 的工具，那么 SQLAlchemy 是最好的选择，它非常接近 Java 中的 Hibernate 框架。
+如果想找一种既支持原生 SQL，又支持ORM的工具，那么SQLAlchemy是最好的选择，它非常接近 Java 中的 Hibernate 框架。
 
 
 4.连接池
@@ -173,6 +175,39 @@ np.linalg.norm(x, ord = 1) #1-范数，又名列和范数。顾名思义，即�
 np.linalg.norm(x, ord = 2) #2-范数，又名谱范数，计算方法为ATA矩阵的最大特征值的开平方
 np.linalg.norm(x, ord = 'fro') #F-范数，Frobenius范数，计算方式为矩阵元素的绝对值的平方和再开方
 ninf = np.linalg.norm(x, ord = np.inf) #∞ -范数，又名行和范数， 即矩阵行向量中绝对值之和的最大值。
+
+
+13. 爬虫
+BeautifulSoup4
+是用Python写的一个HTML/XML的解析器，它可以很好的处理不规范标记并生成剖析树(parse tree)。 它提供简单又常用的导航（navigating），搜索以及修改剖析树的操作。它可以大大节省你的编程时间。
+pip install BeautifulSoup4
+from bs4 import BeautifulSoup
+soup = BeautifulSoup(res.text,'html.parser');
+安装解析器：
+html.parser是自带的
+lxml，pip install lxml
+Html5lib,pip install html5lib
+
+soup.select(selector);可以像css那样使用选择器查html元素，返回的结果是数组
+soup.find_all("a",class_="xxx")
+
+requests:
+requests是python实现的简单易用的HTTP库，使用起来比urllib简洁很多
+因为是第三方库，所以使用前需要安装.
+pip install requests
+import requests
+response = requests.get('http://www.baidu.com')
+print(response.status_code)  # 打印状态码
+print(response.url)          # 打印请求url
+print(response.headers)      # 打印头信息
+print(response.cookies)      # 打印cookie信息
+print(response.text)  #以文本形式打印网页源码
+print(response.content) #以字节流形式打印
+
+
+
+14.scrapy
+Pip install scrap
 
 
 

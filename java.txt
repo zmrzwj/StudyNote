@@ -317,6 +317,45 @@ jconsole
 
 
 
+21.数组和集合的操作
+1)数组的join:
+<dependency>
+   <groupId>commons-lang</groupId>
+   <artifactId>commons-lang</artifactId>
+   <version>2.6</version>
+</dependency>
+StringUtils.join(array,",");
+String.join()是JDK8新增方法,无需引包
+String.join(",",array);
+2）数组合并
+(1)先转为list，利用list.addAll()，再转回数组;
+List list = new ArrayList(Arrays.asList(a));
+list.addAll(Arrays.asList(b));
+Object[] c = list.toArray();
+(2)使用System.arraycopy
+(3)org.apache.commons.lang3.ArrayUtils.addAll
+
+
+
+22.statement.executeUpdate,statement.executeQuery
+SQL字符串字段一定要额外加"",如：
+String name = "zwj";
+String sql = xxx + "\"" + name + "\"";
+不然会出现Unknown column 'xxx' in 'field list'.
+
+
+23.异步定时器
+Timer timer = new Timer();
+timer.schedule(new TimerTask() {
+        public void run() {
+            System.out.println("11232");
+        }
+}, 200000 , 1000);
+
+
+24.-ea可打开断言机制
+
+
 
 
 

@@ -34,6 +34,7 @@ module.exports = {
         //hot: true,
         //inline: true,
         //progress: true,
+	open:true,//自动打开浏览器
         port: 8080,
         host: '127.0.0.1',
         proxy: {
@@ -423,7 +424,16 @@ const My404 = resolve => require(['./components/404/404'], resolve);
 {path:'*',component:My404}
 
 
+21.添加font-awesome
+npm install font-awesome --save
+Import 'font-awesome/css/font-awesome.min.css'
 
+
+22.iview
+npm install iview --save
+import iView from 'iview'
+import 'iview/dist/styles/iview.css'
+Vue.use(iView)
 
 
 

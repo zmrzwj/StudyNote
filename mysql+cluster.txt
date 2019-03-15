@@ -101,7 +101,7 @@ grant all privileges on *.* to root@'%' identified by 'uestc@123456';
 flush privileges;
 
 新建用户：
- create user 'cddw'@'%' identified by 'uestc@123';
+ create user 'cddw'@'%' identified by 'uestc@123' 'uestc@111';
 授权：
 grant select on XS.* to 'cddw'@'%';//对数据库XS只有select权限
 grant select,insert,update,delete on EHome.* to 'cddw'@'%';
@@ -408,7 +408,158 @@ GROUP BY没有排序功能,需要添加limit 10让数据进行排序。
 insert into USER_DEVICE(user_id,device_id,device_name,device_position) values(?,?,?,?) FROM DUAL where not exists(SELECT count(1) from USER_DEVICE where user_id = ? and device_id = ? );
 
 
+14.mysql大小写问题
+默认mysql字段不区分大小写
+设置字符集：
+utf8_general_ci --不区分大小写
+utf8_bin--区分大小写
 
+15.mysql定时备份到本地（centos）
+1)创建文件夹存放备份文件
+mkdir /usr/local/mysqlbackup/EHome
+2)创建备份脚本
+Cd /usr/local/mysqlbackup
+vi back.sh
+#!/bin/sh
+/usr/local/mysql/bin/mysqldump -h 39.98.182.112 -uroot -puestc@123456 EHome --opt -Q -R --skip-lock-tables > /usr/local/mysqlbackup/EHome/EHome_$(date +%Y%m%d_%H%M%S).sql
+rm -rf $(find /usr/local/mysqlbackup/EHome/ -mtime +30 -name "*.sql")
+3)创建crontab定时任务
+确认已安装crontab
+crontab -e
+(会出现类似vi的编辑页，输入如下)
+0 4 * * * sh /usr/local/mysqlbackup/back.sh
+(每天4点执行此脚本)
+4)service crond start
+注意：source /etc/profile 不能少，否则crontab自动执行时无法保留数据。mysqldump要绝对路径，原因是cron的环境变量中没有mysqldump。crontab配置文件在/etc/crontab。
+
+数据恢复：
+mysql -uroot -p Ehome < /home/xxx.sql
+恢复所有库：
+mysqldump -uroot -p -h 127.0.0.1 --all-databases < /home/db.sql
+navicat右键点击运行SQL文件
+
+16.mysqldump参数
+-all-databases  , -A
+导出全部数据库。
+--all-tablespaces  , -Y
+导出全部表空间
+--no-tablespaces  , -y
+不导出任何表空间信息
+--databases,  -B
+导出多个数据库。参数后面所有名字参量都被看作数据库名，以空格分隔。
+--lock-all-tables,  -x
+提交请求锁定所有数据库中的所有表，以保证数据的一致性。这是一个全局读锁
+--quote-names,-Q
+使用（`）引起表和列名。
+-routines, -R
+导出存储过程以及自定义函数。
+--opt
+该选项是速记；等同于指定 --add-drop-tables--add-locking --create-option --disable-keys--extended-insert --lock-tables --quick --set-charset。它可以给出很快的转储操作并产生一个可以很快装入MySQL服务器的转储文件。该选项默认开启，但可以用--skip-opt禁用.
+
+
+17.慢查询
+查看慢查询是否开启：
+show variables like '%slow_query_log%';
++---------------------+------------------------------------------+
+| Variable_name       | Value                                    |
++---------------------+------------------------------------------+
+| slow_query_log      | OFF                                      |
+| slow_query_log_file | /usr/local/mysql/data/localhost-slow.log |
++---------------------+------------------------------------------+
+开启慢查询
+set global slow_query_log=1;
+或修改配置文件：
+增加参数
+slow_query_log =1
+slow_query_log_file=/usr/local/mysql/data/localhost-slow.log
+
+
+
+18.DATE_FORMAT('%H%i')
+分钟是%i,月才是%m
+%d	月的天，数值(00-31)
+%H	小时 (00-23)
+%h	小时 (01-12)
+%I	小时 (01-12)
+%i	分钟，数值(00-59)
+%M	月名
+%m	月，数值(00-12)
+%S	秒(00-59)
+%s	秒(00-59)
+%Y	年，4 位
+%y	年，2 位
+
+
+19.内置函数
+NOW() 获取现在时间
+CONCAT("1","z1") 字符串拼接
+
+两个日期字段相差大于或小于一定时间：
+TIMESTAMPDIFF(‘参数1’,pre_time,later_itme)时间差,返回later_itme - pre_time
+参数1:FRAC_SECOND、SECOND、 MINUTE、 HOUR、 DAY、 WEEK、 MONTH、 QUARTER或 YEAR
+
+SUBDATE日期相减：SUBDATE()是DATE_SUB()的同义词
+SUBDATE(times,interval -15 minute) //times 15分钟之后的时间
+
+substr(string string,num start,num length);
+
+LENGTH('text')   //字符串长度
+
+LEFT('foobarbar', 5);  //返回字符串str的最左面len个字符
+
+LTRIM(str)  //返回删除了其前置空格字符的字符串str。
+
+REPLACE(str,from_str,to_str) //返回字符串str，其字符串from_str的所有出现由字符串to_str代替。
+
+REVERSE(str)  //返回颠倒字符顺序的字符串str。
+
+DAYNAME(date) 返回date的星期名字
+QUARTER(date) 返回date一年中的季度，范围1到4。 
+YEAR(date) 返回date的年份
+MONTH(date) 返回date的月份，范围1到12。
+HOUR(time) 返回time的小时，范围是0到23。
+MINUTE(time) 返回time的分钟，范围是0到59。 
+SECOND(time) 回来time的秒数，范围是0到59。 
+DATE_FORMAT(date,format) 根据format字符串格式化date值。
+UNIX_TIMESTAMP(date) 如果没有参数调用，返回一个Unix时间戳记(从'1970-01-01 00:00:00'GMT开始的秒数)。
+
+IF(1>2,1,1)
+
+
+20.条件判断
+if(a = b,"1","2")
+注意：等于为=，大于为>，小于为<.
+
+
+21.存emoji问题
+[mysql]  
+default-character-set = utf8mb4  
+
+[mysqld]   
+character-set-server = utf8mb4 
+
+
+修改数据库字符集：
+ALTER DATABASE EHome CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci; 
+修改表的字符集：
+ALTER TABLE ARTICLE_COMMENT CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_croatian_ci;
+修改字段的字符集：
+    ALTER TABLE ARTICLE_COMMENT CHANGE content content VARCHAR(200) CHARACTER SET utf8mb4 COLLATE  utf8mb4_general_ci;
+如果提示：
+ Illegal mix of collations (utf8mb4_general_ci,IMPLICIT) and (utf8mb4_croatian_ci,IMPLICIT)
+就将
+COLLATE改为utf8mb4_croatian_ci
+
+
+
+22.时区
+show variables like "%time_zone%";
+set global time_zone = '+8:00';##修改mysql全局时区为北京时间，即我们所在的东8区
+flush privileges;  #立即生效
+
+
+23.CURRENT_TIMESTAMP修改为不自动更新（只是插入是自动生成当前时间）
+alter table SYSTEM_MESSAGE change create_time create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 
 -----------------------------------------mysql配置项--------------------------------------

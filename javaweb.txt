@@ -485,5 +485,142 @@ set方法注入
 所以变量方式注入应该尽量避免，使用set方式注入或者构造器注入，这两种方式的选择就要看这个类是强制依赖的话就用构造器方式，选择依赖的话就用set方法注入。
 
 
+40.Spring Boot动态定时任务
+@Autowired
+JdbcTemplate jdbcTemplate;
+private ScheduledFuture<?> future; 
+future = threadPoolTaskScheduler.schedule(new MyRunnable(), new CronTrigger("0/5 * * * * *"));
+private class MyRunnable implements Runnable {
+       @Override
+       public void run() {
+	   String sql = "update CLOCK set isOn = false where clock_id= ?;";
+           jdbcTemplate.update(sql,this.clock_id);
+           System.out.println("DynamicTask.MyRunnable.run()，" + new Date());
+       }
+}
+
+
+41.maven工程连接c3p0
+<!-- https://mvnrepository.com/artifact/com.mchange/c3p0 -->
+        <dependency>
+            <groupId>com.mchange</groupId>
+            <artifactId>c3p0</artifactId>
+            <version>0.9.5.2</version>
+        </dependency>
+
+    public static ComboPooledDataSource dataSource = new ComboPooledDataSource();
+    static {
+        try {
+            dataSource.setDriverClass("com.mysql.jdbc.Driver");
+            dataSource.setJdbcUrl("jdbc:mysql://39.98.182.112:3306/EHome?characterEncoding=utf8&useSSL=false");
+            dataSource.setUser("root");
+            dataSource.setPassword("uestc@123456");
+
+            //连接池每隔60秒自动检测数据库连接情况，如果断开则自动重连。
+            dataSource.setTestConnectionOnCheckin(true);
+            dataSource.setIdleConnectionTestPeriod(60);
+        } catch (PropertyVetoException e){
+            e.printStackTrace();
+        }
+    }
+    public static Connection getConnection(){
+        try {
+            return dataSource.getConnection();
+        }catch (SQLException e){
+            e.printStackTrace();
+            throw new RuntimeException();
+        }
+    }
+
+
+41.spring基础知识
+1）POJO
+POJO（Plain Ordinary Java Object）简单的Java对象，实际就是普通JavaBeans，是为了避免和EJB混淆所创造的简称。其中有一些属性及其getter setter方法的类,没有业务逻辑。
+2）IOC
+Ioc—Inversion of Control，即“控制反转”，不是什么技术，而是一种设计思想。Ioc意味着将你设计好的对象交给容器控制，而不是传统的在你的对象内部直接控制。
+谁控制谁，控制什么？
+传统Java SE程序设计，我们直接在对象内部通过new进行创建对象，是程序主动去创建依赖对象；而IoC是有专门一个容器来创建这些对象，即由Ioc容器来控制对 象的创建。
+为何是反转，哪些方面反转了？
+因为由容器帮我们查找及注入依赖对象，对象只是被动的接受依赖对象，所以是反转；哪些方面反转了？依赖对象的获取被反转了。
+3）DI—Dependency Injection，即“依赖注入”
+那么DI是如何实现的呢？ Java 1.3之后一个重要特征是反射（reflection），它允许程序在运行的时候动态的生成对象、执行对象的方法、改变对象的属性，spring就是通过反射来实现注入的。
+4)AOP
+面向切面编程，通过预编译方式和运行期动态代理实现程序功能的统一维护的一种技术。AOP是OOP(面向对象)的延续，是软件开发中的一个热点，也是Spring框架中的一个重要内容，是函数式编程的一种衍生范型。
+5）Spring Bean类
+Spring Bean是事物处理组件类和实体类（POJO）对象的总称，Spring Bean被Spring IOC容器初始化，装配和管理。
+Spring框架几种创建bean的方式：
+XML显示配置Bean
+<bean class= "man.BigMan" />
+通过Java的注解机制来实现的
+@Component，@Service和@Constroller
+通过Java配置Bean，也是通过注解来实现的，首先要通过@Configuration注解声明一个配置类，该类中应该包含在spring中创建Bean的所有细节，急用@Configuration加上@Bean去注册一个bean对象。
+
+
+
+42.springboot整合Hibernate
+由于Spring boot默认已经集成了Hibernate, 所在我们只需在pom.xml引用jpa及mysql连接库.
+dependency>  
+  <groupId>org.springframework.boot</groupId>  
+  <artifactId>spring-boot-starter-data-jpa</artifactId>  
+</dependency>  
+
+<dependency>  
+  <groupId>mysql</groupId>  
+  <artifactId>mysql-connector-java</artifactId>  
+</dependency>
+
+spring.jpa.database = MYSQL
+//数据库为Mysql
+spring.jpa.show-sql = true
+//sql语句会输出到控制台
+spring.jpa.hibernate.ddl-auto = update
+//spring.jpa.properties.hibernate.hbm2ddl.auto=create-drop
+//自动创建|更新|验证数据库表结构。如果不是此方面的需求建议设置为"none"，update表示加载hibernate自动更新数据库结构(最常用)。
+spring.jpa.hibernate.naming-strategy = org.hibernate.cfg.DefaultNamingStrategy
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL5InnoDBDialect
+//在将它们添加到实体管理器之前删除
+
+Hibernate的Annotation注解
+一、声明实体
+@Entity
+对实体注释。任何Hibernate映射对象都要有这个注释
+@Table
+声明此对象映射到数据库的数据表，通过他可以为实体指定表(Table)，目录(Catalog)和Schema的名字。该注释不是必须的，如果没有则系统使用默认值（实体的短类名）
+@Version
+该注释可用于在实体Bean中添加乐观锁支持。
+二、声明主键
+@Id
+声明此属性为主键。该属性值可以通过自身创建，但是Hibernate推荐通过Hibernate生成。
+@GeneratedValue
+指定主键的生成策略。有如下四个值
+TABLE：使用表保存id值
+IDENTITY：identity column
+SEQUENCR：sequence排序
+AUTO：根据数据库的不同，使用上面三种
+三、声明普通属性
+@Column
+声明该属性与数据库字段的映射关系
+
+
+
+43.整合WebSocket
+<!-- WebSocket依赖，移除Tomcat容器 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-websocket</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-tomcat</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+
+
+
+
+
+
 
 

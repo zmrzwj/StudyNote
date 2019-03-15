@@ -145,15 +145,18 @@ i, --install
 --force   忽略软件包及文件的冲突
 --percent	以百分比的形式输出安装的进度
 
+
 16.yum下载安装包及其依赖不安装
 1)yum install --downloadonly xxx
 2) yumdownloader
 yum install yum-utils -y
 yumdownloader xxx --resolve --destdir=/home(保存到home目录下)
 
+
 17.查看网线是否连接
 ethtool enp3s1
 如果link detected是no说明没有连接
+
 
 18.centos安装后丢失了windows的启动选项
 默认centos7不识别window的ntfs分区格式，需要安装ntfs-3g
@@ -211,10 +214,54 @@ d: 周（0-6） 0为星期日
 
 重新启动crond
 service crond restart
+启动crond服务：service crond start
+停止crond服务：service crond stop
+
+
+24.centos
+更换阿里源：
+wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+如果出现host无法解析：
+echao 'nameserver 8.8.8.8'>>/etc/resolv.conf
+
+
+25.mysql定时备份到本地（centos）
+1)创建文件夹存放备份文件
+mkdir /usr/local/mysqlbackup/EHome
+2)创建备份脚本
+Cd /usr/local/mysqlbackup
+vi back.sh
+#!/bin/sh
+/usr/local/mysql/bin/mysqldump -h 39.98.182.112 -uroot -puestc@123456 EHome --opt -Q -R --skip-lock-tables > /usr/local/mysqlbackup/EHome/EHome_$(date +%Y%m%d_%H%M%S).sql
+rm -rf $(find /usr/local/mysqlbackup/EHome/ -mtime +30 -name "*.sql")
+3)创建crontab定时任务
+确认已安装crontab
+crontab -e
+(会出现类似vi的编辑页，输入如下)
+0 4 * * * sh /usr/local/mysqlbackup/back.sh
+(每天4点执行此脚本)
+4)service crond start
+
+注意：source /etc/profile 不能少，否则crontab自动执行时无法保留数据。mysqldump要绝对路径，原因是cron的环境变量中没有mysqldump。crontab配置文件在/etc/crontab。
+
+
+26.mkdir -p
+-p 确保目录名称存在，如果目录不存在的就新创建一个。
 
 
 
 
+27.top命令
+us, user： 运行(未调整优先级的) 用户进程的CPU时间
+sy，system: 运行内核进程的CPU时间
+ni，niced：运行已调整优先级的用户进程的CPU时间
+wa，IO wait: 用于等待IO完成的CPU时间
+hi：处理硬件中断的CPU时间
+si: 处理软件中断的CPU时间
+st：这个虚拟机被hypervisor偷去的CPU时间
+
+按键盘数字“1”，可监控每个逻辑CPU的状况
+敲击键盘“b”（打开/关闭加亮效果）
 
 
 

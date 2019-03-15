@@ -6,7 +6,7 @@
 #cd src
 #Make install 
 会安装到/usr/local/bin下
-(指定安装位置Make install PREDFIX=/usr/local/redis)
+(指定安装位置Make install PREFIX=/usr/local/redis,prefix必须大写)
 安装后会生成以下文件
 redis-benchmark : Redis 性能测试工具
 redis-check-aof : 检查 aof 日志的工具
@@ -16,6 +16,7 @@ redis-server : Redis 服务进程
 
 3.Redis源代码目录的utils文件夹中有一个名为redis_init_script的初始化脚本文件
 cp utils/redis_init_script /etc/init.d
+Cd /etc/init.d
 mv redis_init_script redis_6379
 
 4.建立以下需要的文件夹
@@ -23,11 +24,14 @@ mv redis_init_script redis_6379
 /mnt/sdb4T/Importance/redisData/6379	存放Redis的持久化文件
 
 5.修改配置文件
-源文件下有redis.conf复制到/etc/redis 目录中，以端口号命名（如“6379.conf”）
-daemonize	yes	使Redis以守护进程模式运行
-pidfile	/var/run/redis_端口号.pid	设置Redis的PID文件位置
-port	端口号	设置Redis监听的端口号
-dir	/mnt/sdb4T/Importance/redisData/6379	设置持久化文件存放位置
+刚解压的目录redis-x.x.x下有redis.conf复制到/etc/redis 目录中，以端口号命名（如“6379.conf”）
+cp redis.conf /etc/redis/6379.conf
+vi /etc/redis/6379.conf
+daemonize	yes	           #使Redis以守护进程模式运行
+pidfile	/var/run/redis_端口号.pid	   #设置Redis的PID文件位置
+port	端口号	                   #设置Redis监听的端口号
+dir	/mnt/sdb4T/Importance/redisData/6379	#设置持久化文件存放位置
+bind 127.0.0.1               #要远程访问需要注释这行,并且添加密码或daemonize改为no
 
 6.现在也可以使用下面的命令来启动和关闭Redis了
 /etc/init.d/redis_6379 start
@@ -74,6 +78,8 @@ service redis_6379 stop会出现
 	<artifactId>spring-boot-starter-data-redis</artifactId>
 </dependency>
 application.properties添加配置
+# Redis数据库索引（默认为0 redis有16个库）
+spring.redis.database=0
 spring.redis.host=192.168.50.52
 spring.redis.port=6379
 spring.redis.password=qwertyui
@@ -107,6 +113,13 @@ List<String> resultList2=(List<String>)stringRedisTemplate.opsForList().rightPop
 #删除key
 stringRedisTemplate.delete("test");
 
+RedisTemplate中定义了5种数据结构操作
+redisTemplate.opsForValue();　　//操作字符串
+redisTemplate.opsForHash();　　 //操作hash
+redisTemplate.opsForList();　　 //操作list
+redisTemplate.opsForSet();　　  //操作set
+redisTemplate.opsForZSet();　 　//操作有序set
+
 
 14.显示和删除所有的key
 在redis-cli下
@@ -114,6 +127,22 @@ stringRedisTemplate.delete("test");
 或>key test* 所有以test开头的键
 flushdb
 flushall
+
+
+15.普通java工程使用jedis
+Redis多种类型的value，包括string(字符串)、list(链表)、set(集合)、zset(sorted set --有序集合)和hash（哈希类型）。
+Jedis 是 Redis 官方首选的 Java 客户端开发包。
+<!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
+<dependency>
+    <groupId>redis.clients</groupId>
+    <artifactId>jedis</artifactId>
+    <version>2.10.2</version>
+</dependency>
+Jedis是Redis官方推荐的面向Java的操作Redis的客户端，而RedisTemplate是SpringDataRedis中对JedisApi的高度封装。
+SpringDataRedis相对于Jedis来说可以方便地更换Redis的Java客户端，比Jedis多了自动管理连接池的特性，方便与其他Spring框架进行搭配使用如：SpringCache
+
+
+
 
 --------------------------------------集群搭建----------------------------------------
 15.集群搭建
@@ -190,6 +219,30 @@ Redis-cli -h 192.168.2.200 -c -p 7001
 在另一台机器上Redis-cli -h 192.168.2.201 -c -p 7004
 >get hello
 "World"
+
+
+
+
+
+
+-------------------------------------redis------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
