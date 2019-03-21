@@ -105,6 +105,7 @@ flush privileges;
 授权：
 grant select on XS.* to 'cddw'@'%';//对数据库XS只有select权限
 grant select,insert,update,delete on EHome.* to 'cddw'@'%';
+grant all privileges on EHome.* to 'cddw'@'%';
 
 Mysql5.7user表没有password字段了，改为authentication_string
 
@@ -560,6 +561,26 @@ flush privileges;  #立即生效
 
 23.CURRENT_TIMESTAMP修改为不自动更新（只是插入是自动生成当前时间）
 alter table SYSTEM_MESSAGE change create_time create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP;
+或者在创建时：
+`uptime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+
+
+24.SQL性能优化的目标：至少要达到range级别，要求是ref级别，如果可以是consts最好。
+1）consts 单表中最多只有一个匹配行（主键或者唯一索引），在优化阶段即可读取到数据。 
+ 2）ref 指的是使用普通的索引。（normal index） 
+ 3）range 对索引进行范围检索。 
+ 4)index，按索引次序扫描，先读索引，再读实际的行,索引物理文件全扫描，速度非常慢，这个index级别比较range还低.
+ 5)all,全表扫描
+explain "xxx"; 返回的结果的type可以看到此优化值。
+
+
+25.时区修改
+set global time_zone = '+8:00';
+set time_zone = '+8:00';
+flush privileges;
+
+
 
 
 -----------------------------------------mysql配置项--------------------------------------

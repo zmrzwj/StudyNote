@@ -559,7 +559,7 @@ XML显示配置Bean
 
 42.springboot整合Hibernate
 由于Spring boot默认已经集成了Hibernate, 所在我们只需在pom.xml引用jpa及mysql连接库.
-dependency>  
+<dependency>  
   <groupId>org.springframework.boot</groupId>  
   <artifactId>spring-boot-starter-data-jpa</artifactId>  
 </dependency>  
@@ -616,9 +616,124 @@ AUTO：根据数据库的不同，使用上面三种
       </exclusions>
     </dependency>
 
+基于Stomp的websocket
+//注解开启使用STOMP协议来传输基于代理(message broker)的消息,这时控制器支持使用@MessageMapping,就像使用@RequestMapping一样
+编写配置文件StompWebsocket:
+@Configuration
+@EnableWebSocketMessageBroker
+public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer{
+@Override
+        public void registerStompEndpoints(StompEndpointRegistry registry) {//注册STOMP协议的节点(endpoint),并映射指定的url
+            //注册一个STOMP的endpoint,并指定使用SockJS协议
+            registry.addEndpoint("/endpointZwj").withSockJS();
+
+        }
+
+        @Override
+        public void configureMessageBroker(MessageBrokerRegistry registry) {//配置消息代理(Message Broker)
+            //广播式应配置一个/topic消息代理
+            registry.enableSimpleBroker("/topic");
+
+        }
+}
+写Controller
+@Controller
+    public class WebSocketController {
+
+        @MessageMapping("/welcome") //当浏览器向服务端发送请求时,通过@MessageMapping映射/welcome这个地址,类似于@ResponseMapping
+        @SendTo("/topic/getResponse")//当服务器有消息时,会对订阅了@SendTo中的路径的浏览器发送消息
+        public AricResponse say(AricMessage message) {
+            try {
+                //睡眠1秒
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return new AricResponse("welcome," + message.getName() + "!");
+        }
+    }
+
+客户端使用：
+var socket = new SockJS('/endpointAric'); //连接SockJS的endpoint名称为"endpointWisely"
+stompClient = Stomp.over(socket);//使用STMOP子协议的WebSocket客户端
+stompClient.connect({},function(frame){//连接WebSocket服务端})
 
 
 
+
+44.配置swagger
+	<dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>2.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>2.8.0</version>
+        </dependency>
+创建config文件夹创建Swagger类：
+@Configuration
+@EnableSwagger2
+public class Swagger {
+    @Bean
+    public Docket createRestApi() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo())
+                .select()
+                .apis(RequestHandlerSelectors.basePackage("com.hibernate.hibernatedemo.controller"))
+                .paths(PathSelectors.any())
+                .build();
+    }
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                .title("springboot利用swagger构建api文档")
+                .description("简单优雅的restfun风格，http://blog.csdn.net/wu_zi")
+                .termsOfServiceUrl("http://blog.csdn.net/wu_zi")
+                .version("1.0")
+                .build();
+    }
+}
+创建Controller做测试
+@RestController
+@RequestMapping("/test")
+public class hello {
+    @RequestMapping(value = "hello",method = {RequestMethod.POST})
+    public String helloWorld(){
+        return "helloWorld";
+    }
+}
+访问：
+http://localhost:8080/swagger-ui.html
+
+
+45.lombok
+<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+<dependency>
+    <groupId>org.projectlombok</groupId>
+    <artifactId>lombok</artifactId>
+    <version>1.18.6</version>
+    <scope>provided</scope>
+</dependency>
+Lombok能以简单的注解形式来简化java代码，提高开发人员的开发效率.帮助写setter,getter。
+@Data
+会为类的所有属性自动生成setter/getter、equals、canEqual、hashCode、toString方法，如为final属性，则不会为该属性生成setter方法。
+如果觉得@Data太过残暴,可以使用@Getter/@Setter注解，此注解在属性上，可以为相应的属性自动生成Getter/Setter方法:
+@Getter @Setter private int age = 10;
+@NonNull
+该注解用在属性或构造器上，Lombok会生成一个非空的声明，可用于校验参数，能帮助避免空指针。
+public NonNullExample(@NonNull Person person) {}
+@Cleanup
+该注解能帮助我们自动调用close()方法，很大的简化了代码。
+@Cleanup InputStream in = new FileInputStream(args[0]);
+@EqualsAndHashCode
+默认情况下，会使用所有非静态（non-static）和非瞬态（non-transient）属性来生成equals和hasCode，也能通过exclude注解来排除一些属性。
+@EqualsAndHashCode(exclude={"id", "shape"})
+public class EqualsAndHashCodeExample {}
+@ToString
+类使用@ToString注解，Lombok会生成一个toString()方法，默认情况下，会输出类名、所有属性（会按照属性定义顺序），用逗号来分割。
+@ToString(exclude="id")
+public class ToStringExample {}
 
 
 

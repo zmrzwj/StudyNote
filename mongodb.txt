@@ -4,6 +4,7 @@
 tar -zxvf mongodb-linux-x86_64-4.0.6.tgz
 Mv mongodb-linux-x86_64-4.0.6 mongodb
 vi /etc/profile 添加环境变量
+
 mongodb目录下新建一个名为db的文件夹，用来存放数据库
 mongodb目录下新建一个名为logs的文件夹，用来存放日志
 
@@ -44,6 +45,7 @@ journal=true #每次写入会记录一条操作日志
 –noauth 不需要验证权限登录(用户名和密码) 
 
 命令启动mongod --config /usr/local/mongodb/bin/mongodb.conf
+关闭mongod:>use admin.       >db.shutdownServer();
 下载Robo 3T，免费图形工具https://robomongo.org/download
 
 
@@ -218,7 +220,7 @@ mongodb-driver-sync
 mongodb-driver-legacy
 这个驱动带有com.mongodb.MongoClient这个入口，核心类是com.mongodb.DB, com.mongodb.DBCollection和com.mongodb.DBCursor，很多网上的样例用的是这两个类。
 mongodb-driver-async
-异步的Java驱动
+同步的Java驱动
 maven仓库在：https://mongodb.github.io/mongo-java-driver/ 
 <dependencies>
     <dependency>
@@ -275,10 +277,17 @@ replSet=rep
 shardsvr = true
 
 7）配置集群：
+启动数据库：mongod --config /usr/local/mongodb/bin/mongodb.conf
 副本集部署
 挑选任意一台mongodb进行登录
+#bin/mongo
+注意看，member中的项目有个stateStr字段表示节点角色，其值为
+PRIMARY： 表示主节点
+SECONDARY： 表示从节点
+ARBITER： 表示仲裁节点
+
 >use admin                #切换到admin数据库
->config = {_id:"RS",members:[                #定义副本集配置
+>config = {_id:"rep",members:[                #定义副本集配置,_id设置为副本集名称
 {_id:0,host:"172.20.6.10:27017"},
 {_id:1,host:"172.20.6.11:27017"},
 {_id:2,host:"172.20.6.12:27017"},]
@@ -287,11 +296,21 @@ shardsvr = true
 > rs.status();                #查看副本集状态
 
 8)测试
-在主节点创建数据库，并创建集合，插入文档，在secondary查看文档
-就是use tested, db.ceateCollection("test"),db.test.insert("xxx":"","ccc":"vvv")
-mongodb默认是从主节点读写数据的，副本节点上不允许读，需要设置副本节点可以读。
+在主节点创建数据库，并创建集合，插入文档
+就是use tested, db.ceateCollection("test"),db.test.insert({"xxx":"","ccc":"vvv"})
+登录另外一台服务器mongo数据库：
+#mongodb默认是从主节点读写数据的，副本节点上不允许读，需要设置副本节点可以读。
+在此服务器执行下面的命令：
 db.getMongo().setSlaveOk();            #设置副本节点可读
+>show dbs;                             #可以看到在之前节点创建的数据库
 数据已经同步到secondary上，但是无法在secondary上进行数据的增删改操作。
+
+故障转移测试
+在主节点执行：
+ps -ef | grep mongod
+kill -9 xxx //关闭服务器
+在另一台服务器登录mongod
+rs.status() #查看服务器状态，可以看到刚刚被关闭的服务器health为0.
 
 如果考虑到主服务器的复制压力过大，可以制作仲裁节点，其中的仲裁节点不存储数据，只是负责故障转移的群体投票，这样就少了数据复制的压力。
 删除节点：
@@ -303,7 +322,91 @@ rs.addArb("172.20.6.12:27017")               #添加arbiter节点
 
 
 
-5.集群使用
+
+5.开启授权
+#注意：先在不开启认证的情况下，创建用户，之后关闭服务，然后再开启认证，才生效。
+副本集下必须在master上才能执行如下命令：
+db.createUser({
+	user:'root',
+	pwd:'uestc@root',
+	customData:{description:"管理员root"},
+	roles:[{
+		'role':'root',
+		'db':'admin'
+	}]
+})
+
+db.createUser({
+	user:'rep_',
+	pwd:'rep_',
+	roles:[{
+		'role':'readWrite',
+		'db':'test_rep'
+	}]
+})
+
+db.createUser({
+	user:'rep_test',
+	pwd:'rep_test',
+	roles:[{
+		'role':'dbOwner',
+		'db':'test_rep'
+	}]
+})
+
+'role':'readWrite', ///读写账号
+
+mongodb需要通过keyfiles来解决实现副本集间的相互信任问题，不然--auth，此时登录主节点会失败（实际登录的是OTHER节点）
+//创建keyfile文件
+openssl rand -base64 741> /usr/local/mongodb/keyfile（取决于你放keyfile的路径）
+注意，每个节点必须要用同一份keyfile，将这个keyfile复制到不同部署节点的主机上。
+修改配置文件
+#vi mongodb.conf
+//添加
+keyFile=/usr/local/mongodb/keyfile
+auth=true
+启动mongodb
+#mongod --config /usr/local/mongodb/bin/mongodb.conf 
+如果出现：waiting until server is ready for connections forked process: 2033 
+解决：
+#删除data目录下的mongod.lock文件. Kill -9 2033. 
+#bin目录下：./mongod  --repair
+如果删除了.lock或没有.lock还是报错
+chmod 400 keyFile(仅所有者可读）
+进入之后，会显示rep:Secondary或PRIMARY，但此时没有授权，无法进行数据库操作
+>db.auth("root","uestc@root")
+>db.getMongo().setSlaveOk();
+
+
+
+
+
+
+
+
+6.集群使用
+Springboot连接mongodb:
+<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+application.properties中添加配置:
+spring.data.mongodb.uri=mongodb://user:pwd@ip1:port1,ip2:port2/database
+spring.data.mongodb.uri=mongodb://root:uestc%40root@192.168.11.167:27017,192.168.11.40:27017,192.168.11.45:27017/test_rep
+
+entity文件：
+@Document(collection = "test_collection")
+public class User {
+    private String name;
+    private String age;
+
+    public String toString(){
+        return "name:"+name+","+"age:"+age;
+    }
+}
+List list = mongoTemplate.find(new Query(Criteria.where("name").is("zwj")),User.class);
+或
+List list = mongoTemplate.find(new Query(Criteria.where("name").is("zwj")),User.class,"test_collection");//可以指定集合名
 
 
 

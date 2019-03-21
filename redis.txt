@@ -225,7 +225,107 @@ Redis-cli -h 192.168.2.200 -c -p 7001
 
 
 
--------------------------------------redis------------------------------------
+-------------------------------------redis使用------------------------------------
+
+1.redis默认情况下就是使用LRU策略的，因为内存是有限的，但是如果你不断地往redis里面写入数据，那肯定是没法存放下所有的数据在内存的.
+所以redis默认情况下，当内存中写入的数据很满之后，就会使用LRU算法清理掉部分内存中的数据，腾出一些空间来，然后让新的数据写入redis缓存中.
+
+redis.conf
+maxmemory，设置redis用来存放数据的最大的内存大小，一旦超出这个内存大小之后，就会立即使用LRU算法清理掉部分数据
+如果用LRU，那么就是将最近最少使用的数据从缓存中清除出去.
+对于64 bit的机器，如果maxmemory设置为0，那么就默认不限制内存的使用，直到耗尽机器中所有的内存为止; 但是对于32 bit的机器，有一个隐式的闲置就是3GB.
+
+maxmemory-policy，可以设置内存达到最大闲置后，采取什么策略来处理
+（1）noeviction: 如果内存使用达到了maxmemory，client还要继续写入数据，那么就直接报错给客户端
+（2）allkeys-lru: 就是我们常说的LRU算法，移除掉最近最少使用的那些keys对应的数据
+（3）volatile-lru: 也是采取LRU算法，但是仅仅针对那些设置了指定存活时间（TTL）的key才会清理掉
+（4）allkeys-random: 随机选择一些key来删除掉
+（5）volatile-random: 随机选择一些设置了TTL的key来删除掉
+（6）volatile-ttl: 移除掉部分keys，选择那些TTL时间比较短的keys
+
+
+
+
+2.过期时间设置
+expire key ttl. 将健key的生成时间设置为ttl秒
+pexpire key ttl    将健key的生成时间设置为ttl毫秒
+expireat key timestamp 将健key的生成时间设置为timestamp秒
+查看键空闲时间：object idletime key //返回单位秒
+ttl key //查看键的过期时间
+persist key  //取消过期时间
+注意：DEL, SET, GETSET会将key对应存储的值替换成新的，命令也会清除掉超时时间；
+
+stringRedisTemplate.getExpire("test")//根据key获取过期时间  
+stringRedisTemplate.getExpire("test",TimeUnit.SECONDS)//根据key获取过期时间并换算成指定单位  
+stringRedisTemplate.opsForValue().set("test", "100",60*10,TimeUnit.SECONDS);//向redis里存入数据和设置缓存时间
+stringRedisTemplate.expire("red_123",1000 , TimeUnit.MILLISECONDS);//设置过期时间
+
+
+
+3.持久化
+RDB
+RDB 是 Redis 默认的持久化方案。在指定的时间间隔内，执行指定次数的写操作，则会将内存中的数据写入到磁盘中。即在指定目录下生成一个dump.rdb文件。Redis 重启会通过加载dump.rdb文件恢复数据。
+redis.conf 文件，找到 SNAPSHOTTING 对应内容
+# save ""
+save 900 1
+save 300 10
+save 60 10000
+官方出厂配置默认是 900秒内有1个更改，300秒内有10个更改以及60秒内有10000个更改，则将内存中的数据快照写入磁盘。
+指定本地数据库文件名，一般采用默认的 dump.rdb
+dbfilename dump.rdb
+
+通过RDB文件恢复数据
+将dump.rdb 文件拷贝到redis的安装目录的bin目录下，重启redis服务即可。在实际开发中，一般会考虑到物理机硬盘损坏情况，选择备份dump.rdb 。
+
+RDB 的优缺点
+优点：
+1） 适合大规模的数据恢复。
+2） 如果业务对数据完整性和一致性要求不高，RDB是很好的选择。
+缺点：
+1） 数据的完整性和一致性不高，因为RDB可能在最后一次备份时宕机了。
+2） 备份时占用内存，因为Redis 在备份时会独立创建一个子进程，将数据写入到一个临时文件（此时内存中的数据是原来的两倍哦），最后再将临时文件替换之前的备份文件。
+所以Redis 的持久化和数据的恢复要选择在夜深人静的时候执行是比较合理的。
+
+AOF
+AOF ：Redis 默认不开启。它的出现是为了弥补RDB的不足（数据的不一致性），所以它采用日志的形式来记录每个写操作，并追加到文件中。Redis 重启的会根据日志文件的内容将写指令从前到后执行一次以完成数据的恢复工作。
+打开 redis.conf 文件，找到 APPEND ONLY MODE 对应内容
+1） redis 默认关闭，开启需要手动把no改为yes
+appendonly yes
+2） 指定本地数据库文件名，默认值为 appendonly.aof
+appendfilename "appendonly.aof"
+3）指定更新日志条件
+# appendfsync always
+appendfsync everysec
+# appendfsync no
+解说：
+always：同步持久化，每次发生数据变化会立刻写入到磁盘中。性能较差当数据完整性比较好（慢，安全）
+everysec：出厂默认推荐，每秒异步记录一次（默认值）
+no：不同步
+4） 配置重写触发机制
+auto-aof-rewrite-percentage 100
+auto-aof-rewrite-min-size 64mb
+解说：当AOF文件大小是上次rewrite后大小的一倍且文件大于64M时触发。一般都设置为3G，64M太小了。
+
+AOF的重写机制
+前面也说到了，AOF的工作原理是将写操作追加到文件中，文件的冗余内容会越来越多。所以聪明的 Redis 新增了重写机制。当AOF文件的大小超过所设定的阈值时，Redis就会对AOF文件的内容压缩。
+重写的原理：Redis 会fork出一条新进程，读取内存中的数据，并重新写到一个临时文件中。并没有读取旧文件（你都那么大了)。最后替换旧的aof文件。
+触发机制：当AOF文件大小是上次rewrite后大小的一倍且文件大于64M时触发。这里的“一倍”和“64M” 可以通过配置文件修改。
+
+
+
+
+
+4.gossip协议
+Gossip过程是由种子节点发起，当一个种子节点有状态需要更新到网络中的其他节点时，它会随机的选择周围几个节点散播消息，收到消息的节点也会重复该过程，直至最终网络中所有的节点都收到了消息。这个过程可能需要一定的时间，由于不能保证某个时刻所有节点都收到消息，但是理论上最终所有节点都会收到消息，因此它是一个最终一致性协议。
+
+
+
+
+
+
+
+
+
 
 
 

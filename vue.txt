@@ -436,4 +436,12 @@ import 'iview/dist/styles/iview.css'
 Vue.use(iView)
 
 
+23.history模式非根目录配置（未验证）
+location /test/ {
+    alias /test/; // 项目的真实路径,alias 指定的目录名后面一定要加上  "/"
+    index index.html;
+    try_files $uri $uri/ /test/index.html;
+}
+
+
 
