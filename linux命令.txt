@@ -171,6 +171,21 @@ ethtool enp3s1
 20.高并发linux参数调整
 ulimit -n 100000.    增大单个进程可以打开的最多文件描述符
 File-max /proc/sys/fs/file-max 是系统级别的，系统所有进程一共可以打开的文件数量。
+vi /etc/security/limits.conf
+添加：
+* hard nofile 1000000
+* soft nofile 1000000
+//soft是一个警告值，而hard则是一个真正意义的阀值，超过就会报错
+* 代表针对所有用户
+            noproc 是代表最大进程数
+            nofile 是代表最大文件打开数 
+重启电脑
+limits.conf生效就必须保证/etc/pam.d/login中有：session    required   pam_limits.so
+系统全局最大文件句柄数
+vi /proc/sys/fs/file-max
+直接修改里面的数字，默认为10000，但这是临时的
+vi /etc/sysctl.conf
+修改fs.file-max = 1000000
 
 
 21.nc命令

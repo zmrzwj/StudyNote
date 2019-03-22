@@ -221,6 +221,24 @@ Redis-cli -h 192.168.2.200 -c -p 7001
 "World"
 
 
+16.java连接redis集群
+springboot:
+spring.redis.cluster.nodes=115.xxx.xx.xxx:7000,115.xxx.xx.xxx:7001,...,111.xxx.xxx.xx:7008
+spring.redis.password=password
+
+Jedis:
+    JedisPoolConfig poolConfig = new JedisPoolConfig();
+    // 最大连接数
+    poolConfig.setMaxTotal(1);
+    // 最大空闲数
+    poolConfig.setMaxIdle(1);
+    // 最大允许等待时间，如果超过这个时间还未获取到连接，则会报JedisException异常：
+    poolConfig.setMaxWaitMillis(1000);
+    Set<HostAndPort> nodes = new LinkedHashSet<HostAndPort>();
+    nodes.add(new HostAndPort("192.168.83.128", 6379));
+    nodes.add(new HostAndPort("192.168.83.128", 6380));
+    nodes.add(new HostAndPort("192.168.83.128", 6381));
+    JedisCluster cluster = new JedisCluster(nodes, poolConfig);
 
 
 
@@ -317,6 +335,11 @@ AOF的重写机制
 
 4.gossip协议
 Gossip过程是由种子节点发起，当一个种子节点有状态需要更新到网络中的其他节点时，它会随机的选择周围几个节点散播消息，收到消息的节点也会重复该过程，直至最终网络中所有的节点都收到了消息。这个过程可能需要一定的时间，由于不能保证某个时刻所有节点都收到消息，但是理论上最终所有节点都会收到消息，因此它是一个最终一致性协议。
+
+
+
+5.新主节点选取
+redis新主节点选取是根据raft算法的领头选举算法实现。
 
 
 

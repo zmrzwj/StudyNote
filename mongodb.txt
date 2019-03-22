@@ -346,8 +346,8 @@ db.createUser({
 })
 
 db.createUser({
-	user:'rep_test',
-	pwd:'rep_test',
+	user:'tt',
+	pwd:'tt',
 	roles:[{
 		'role':'dbOwner',
 		'db':'test_rep'
@@ -367,7 +367,7 @@ keyFile=/usr/local/mongodb/keyfile
 auth=true
 启动mongodb
 #mongod --config /usr/local/mongodb/bin/mongodb.conf 
-如果出现：waiting until server is ready for connections forked process: 2033 
+问题：如果出现：waiting until server is ready for connections forked process: 2033 
 解决：
 #删除data目录下的mongod.lock文件. Kill -9 2033. 
 #bin目录下：./mongod  --repair
@@ -384,6 +384,8 @@ chmod 400 keyFile(仅所有者可读）
 
 
 
+
+
 6.集群使用
 Springboot连接mongodb:
 <dependency>
@@ -392,7 +394,22 @@ Springboot连接mongodb:
         </dependency>
 application.properties中添加配置:
 spring.data.mongodb.uri=mongodb://user:pwd@ip1:port1,ip2:port2/database
-spring.data.mongodb.uri=mongodb://root:uestc%40root@192.168.11.167:27017,192.168.11.40:27017,192.168.11.45:27017/test_rep
+spring.data.mongodb.uri=mongodb://root:uestc%40root@192.168.11.167:27017,192.168.11.40:27017,192.168.11.45:27017/
+spring.data.mongodb.database=test_rep
+问题：authentication failed
+1、不要使用root登录。 
+2、登录数据库
+>use admin 
+>db.createUser({
+	user:'tt',
+	pwd:'tt',
+	roles:[{
+		'role':'dbOwner',
+		'db':'test_rep'
+	}]
+})
+3.然后使用tt用户登录
+注意：一定要切换到admin数据库去再创建用户,一定要使用spring.data.mongodb.database指定数据库。
 
 entity文件：
 @Document(collection = "test_collection")
