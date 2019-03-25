@@ -1,10 +1,55 @@
+0.简介
+1）MongoDB 是一个高性能，开源，无模式的文档型数据库，是当前 NoSQL 数据库产品中最热门的一种。它在许多场景下可用于替代传统的关系型数据库或键/值存储方式，MongoDB 使用 C++开发。
+什么情况使用mongodb:
+更高的写入负载
+高可用性
+数据量很大或者未来会变得很大
+表结构不明确，且数据在不断变大
+
+2）RDBMS缺点：
+当数据量越来越大，RDBMS数据库撑不住了，就出现了读写分离策略，通过一个Master专门负责写操作，多个Slave负责读操作，服务器成本倍增。随着压力增加，Master撑不住了，这时就要分库了，把关联不大的数据分开部署，一些join查询不能用了，需要借助中间层。随着数据量的进一步增加，一个表的记录越来越大，查询就变得很慢，于是又得搞分表，比如按ID取模分成多个表以减少单个表的记录数。
+
+3）适用场景
+网站数据：适合实时的插入，更新与查询，并具备网站实时数据存储所需的复制及高度伸缩性。
+缓存：由于性能很高，也适合作为信息基础设施的缓存层。在系统重启之后，搭建的持久化缓存可以避免下层的数据源过载。
+大尺寸、低价值的数据：使用传统的关系数据库存储一些数据时可能会比较贵，在此之前，很多程序员往往会选择传统的文件进行存储。
+高伸缩性的场景：非常适合由数十或者数百台服务器组成的数据库。
+用于对象及JSON数据的存储：MongoDB的BSON数据格式非常适合文档格式化的存储及查询。
+
+4）应用案例
+（1）京东,中国著名电商,使用MongoDB存储商品信息,支持比价和关注功能。
+（2）赶集网,中国著名分类信息网站,使用MongoDB记录pv浏览计数。
+（3）奇虎360,著名病毒软件防护和移动应用平台,使用MongoBD支撑的HULK平台每天接受200亿次的查询。
+（4）百度云,使用MongoDB管理百度云盘中500亿条关于文件源信息的记录。
+（5）CERN，著名的粒子物理研究所，欧洲核子研究中心大型强子对撞机的数据使用MongoDB。
+（6）纽约时报，领先的在线新闻门户网站之一，使用MongoDB。
+（7）sourceforge.net，资源网站查找，创建和发布开源软件免费，使用MongoDB的后端存储。
+（8）游戏场景，使用 MongoDB 存储游戏用户信息，用户的装备、积分等直接以内嵌文档的形式存储，方便查询、更新。
+（9）物流场景，使用 MongoDB 存储订单信息，订单状态在运送过程中会不断更新，以 MongoDB 内嵌数组的形式来存储，一次查询就能将订单所有的变更读取出来。
+（10）社交场景，使用 MongoDB 存储存储用户信息，以及用户发表的朋友圈信息，通过地理位置索引实现附近的人、地点等功能。
+（11）物联网场景，使用 MongoDB 存储所有接入的智能设备信息，以及设备汇报的日志信息，并对这些信息进行多维度的分析
+视频直播，使用 MongoDB 存储用户信息、礼物信息等。
+
+5）应用特征	Yes / No
+应用不需要事务及复杂 join 支持	必须 Yes
+新应用，需求会变，数据模型无法确定，想快速迭代开发	？
+应用需要2000-3000以上的读写QPS（更高也可以）	？
+应用需要TB甚至 PB 级别数据存储	?
+应用发展迅速，需要能快速水平扩展	?
+应用要求存储的数据不丢失	?
+应用需要99.999%高可用	?
+应用需要大量的地理位置查询、文本查询	？
+如果上述有1个 Yes，可以考虑 MongoDB，2个及以上的 Yes，选择MongoDB绝不会后悔。
+
+
+
+
 1.mongodb安装
 1)下载：https://www.mongodb.com/download-center/community
 下载：mongodb-linux-x86_64-4.0.6.tgz
 tar -zxvf mongodb-linux-x86_64-4.0.6.tgz
 Mv mongodb-linux-x86_64-4.0.6 mongodb
 vi /etc/profile 添加环境变量
-
 mongodb目录下新建一个名为db的文件夹，用来存放数据库
 mongodb目录下新建一个名为logs的文件夹，用来存放日志
 
@@ -47,6 +92,31 @@ journal=true #每次写入会记录一条操作日志
 命令启动mongod --config /usr/local/mongodb/bin/mongodb.conf
 关闭mongod:>use admin.       >db.shutdownServer();
 下载Robo 3T，免费图形工具https://robomongo.org/download
+
+
+设置开机启动：
+vi /etc/systemd/system/mongodb.service
+[Unit]
+Description=mongodb 
+After=network.target remote-fs.target nss-lookup.target
+[Service]
+Type=forking
+ExecStart=/usr/local/mongodb/bin/mongod --config /usr/local/mongodb/bin/mongodb.conf
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/usr/local/mongodb/bin/mongod --shutdown --config /usr/local/mongodb/bin/mongodb.conf
+PrivateTmp=true
+[Install]
+WantedBy=multi-user.target
+
+#启动服务
+systemctl start mongodb.service  
+#关闭服务  
+systemctl stop mongodb.service  
+#开机启动  
+systemctl enable mongodb.service 
+
+
+
 
 
 2.基本使用
@@ -355,6 +425,7 @@ db.createUser({
 })
 
 'role':'readWrite', ///读写账号
+显示用户：>show users
 
 mongodb需要通过keyfiles来解决实现副本集间的相互信任问题，不然--auth，此时登录主节点会失败（实际登录的是OTHER节点）
 //创建keyfile文件
@@ -376,10 +447,6 @@ chmod 400 keyFile(仅所有者可读）
 进入之后，会显示rep:Secondary或PRIMARY，但此时没有授权，无法进行数据库操作
 >db.auth("root","uestc@root")
 >db.getMongo().setSlaveOk();
-
-
-
-
 
 
 

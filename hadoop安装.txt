@@ -11,7 +11,9 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 /*hadoop用户生成*/
 1.安装好jdk8
-2.# useradd -m hadoop -s /bin/bash # 创建新用户hadoop (useradd hadoop -g hadoop创建hadoop并添加给hadoop组)(-m 自动建立用户的登入目录，-s指定用户登录后使用的shell,userdel -f zzz删除用户zzz连同目录一起删除)
+2.# useradd -m hadoop -s /bin/bash  创建新用户hadoop 
+(如果出现 xxx group is exists，请使用useradd hadoop -g hadoop创建hadoop并添加给hadoop组)
+(-m 自动建立用户的登入目录，-s指定用户登录后使用的shell,userdel -f zzz删除用户zzz连同目录一起删除)
 3.# passwd hadoop  修改用户的密码(广思hadoop密码：hadoop)
 4.# visudo 为用户增加管理员权限
 找到 root ALL=(ALL) ALL 这行在这行下面增加一行内容：hadoop ALL=(ALL) ALL（当中的间隔为tab）
@@ -30,10 +32,11 @@ export PATH=$JAVA_HOME/bin:$PATH
 14.sudo chown -R hadoop:hadoop ./hadoop # 修改文件权限
 15.修改环境变量：
 	export HADOOP_HOME=/usr/local/hadoop
+	export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
 	export PATH=$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
 
 /*haddoop集群*/
-15.上述操作在所有机器走一遍
+15.上述操作在所有机器走一遍,关闭防火墙,切换到Hadoop用户执行以下操作
 16.$ sudo vim /etc/hostname  //为了便于区分，可以修改各个节点的主机名
  添加HOSTNAME=Master.    //其它主机也对应修改为HOSTNAME=Slave1,HOSTNAME=Slave2....
 17.$ sudo vim /etc/hosts //修改自己所用节点的IP映射,所有主机都需要修改
@@ -53,18 +56,18 @@ export PATH=$JAVA_HOME/bin:$PATH
 20.在 Slave1 节点上，将 ssh 公匙加入授权：
 	$ cat ~/id_rsa.pub >> ~/.ssh/authorized_keys
 	$ rm ~/id_rsa.pub    # 用完就可以删掉了
-21.在 Master 节点上就可以无密码 SSH 到各个 Slave 节点了，可在 Master 节点上执行如下命令进行检验：
+21.在 Master 节点上就可以无密码 SSH 到各个 Slave- 节点了，可在 Master 节点上执行如下命令进行检验：
 	$ ssh Slave1
 
 /*修改配置文件*/
 (查看端口占用netstat -anp|grep 9200,8020,50090)
 22.修改 /usr/local/hadoop/etc/hadoop 中的5个配置文件， slaves、core-site.xml、hdfs-site.xml、mapred-site.xml、yarn-site.xml 
-23.文件slaves，将作为 DataNode 的主机名写入该文件，每行一个，默认为 localhost，分布式配置可以保留 localhost，也可以删掉，让 Master 节点仅作为 NameNode 使用。我们把localhost保留，再添加Slave1，Slave2.
+23.文件slaves，将作为 DataNode 的主机名写入该文件，每行一个，默认为 localhost，分布式配置可以保留 localhost，也可以删掉，让 Master 节点仅作为 NameNode 使用。我们把localhost去掉，添加Slave1，Slave2.
 24.修改 core-site.xml:
 <configuration>
         <property>
                 <name>fs.defaultFS</name>
-                <value>hdfs://Master:8020</value>
+                <value>hdfs://Master:9000</value>
         </property>
         <property>
                 <name>hadoop.tmp.dir</name>
@@ -111,20 +114,22 @@ export PATH=$JAVA_HOME/bin:$PATH
                 <value>mapreduce_shuffle</value>
         </property>
 </configuration>
-27.如果有其他 Slave 节点,所有节点配置都一样，拷贝过去就行。
-28.格式化namenode：$hadoop namenode -format（只需要执行一次即可）(重新格式化请先删除/usr/local/hadoop/tmp)
+28.hadoop-env.sh
+export JAVA_HOME=/usr/local/java/jdk8
+29.如果有其他 Slave 节点,所有节点配置都一样，拷贝过去就行。
+30.格式化namenode：$hadoop namenode -format（只需要执行一次即可）(重新格式化请先删除/usr/local/hadoop/tmp)
 	执行过程不报错，最后是
         /***********************************************************
 	SHUTDOWN_MSG:Shutting down NameNode at Master/192.168.5.114
 	************************************************************/
-29.启动hadoop：$start-all.sh
+30.启动hadoop：$start-all.sh
  如果报错JAVA_HOME is not set and could not be found
  修改hadoop-env.sh中，JAVA_HOME
  export JAVA_HOME=${JAVA_HOME}
  改为：export JAVA_HOME=/usr/local/java/jdk8
 
  如果出现：namenode running as process xxxx. Stop it first.
- 需要stop掉所有的hadoop服务；解决：重启电脑。shutdown -r now	
+ 需要stop掉所有的hadoop服务stop-all.sh；解决：重启电脑。shutdown -r now	
 30.如果没有再报错，使用jps查看节点启动情况
 $jps
 2000 Jps
@@ -141,7 +146,7 @@ Slaves上的进程：DataNode，NodeManager。
 /*单词统计的测试wordcount*/
 32.测试
 $vi testWordCount 创建文件随便写点东西进去。
-$ hadoop fs -mkdir /home/hadoop/input 在hdfs中创建文件夹 
+$ hadoop fs -mkdir /home/hadoop/input 在hdfs中创建文件夹 (如果报连接refused,就使用hadoop/bin/hadoop绝对路径允许命令)
 $ hadoop fs -ls /home/hadoop/ 查看创建的文件夹
 $hadoop fs -put testWordCount /home/hadoop/input //把刚创建的testWordCount文件上传到hdfs.
 如果出现testwordcount._copying_ could only be replicated to 0 nodes的问题，请关闭防火墙，master和slave的都要关。systemctl stop firewalld，禁止systemctl  disable firewalld，查看firewall-cmd --state
@@ -242,7 +247,14 @@ apache源
 
 
 
------------------hadoop cdh---------------
+
+
+
+
+
+
+
+-------------------------------------hadoop cdh-------------------------------------------
 1、cdh比原生的Apache发行版本包含了更多的补丁，用于增强稳定性，改善功能，有时候还增加功能特性 
 2、cdh版本是由cloudera公司开源的，可以使用cm平台进行管理，比原生的Apache版本安装、维护更加省力 
 3、但是对技术人员的要求更高，必须对原生apache版本的各个组件理解清晰 
@@ -459,6 +471,8 @@ HUE
 	Hue是cdh专门的一套web管理器，它包括3个部分hue ui，hue server，hue db。hue提供所有的cdh组件的shell界面的接口。你可以在hue编写mr，查看修改hdfs的文件，管理Hive的元数据，运行Sqoop，编写Oozie工作流等大量工作。
 
 
+
+14.Hadood中的NameNode和ResourcManager是集群中的重要角色，如果这两个角色出现问题将导致整个集群无法使用。所以保证这两个角色的高可用是保证整个hadoop分布式系统高可用的关键。
 
 
 

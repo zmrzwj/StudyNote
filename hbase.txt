@@ -1,0 +1,363 @@
+1.HBase是一个分布式的、面向列的开源数据库，该技术来源于 Fay Chang 所撰写的Google论文“Bigtable：一个结构化数据的分布式存储系统”。就像Bigtable利用了Google文件系统（File System）所提供的分布式数据存储一样，HBase在Hadoop之上提供了类似于Bigtable的能力。HBase是Apache的Hadoop项目的子项目。HBase不同于一般的关系数据库，它是一个适合于非结构化数据存储的数据库。另一个不同的是HBase基于列的而不是基于行的模式。
+
+
+2.HBase八大应用场景
+对象存储：我们知道不少的头条类、新闻类的的新闻、网页、图片存储在HBase之中，一些病毒公司的病毒库也是存储在HBase之中。
+时序数据：HBase之上有OpenTSDB模块，可以满足时序类场景的需求。
+推荐画像：特别是用户的画像，是一个比较大的稀疏矩阵，蚂蚁的风控就是构建在HBase之上。
+时空数据：主要是轨迹、气象网格之类，滴滴打车的轨迹数据主要存在HBase之中，另外在技术所有大一点的数据量的车联网企业，数据都是存在HBase之中。
+CubeDB OLAP：Kylin一个cube分析工具，底层的数据就是存储在HBase之中，不少客户自己基于离线计算构建cube存储在hbase之中，满足在线报表查询的需求。
+消息/订单：在电信领域、银行领域，不少的订单查询底层的存储，另外不少通信、消息同步的应用构建在HBase之上。
+Feeds流：典型的应用就是xx朋友圈类似的应用。
+NewSQL：之上有Phoenix的插件，可以满足二级索引、SQL的需求，对接传统数据需要SQL非事务的需求。
+
+HBase缺点：
+暂时不能支持Master server的故障切换,当Master宕机后,整个存储系统就会挂掉。
+
+
+
+3.安装
+前提需要先安装Hadoop
+可选zookeeper，hbase内置zookeeper，但建议生产环境下使用外部zookeeper。
+
+hadoop下载地址：
+https://hadoop.apache.org/releases.html
+hbase下载地址：
+https://hbase.apache.org/downloads.html
+
+hbase与Hadoop对应版本情况
+https://hbase.apache.org/book.html#configuration
+
+步骤：
+Cd /usr/local
+tar -zxvf hbase-xxx-bin.tar.gz
+Mv hbase-xxx hbase
+添加环境变量：
+export HBASE_HOME=/usr/local/hbase
+export PATH=$HBASE_HOME/bin:$PATH
+
+Cd hbase
+Mkdir data //创建tmp文件夹作为hbase的数据目录
+mkdir logs //新建一个logs文件夹，用于存放日志文件
+
+修改配置文件
+vi hbase-env.sh
+export JAVA_HOME=/usr/local/java
+export HADOOP_HOME=/usr/local/hadoop
+export HBASE_HOME=/usr/local/hbase
+export HBASE_LOG_DIR=/usr/local/hbase/logs
+export HBASE_MANAGES_ZK=true
+#如果使用HBase自带的Zookeeper值设成true， 如果使用自己安装的Zookeeper需要将该值设为false
+
+
+vi conf/hbase-site.xml
+使用本地文件系统：
+<configuration>
+  <property>
+    <name>hbase.rootdir</name>
+    <value>file:///usr/local/hbase/tmp/hbase</value>
+  </property>
+</configuration>
+或使用hdfs文件系统：
+<configuration>
+  <property>
+         <!--指定master位置-->
+         <name>hbase.master</name>
+         <value>master:60000</value>
+  </property>
+  <property>
+    <name>hbase.rootdir</name>
+    <value>hdfs://master:9000/hbase</value>
+  </property>
+  <property>
+      <!--指定是否是完全分布式-->
+      <name>hbase.cluster.distributed</name>
+      <value>true</value>
+  </property>
+
+  <property>
+       <!--指定zooke的集群，多台机器以逗号分隔 master, slave名与/etc/hosts一致-->
+       <name>hbase.zookeeper.quorum</name>
+       <value>master,slave1,slave2</value>
+  </property>
+
+  <property>
+       <!--副本个数 -->
+       <name>dfs.replication</name>
+       <value>1</value>
+  </property>
+
+  <property>
+    <name>hbase.zookeeper.property.dataDir</name>
+    <value>/hbase/zoodata</value>
+  </property>
+
+  <!-- web管理页面 -->
+  <property>
+    <name>hbase.master.info.port</name>
+    <value>60010</value>
+  </property>
+</configuration>
+
+vi regionservers
+将localhost修改为子节点主机名
+master
+slave1
+slave2
+
+将文件完全复制到其他集群上。
+
+如果安装zookeeper，先启动zookeeper
+zookeeper/bin/zkServer.sh start
+再启动hadoop
+hadoop/sbin/start-all.sh. //在hadoop用户下启动
+再启动hbase
+hbase/bin/start-hbase.sh  //在root用户下启动
+hbase/bin/stop-hbase.sh //关闭hbase
+
+
+运行命令：jps
+正常情况可以看到：
+HMaster # hbase 进程 ，只在master节点有
+HRegionServer #HBase进程
+QuorumPeerMain # zookeeper 进程
+
+Web管理页面：http://192.168.11.167:60010/
+
+使用hbase:
+hbase shell
+如果出错Could not find xxx class org.jruby.Main，请执行hbase/bin/hbase shell.  
+
+问题：java.lang.NoClassDefFoundError: org/apache/htrace/SamplerBuilder
+解决：cp ./lib/client-facing-thirdparty/htrace-core-3.1.0-incubating.jar ./lib/ (每个机器都要做)
+
+问题：Permission denied: user=root, access=WRITE, inode="/"
+解决：hdfs-core.xml添加（每台机器都要做）
+<property>
+	<name>dfs.permissions</name>
+	<value>false</value>
+	<description>
+		If "true", enable permission checking in HDFS.
+		If "false", permission checking is turned off,
+		but all other behavior is unchanged.
+		Switching from one parameter value to the other does not change the mode,
+		owner or group of files or directories.
+	</description>
+</property>
+停止hadoop,再启动：
+hadoop/sbin/stop-all.sh,hadoop/sbin/start-all.sh
+
+
+问题：Could not initialize class xx.io.asyncfs.FanOutOneBlockAsyncDFSOutputHelper
+解决：vi conf/hbase-site.xml（每个机器都要做）
+<property>
+                <name>hbase.wal.provider</name>
+                <value>filesystem</value>
+ </property>
+//AsyncFSWAL为的默认WAL,WAL记录所有的Hbase数据改变,MultiWAL: 如果每个RegionServer只有一个WAL，由于HDFS必须是连续的，导致必须写WAL连续的，然后出现性能问题。MultiWAL可以让RegionServer同时写多个WAL并行的，通过HDFS底层的多管道，最终提升总的吞吐量，但是不会提升单个Region的吞吐量。开始支持多个WALHBASE-5699,这样可以提高写入的吞吐量。配置参数为hbase.wal.provider=multiwal，支持的值还有defaultProvider和filesystem(这2个是同样的实现)
+
+
+--------------------------------------hbase使用-------------------------------------------
+HBase集群中的角色
+1、一个或者多个主节点，Hmaster；
+2、多个从节点，HregionServer；
+3、HBase依赖项，zookeeper；
+HMaster的作用：
+为Region server分配region
+负责Region server的负载均衡
+发现失效的Region server并重新分配其上的region。
+HDFS上的垃圾文件回收。
+处理schema更新请求。
+
+Zookeeper的作用：
+保证任何时候，集群中只有一个master
+存储所有Region的寻址入口
+实时监控Region server的上线和下线信息。并实时通知给master
+存储HBase的schema和table元数据
+
+HRegionServer的作用：
+维护master分配给他的region，处理对这些region的io请求。
+负责切分正在运行过程中变的过大的region。
+
+
+1.基本操作
+>status 提供HBase的状态，例如，服务器的数量。
+>version: 提供正在使用HBase版本。
+>whoami: 提供有关用户的信息。
+>list_namespace :查看命名空间
+>list:查看表
+
+创建命名空间：
+create_namespace 'ns'
+
+命令创建一个表，在这里必须指定表名和列族名:
+create ‘<table name>’,’<column family>’ //列族名可以多个，以逗号分隔
+create 'test_table','col1','col2'
+
+要删除表或改变其设置，首先需要使用 disable 命令关闭表:
+disable ‘test_table’
+删除表:
+drop 'test_table'
+exists命令验证表的存在:
+exists 'test_table'
+
+启用表的语法：
+enable ‘test_table’
+
+返回表的说明：
+hbase> describe 'table name'
+
+改现有表的命令
+alter 'emp', NAME => 'personal data', VERSIONS => 5
+删除列族
+alter ‘ table name ’, ‘delete’ => ' column family '
+
+插入数据
+put ’<table name>’,’row1’,’<colfamily:colname>’,’<value>’
+put 'test_table','1','col1:name','zwj'
+put 'test_table','2','col1:age','27'
+put 'test_table','3','col1:age','27'
+put 'test_table','3','col2:age','28'
+读取数据：
+get <table>,<rowkey>
+get 'test_table','1'
+读取指定列：
+get 'test_table', '1', {COLUMN=>'col1:name'}
+获取数据表的全部数据：
+scan 'test_table'
+删除特定单元格：
+delete ‘<table name>’, ‘<row>’, ‘<column name >’
+delete 'test_table','3','col2:age'
+统计行数：
+count 'test_table'
+
+
+
+
+2.java api
+springboot下也没有简单的配置，都需要HBaseConfiguration.create实现。
+	<dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+            <version>2.1.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.elasticsearch</groupId>
+                    <artifactId>elasticsearch</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+配置文件：
+public class hbase {
+    private  Configuration conf;
+    private  Connection connection;
+    private  Admin admin;
+
+    public hbase(){
+        this.conf = HBaseConfiguration.create();
+        //zookeeper集群的URL配置信息
+    this.conf.set("hbase.zookeeper.quorum","192.168.11.167,192.168.11.40,192.168.11.45");
+        //客户端连接zookeeper端口
+        this.conf.set("hbase.zookeeper.property.clientPort","2181");
+
+        try {
+            this.connection = ConnectionFactory.createConnection(this.conf);
+            this.admin = connection.getAdmin();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Connection getConnection(){
+        return this.connection;
+    }
+}
+
+使用：
+hbase hbase_ = new hbase();
+Connection connection = hbase_.getConnection();
+// 获取表对象
+TableName tableName = TableName.valueOf("test_table");
+try {
+     Table table = connection.getTable(tableName);
+     // 创建一个查询请求，查询一行数据
+     Get get = new Get(Bytes.toBytes("1")); //1为行标志
+     get.addFamily(Bytes.toBytes("col1"));//// 由于HBase的一行可能非常大，所以限定要取出的列族
+     // 创建一个结果请求
+     Result result = table.get(get);
+
+     byte[] name = result.getValue(Bytes.toBytes("col1"), Bytes.toBytes("name"));
+     System.out.println(Bytes.toString(name));
+
+    } catch (IOException e) {
+            e.printStackTrace();
+    }
+}
+
+Scan scan = new Scan();
+// Scanning the required columns
+scan.addColumn(Bytes.toBytes("col1"), Bytes.toBytes("name"));
+scan.addColumn(Bytes.toBytes("col1"), Bytes.toBytes("age"));
+// Getting the scan result
+ResultScanner scanner = table.getScanner(scan);
+for (Result result = scanner.next(); result != null; result = Scanner.next())
+	System.out.println("Found row : " + result);
+
+
+
+
+
+
+
+
+
+注意：可能出现UnknownHostException: slave1: nodename nor servname provided
+修改hosts，添加相应的映射
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

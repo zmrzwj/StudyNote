@@ -330,6 +330,15 @@ advertised.listeners=PLAINTEXT://192.168.1.100:9092
 
 
 
+5、kafka与zookeeper
+问题1:kafka单纯只是脱离zookeeper可以吗？
+zookeeper只是个服务注册中心，如果kafka可以找到替代品换掉zookeeper是没有问题的。
+现有的服务器注册中心有很多比如淘宝就有自已研发的服务注册中心产品。
+所以如果用其他的服务注册中心系统换掉zookeeper是可行的（事实上zookeeper作为服务注册中心功能性并不是很理想），比如它的状态检测并不能真实反应broker的状态（可连接就一定是状态ok吗？不是吧。）。
+问题2:kafka脱离zookeeper为代表的服务注册中心可以吗？
+不可以，kafka的集群管理的核心是zookeeper虽然它并不完美（甚至缺点很多）。但是没了zk，kafka是不可用的。所以没有服务注册中心的kafka是不可用的。
+
+
 
 
 
