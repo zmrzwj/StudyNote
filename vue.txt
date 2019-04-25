@@ -94,8 +94,7 @@ module.exports = {
         }
     }
 }
-//建议在开发时，新建一个src/pages目录统一管理，页面的 主js,模版html,主vue页面
-多页面时访问非index.html页面直接http://localhost:8080/home.html
+//建议在开发时，新建一个src/pages目录统一管理，页面的 主js,模版html,主vue页面,注意:js,html,vue的名字不要相同，多页面时访问非index.html页面直接http://localhost:8080/home.html
 
 
 8.Save this as a preset for future projects? (y/N) N 默认选择 No ,表示不把现在的配置设置为本机的默认配置。
@@ -426,7 +425,7 @@ const My404 = resolve => require(['./components/404/404'], resolve);
 
 21.添加font-awesome
 npm install font-awesome --save
-Import 'font-awesome/css/font-awesome.min.css'
+import 'font-awesome/css/font-awesome.min.css'
 
 
 22.iview
@@ -443,5 +442,35 @@ location /test/ {
     try_files $uri $uri/ /test/index.html;
 }
 
+
+
+24.ant
+npm install ant-design-vue --save
+import Antd from 'ant-design-vue'
+import 'ant-design-vue/dist/antd.css'
+Vue.use(Antd)
+
+国际化：
+<a-locale-provider :locale="locale">
+    <App />
+</a-locale-provider>
+<script>
+import zhCN from 'ant-design-vue/lib/locale-provider/zh_CN';
+export default {
+  data() {
+    return {
+      locale: zhCN,
+    }
+  }
+}
+</script>
+
+
+
+
+25.vue-cli-service JavaScript heap out of memory
+在node_modules下@vue下cli-service下bin下修改vue-cli-service.js
+#!/usr/bin/env node 
+改为：#!/usr/bin/env node --max_old_space_size=8096
 
 

@@ -7,3 +7,11 @@
 
 
 2.操作系统通过写时复制来优化子进程的使用效率。
+
+
+3.分布式架构
+1）MPP架构
+大规模并行处理massively parallel processor
+2）SMP架构
+
+3）NUMA架构

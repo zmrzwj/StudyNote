@@ -13,6 +13,16 @@ https://sourceforge.net/projects/libpng/files/zlib/1.2.11/zlib-1.2.11.tar.gz
 缺失ssl:
 http://www.openssl.org/source/
 以上三个都是源码安装./configure  make&&make install
+ 
+Ubuntu:
+sudo apt-get install libpcre3 libpcre3-dev
+sudo apt-get install zlib1g-dev
+sudo apt-get install openssl libssl-dev
+
+Centos:
+Yum install pure-devel
+Yum -y openssl openssl-revel
+
 )
 
 去到/usr/local/nginx/sbin
@@ -93,15 +103,18 @@ Email Address []:admin@cddw.com
 -out 指定生成的证书文件名。
 
 配置nginx.conf
+server{
 	listen       443;
 	server_name  www.cddw.com;
 	ssl on;
-	ssl_certificate ./cert/a.crt;
+	ssl_certificate ./cert/a.crt;//阿里的后缀为.pem,请做相应修改
         ssl_certificate_key ./cert/a.key;
         ssl_session_timeout 5m;
         ssl_protocols SSLv2 SSLv3 TLSv1;
 	ssl_ciphers  HIGH:!aNULL:!MD5;     //密码加密方式
         ssl_prefer_server_ciphers   on;    //依赖SSLv3和TLSv1协议的服务器密码将优先于客户端密码
+}
+//反向代理同http
 
 再添加一个server将http跳转到https:
 server {

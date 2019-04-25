@@ -6,8 +6,6 @@ rpm -qa|grep java
 rpm -e -nodeps java-1.8.0-openjdk-1.8.0.191.b12-0.el7_5.x86_64
 (openjdk-headless也卸载了，其它的就不卸载了)
 
-
-
 下载jdk-8u171-linux-x64.tar.gz
 
 在/usr/local/下mkdir java
@@ -354,6 +352,14 @@ timer.schedule(new TimerTask() {
 
 
 24.-ea可打开断言机制
+
+
+25.java -Xms 初始堆大小 -Xmx 最大堆大小
+-XX:NewSize
+young代的初始值和最小值
+-XX:MaxNewSize
+young区空间的最大值
+
 
 
 

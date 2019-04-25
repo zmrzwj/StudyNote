@@ -1,2 +1,7 @@
 1.查看php状态
 ps -ef | grep php-fpm
+
+2.composer安装
+curl -sS https://getcomposer.org/installer | php
+mv composer.phar /usr/bin/composer
+查看版本：composer --version

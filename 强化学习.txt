@@ -1,0 +1,33 @@
+1.概念
+
+
+
+2.增强学习三大组件
+value，policy，model
+按照是否包含这些组件来分类：
+1）value based
+2）policy based
+3）actor critic
+4）model free
+5)model based
+
+
+3.bellman方程
+最优状态值函数 
+最优值函数v∗(s)v∗(s)是在所有策略上的最大值函数： 
+v∗(s)=maxvπ(s)
+v∗(s)=maxvπ(s)
+最优行为值函数 
+最优行为值函数q∗(s,a)q∗(s,a)是在所有策略上的最大行为值函数： 
+q∗(s,a)=maxqπ(s,a)
+
+Bellman最优方程其实就是v∗(s)和q∗(s,a)自身以及相互之间的递推关系。
+
+贝尔曼(Bellman)算法
+(又名最短路径算法)
+这个算法只适用于没有变化的环境
+V(s) = max_{\alpha}(R(s,a)+{\gamma}V({s}'))
+
+
+
+
