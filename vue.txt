@@ -474,3 +474,6 @@ export default {
 改为：#!/usr/bin/env node --max_old_space_size=8096
 
 
+26.eslint ‘no-mutiple-empty-lines’:[1,{'max':2}],//空行不能超过2行
+
+
