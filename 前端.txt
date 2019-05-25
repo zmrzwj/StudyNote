@@ -90,3 +90,10 @@ proxy(target, handle)会拦截target对象的方法，如：get, set, apply,has�
             p.zwj = 3;
 
 
+
+9.eslint
+vue 子组件报错,如:<template>
+配置里添加：
+parser: 'vue-eslint-parser',(同rules同级)
+npm install babel-eslint --save
+
