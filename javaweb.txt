@@ -771,6 +771,12 @@ Idea：spring initialir -> cloud discovery -> eureka server
 
 
 
+47.tomcat部署多个spring boot项目
+spring.jmx.default-domain=proj01
+spring.jmx.default-domain=proj02
+
+
+
 
 
 

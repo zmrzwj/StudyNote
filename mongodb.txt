@@ -494,6 +494,58 @@ List list = mongoTemplate.find(new Query(Criteria.where("name").is("zwj")),User.
 
 
 
+7.windows安装
+https://www.mongodb.com/download-center#community
+安装完成后
+C 盘安装了 mongodb，现在让我们创建一个 mongodbData 的目录然后在 data 目录里创建 db 目录。
+c:\>cd c:\
+c:\>mkdir mongodbData
+c:\>cd data
+c:\data>mkdir db
+c:\data>cd db
+c:\data\db>
+
+命令行下运行 MongoDB 服务器
+>cd C:\Program Files\MongoDB\Server\3.6\bin\
+>mongod --dbpath c:\mongodbData\db
+
+
+配置 MongoDB 服务
+创建目录，执行下面的语句来创建数据库和日志文件的目录
+mkdir c:\mongodbData\db
+mkdir c:\mongodbData\log
+
+创建配置文件
+创建一个配置文件。该文件必须设置systemLog.path参数，包括一些附加的配置选项更好。
+创建一个配置文件位于 C:\Program Files\MongoDB\mongod.cfg，其中指定 systemLog.path 和 storage.dbPath。具体配置内容如下：
+systemLog:
+    destination: file
+    path: c:\mongodbData\log\mongod.log
+storage:
+    dbPath: c:\mongodbData\db
+
+>cd C:\Program Files\MongoDB\Server\3.6\(注意：请以管理员打开cmd)
+>bin\mongod.exe --config "C:\Program Files\MongoDB\Server\3.6\mongod.cfg" --install --serviceName "mongodb"
+
+启动MongoDB服务
+net start mongodb
+关闭MongoDB服务
+net stop mongodb
+移除 MongoDB 服务
+>cd C:\Program Files\MongoDB\Server\3.6\
+>bin\mongod.exe --remove
+
+MongoDB shell：
+> mongo
+
+
+
+
+
+
+
+
+
 
 
 
