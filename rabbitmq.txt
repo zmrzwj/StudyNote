@@ -1,0 +1,54 @@
+1.先安装erlang
+https://www.rabbitmq.com/releases/erlang/
+下载：erlang-19.0.4-1.el7.centos.x86_64.rpm
+安装erlang:
+　　rpm -ivh erlang-19.0.4-1.el7.centos.x86_64.rpm
+测试是否安装成功:
+	#erl
+
+
+2.安装rabbitmq
+http://www.rabbitmq.com/releases/rabbitmq-server/
+下载：rabbitmq-server-3.6.15-1.el7.noarch
+安装rabbitmq:
+　　　　rpm -ivh rabbitmq-server-3.6.15-1.el7.noarch
+提示依赖socat：
+yum install socat
+
+启动RabbitMQ  
+ 启动服务：service rabbitmq-server start
+ 查看服务状态：service rabbitmq-server status
+ 关闭服务：service rabbitmq-server stop
+
+增加用户admin，密码admin
+ #rabbitmqctl add_user admin admin 
+ #rabbitmqctl set_user_tags admin administrator 
+ (用户角色可分为五类，超级管理员, 监控者, 策略制定者, 普通管理者以及其他。超级管理员(administrator，可登陆管理控制台)、
+ 监控者(monitoring，可登陆管理控制台)、策略制定者(policymaker，可登陆管理控制台)、普通管理者(management，仅可登陆管理控制台，无法看到节点信息，
+ 也无法对策略进行管理),可以给同一用户设置多个角色 )
+ 
+ 设置用户权限
+ #rabbitmqctl  set_permissions  -p  /  admin  '.*' '.*' '.*'
+ 
+开启web UI:
+ #rabbitmq-plugins enable rabbitmq_management
+ 关闭防火墙：systemctl stop firewalld.service
+ 访问：http://192.168.11.206:15672/
+ 账号和密码默认都是guest
+ 【注意：】账号guest和密码guest是无法访问的，需要自己添加一个用户，并且授予所有的权限
+ 修改配置文件：/etc/rabbitmq/
+ cd /etc/rabbitmq/
+ vim rabbitmq.config
+ 想让guest用户能够远程访问的话:
+ [{rabbit, [{loopback_users, []}]}].
+ 新添加的用户，直接就可以从远程访问的;如果想让新添加的用户只能本地访问，可以将用户名添加到上面的列表:
+ [{rabbit, [{loopback_users, ["admin"]}]}].
+ 
+ 
+ 
+ 3.RabbitMQ集群模式
+ 普通模式(默认)，镜像模式
+ 集群中节点包括：内存节点(RAM)、磁盘节点(Disk，消息持久化)
+ 
+ 
+
