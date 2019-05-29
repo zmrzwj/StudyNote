@@ -55,8 +55,11 @@ chown -R mysql:mysql mysql/
 
 初始化mysqld：(mysqld 是服务端程序 ,mysql是命令行客户端程序 )
 ./bin/mysqld --initialize --user=mysql --basedir=/usr/local/mysql --datadir=/usr/local/mysql/data
-(可能问题：libaio.so.1: cannot open shared object file解决方法
-缺少安装包libaio和libaio-devel.命令行yum install libaio*。（apt-get install libaio*）自动安装这两个包)
+（mysql5.6 ./scripts/mysql_install_db --basedir=/usr/local/mysql --datadir=/usr/local/mysql/data --user=mysql）
+(
+	可能问题：libaio.so.1: cannot open shared object file，解决方法缺少安装包libaio和libaio-devel.命令行yum install libaio*。（apt-get install libaio*）自动安装这两个包.
+	5.6可能问题：please install the following Perl modules，安装autoconf库，yum -y install autoconf
+)
 会有一行：
 2018-06-01T02:10:16.805014Z 1 [Note] A temporary password is generated for root@localhost: -;PRuEYe<7h8  gysQ5dRwr6/j q=rreO+oO8J=
 -;PRuEYe<7h8是初始的随机密码。
@@ -87,7 +90,7 @@ mkdir /var/lib/mysql
 SUCCESS! 
 
 测试登陆：
-mysql -u root -p
+mysql -u root -p（mysql5.6 不需要密码，直接就登陆了）
 初始密码为：上面mysqld --initialize时root@localhost:后的随机字符串。
 登上后，请修改密码：
 set password = password("uestc@123456");(修改当前密码)

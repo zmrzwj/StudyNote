@@ -1,3 +1,95 @@
+安装es
+vim config/elasticsearch.yml
+network.host: 0.0.0.0 #让所有ip访问
+http.port: 9200
+
+es5以上不允许root用户启动
+#useradd es
+#passwd es
+-------------------------------------------------------------------------------------------------------------
+开机启动设置
+#su es
+$vim /etc/init.d/elasticsearch
+#!/bin/sh
+#chkconfig: 2345 80 05
+#description: elasticsearch
+
+export JAVA_HOME=/usr/local/java
+export JAVA_BIN=/usr/local/java/bin
+export PATH=$PATH:$JAVA_HOME/bin
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export JAVA_HOME JAVA_BIN PATH CLASSPATH
+
+case "$1" in
+start)
+    su es<<!
+    cd /usr/local/elasticsearch
+    ./bin/elasticsearch -d
+!
+    echo "elasticsearch startup"
+    ;;
+stop)
+    es_pid=`ps aux|grep elasticsearch | grep -v 'grep elasticsearch' | awk '{print $2}'`
+    kill -9 $es_pid
+    echo "elasticsearch stopped"
+    ;;
+restart)
+    es_pid=`ps aux|grep elasticsearch | grep -v 'grep elasticsearch' | awk '{print $2}'`
+    kill -9 $es_pid
+    echo "elasticsearch stopped"
+    su su<<!
+    cd /usr/local/elasticsearch
+    ./bin/elasticsearch -d
+!
+    echo "elasticsearch startup"
+    ;;
+*)
+    echo "start|stop|restart"
+    ;;
+esac
+
+exit $?
+
+--------------------------------------------------------------------------------------------------------------
+$chmod +x elasticsearch
+$chkconfig --add elasticsearch
+
+切换到root:
+service elasticsearch start（启动时间较长3分钟左右）
+
+（
+问题：xxxis not in the sudoers file. This incident will be reported.
+/etc/sudoers文件默认是只读的，
+vi /etc/sudoers
+找到这行 root ALL=(ALL) ALL,在他下面添加xxx ALL=(ALL) ALL (这里的xxx是你的用户名)
+
+问题：/usr/local/elasticsearch/config/jvm.options
+chown -R es:es /usr/local/elasticsearch/
+
+问题：bootstrap checks failed
+编辑 /etc/security/limits.conf，追加以下内容；
+* soft nofile 65536
+* hard nofile 65536
+vi /etc/sysctl.conf 
+并执行命令：
+添加下面配置：
+vm.max_map_count=655360
+sysctl -p
+重启系统
+
+问题：at least one of [discovery.seed_hosts, discovery.seed_providers, cluster.initial_master_nodes] must be configured
+#cluster.initial_master_nodes: ["node-1", "node-2"] 修改为 cluster.initial_master_nodes: ["node-1"]
+）
+
+
+安装kibana:
+解压到/usr/local
+vim conf/kibana.yml
+
+
+
+
+
 1. Elasticsearch与关系型数据库的关系
 Elasticsearch集群可以包含多个索引(indices)（数据库），每一个索引可以包含多个类型(types)（表），每一个类型包含多个文档(documents)（行），然后每个文档包含多个字段(Fields)（列）
 

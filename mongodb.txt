@@ -73,7 +73,7 @@ bind_ip = 0.0.0.0
 journal=true #每次写入会记录一条操作日志
 #storageEngine=wiredTiger  #存储引擎有mmapv1、wiretiger、mongorocks
 #noauth=true #不启用验证  
-#auth = on #启用验证
+#auth = true #启用验证(首次不要加上权限auth=true，需要先创建用户后再更改)
 
 简单的参数说明： 
 –logpath 日志文件路径 
@@ -122,8 +122,20 @@ systemctl enable mongodb.service
 2.基本使用
 进入mongodb shell：
 bin/mongo
-添加用户和密码
+添加管理员用户和密码
+db.createUser({user:"admin",pwd:"Admin@01",roles:[{role:"userAdminAnyDatabase",db:"admin"}]})
 db.auth('admin','Admin@01')
+创建数据库和普通用户（实际代码中连接数据库必须单独创建用户并赋予相应权限！！！）：
+use xizang
+db.createUser({
+    user:"用户账号",pwd:"用户密码",
+    roles:[{role:"权限",db:"库名"}]
+})
+db.createUser({
+    user:"sccddw",pwd:"sccddw",
+    roles:[{role:"readWrite",db:"xizang"}]
+})
+
 
 创建数据库：
 Use test

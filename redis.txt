@@ -13,6 +13,7 @@ redis-check-aof : 检查 aof 日志的工具
 redis-check-dump : 检查 rdb 日志的工具
 redis-cli : 连接用的客户端
 redis-server : Redis 服务进程
+(问题：1./bin/sh: cc: command not found，使用命令安装gcc：yum install gc。2、 error: jemalloc/jemalloc.h: No such file or directory，将make改为make MALLOC=libc，推测是因为编译库的问题。)
 
 3.Redis源代码目录的utils文件夹中有一个名为redis_init_script的初始化脚本文件
 cp utils/redis_init_script /etc/init.d
@@ -34,7 +35,7 @@ dir	/mnt/sdb4T/Importance/redisData/6379	#设置持久化文件存放位置
 bind 127.0.0.1               #要远程访问需要注释这行,并且添加密码或daemonize改为no
 
 6.现在也可以使用下面的命令来启动和关闭Redis了
-/etc/init.d/redis_6379 start
+/etc/init.d/redis_6379 start （需要vim redis_6379,修改地址为/usr/local/redis/xxx，相关到全部要修改）
 /etc/init.d/redis_6379 stop
 
 7.开机启动
