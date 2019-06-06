@@ -775,6 +775,67 @@ Idea：spring initialir -> cloud discovery -> eureka server
 spring.jmx.default-domain=proj01
 spring.jmx.default-domain=proj02
 
+server.xml
+<Context path="/ehome" docBase="/usr/local/tomcat/webapps/ehome" reloadable="true" />
+<Context path="/ehomewx" docBase="/usr/local/tomcat/webapps/ehomewx" reloadable="true" />
+
+
+
+48.Nexus搭建maven私服
+下载：
+https://www.sonatype.com/download-oss-sonatype
+nexus仓库管理器，分为两个版本，Nexus Repository Manager OSS 和 Nexus Repository Manager Pro。前者可以免费使用，相比后者，功能缺少一些，但是不影响我们搭建maven私服。
+下载nexus-3.16.1-02-unix.tar.gz
+解压到/usr/local
+vim bin/nexus.rc
+run_as_user="root" #运行用户为root
+
+vim bin/nexus
+INSTALL4J_JAVA_HOME_OVERRIDE=/usr/local/java
+
+vim etc/nexus-default.properties
+application-port=10000 #运行端口为10000
+
+添加环境变量：
+export NEXUS_HOME=/usr/local/nexus
+export PATH=$PATH:$NEXUS_HOME/bin
+
+开机启动：
+方法1：
+cp /usr/local/nexus/bin/nexus /etc/init.d/nexus
+cd /etc/init.d
+chkconfig --add nexus
+## 设置在3、4、5这3个系统运行级别的时候自动开启nexus服务
+sudo chkconfig --levels 345 nexus on
+
+方法2：
+使用systemd(CentOS-7推荐使用)
+vim /etc/systemd/system/nexus.service
+[Unit]
+Description=nexus service
+After=network.target
+[Service]
+Type=forking
+LimitNOFILE=65536
+ExecStart=/usr/local/nexus/bin/nexus start
+ExecStop=/usr/local/nexus/bin/nexus stop
+User=root
+Restart=on-abort
+[Install]
+WantedBy=multi-user.target
+
+systemctl daemon-reload
+#设置开机启动
+systemctl enable nexus.service 
+systemctl start nexus.service
+
+
+service nexus start
+登录管理页面：
+http://192.168.11.206:10000/
+管理员默认账户密码为admin/admin123
+
+使用请看：https://cloud.tencent.com/developer/article/1336556
 
 
 

@@ -1,7 +1,12 @@
 安装es
 vim config/elasticsearch.yml
+cluster.name: elasticsearch
+node.name: node-1
 network.host: 0.0.0.0 #让所有ip访问
 http.port: 9200
+cluster.initial_master_nodes: ["node-1"]
+
+
 
 es5以上不允许root用户启动
 #useradd es
@@ -85,6 +90,9 @@ sysctl -p
 安装kibana:
 解压到/usr/local
 vim conf/kibana.yml
+server.port: 5601
+server.host: "192.168.11.206"
+elasticsearch.hosts: ["http://192.168.11.206:9200"]
 
 
 
@@ -106,11 +114,14 @@ Elasticsearch集群可以包含多个索引(indices)（数据库），每一个�
             <artifactId>transport</artifactId>
             <version>6.4.3</version>
         </dependency>
+		
 
 3.ElasticSearch (服务默认端口 9300 Web 管理平台端口 9200)
 用java时使用9300端口
 
+
 4.index和type需要为小写
+
 
 5.InetSocketTransportAddress 换成 TransportAddress
 InetSocketTransportAddress这个类在新的版本中去掉了，之前的老版本就有.
@@ -123,10 +134,12 @@ curl -XGET -H "Content-Type: application/json" 'http://localhost:9200/_count?pre
     }
 }
 ' 
+
      
 7.删除索引
 curl -XDELETE http://localhost:9200/test_bulk
 可以逗号分开删除多个test_bulk，test_bulk2
+
 
 8.批量插入数据
 Settings settings = Settings.builder().put("cluster.name", "elasticsearch").build();

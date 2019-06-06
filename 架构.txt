@@ -31,8 +31,23 @@ bloom算法类似一个hash set，用来判断某个元素（key）是否在某�
 2. 无法删除
 
 
-5.
-
-
+5.HASH分区
+HASH分区主要用来确保数据在预先确定数目的分区中平均分布。
+CREATE TABLE employees (
+ id INT NOT NULL,
+ fname VARCHAR(30),
+ lname VARCHAR(30),
+ hired DATE NOT NULL DEFAULT '1970-01-01',
+ separated DATE NOT NULL DEFAULT '9999-12-31',
+ job_code INT,
+ store_id INT
+ )
+ PARTITION BY HASH(YEAR(hired))
+ PARTITIONS 4；
+ 
+HASH 分区将要被哈希的列指定一个列值或表达式，以及指定被分区的表将要被分割成的分区数量，OceanBase自动完成分区。
+ ...
+ PARTITION BY HASH (expr)
+     PARTITIONS num
 
 

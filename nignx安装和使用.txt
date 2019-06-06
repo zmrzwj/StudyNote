@@ -20,8 +20,8 @@ sudo apt-get install zlib1g-dev
 sudo apt-get install openssl libssl-dev
 
 Centos:
-Yum install pure-devel
-Yum -y openssl openssl-revel
+yum install pcre-devel
+yum -y install openssl openssl-devel
 
 )
 
@@ -138,6 +138,148 @@ cp objs/nginx /usr/local/nginx/sbin/nginx
 
 
 
+-------------------------------------------rtmp-----------------------------------------------------------
+0.RTMP是Real Time Messaging Protocol（实时消息传输协议）的首字母缩写。它是由Adobe公司提出的一种应用层的协议，
+用来解决多媒体数据传输流的多路复用（Multiplexing）和分包（packetizing）的问题。
+随着VR技术的发展，视频直播等领域逐渐活跃起来，RTMP作为业内广泛使用的协议也重新被相关开发者重视起来。
+
+
+1.下载
+https://github.com/arut/nginx-rtmp-module
+
+2. ./configure --prefix=/usr/local/nginx --add-module=../nginx-rtmp-module  --with-http_ssl_module
+(nginx-rtmp-module解压在与nginx同级目录)
+
+3. make && make install 
+
+4.cp -R nginx-rtmp-module /usr/local/nginx/
+
+
+5.配置
+与http同级
+rtmp { 
+    server { 
+        listen 1935; 
+		#流整合的最大的块大小。默认值为 4096。这个值设置的越大 CPU 负载就越小。这个值不能低于 128。
+		chunk_size 4096;
+   
+        application live { 
+            live on; 
+			allow publish all;
+            allow play all;
+        } 
+        application hls { 
+            live on; 
+            hls on; 
+            hls_path /tmp/hls; 
+			hls_fragment 5s; 
+			recorder all {
+				record all;
+				record_suffix -%Y-%m-%d-%H_%M_%S.flv;
+				record_max_size 6200000K;
+                record_path /home/rtmp/data/;
+			}
+        } 
+		
+		application vod {
+			play /home/rtmp/data;
+		}
+    } 
+}  
+#recorder设置视频保存
+#play播放指定目录或者 HTTP 地址的 flv 或者 mp4 文件。不直播，录制好后放在/home/rtmp/vod下再播，访问rtmp://192.168.11.210:1935/data/xxx.mp4
+
+一些配置参数：max_streams设置 RTMP 流的最大数目。默认值为 32，适用于大多数情况。
+
+在server 80下：
+
+    location /stat {     
+            #第二处添加的location字段。查看流状态
+            rtmp_stat all;
+            rtmp_stat_stylesheet stat.xsl;
+    }
+ 
+    location /stat.xsl { 
+        #第二处添加的location字段。
+        root /usr/local/nginx/nginx-rtmp-module/;
+    }
+	
+针对hls，在http里面增加一个location配置:	
+location /hls {  
+            types {  
+                application/vnd.apple.mpegurl m3u8;  
+                video/mp2t ts;  
+            }  
+            root /tmp;  
+            add_header Cache-Control no-cache;  
+}
+	
+	
+
+启动nginx:
+nginx -s stop
+nginx
+nginx -s reload
+
+http://192.168.11.210/stat //查看服务状态
+
+
+下载：OBS
+https://obsproject.com/download#mp
+新建场景：
+	取名nginx
+新建来源
+    选择‘显示器捕获’
+设置：
+    串流
+	自定义，服务器：rtmp://192.168.11.210/hls,串流密码：test
+	
+vlc拉流:
+RTMP流：rtmp://192.168.11.210:1935/live/test (一定要用好服务器ip,用127.0.0.1或localhost不行)
+HLS流：/hls/test.m3u8 （hls是以http协议访问的在服务器上就不要加http://xxxx/了）
+
+videojs:
+rtmp：html只能用flash播放flv
+ <link href="http://vjs.zencdn.net/5.0.2/video-js.css" rel="stylesheet">
+<script src="https://unpkg.com/video.js/dist/video.js"></script>
+<script src ="https://cdn.jsdelivr.net/npm/videojs-flash@2/dist/videojs-flash.min.js"></script>
+
+<video id="example_video_1" class="video-js" controls="controls" width="640" height="264"  data-setup="{}">
+    <source src="rtmp://192.168.11.210:1935/hls/test" type="rtmp/flv">
+</video>
+<script>
+    videojs.options.flash.swf = './js/video-js/video-js.swf'; // flash路径
+    var player = videojs('example_video_1', {
+        autoplay: true,
+        controls: true,//控制条
+        techOrder : ['flash'],
+        muted: true,// 静音
+        preload: "auto",// 预加载
+        language: "zh-CN",// 初始化语言
+        playbackRates: [1, 2, 3, 4, 5, 8, 10, 20]// 播放速度
+    }, function(){
+        console.log('videojs播放器初始化成功')
+        player.one("playing", function () {         // 监听播放
+            console.log("开始播放");
+        });
+        player.one("error", function (error) {      // 监听错误
+            console.error("监听到异常，错误信息：%o",error);
+        });
+    })
+    player.play();
+</script>
+
+hls: m3u8的格式播放，m3u8延迟较大
+<link href="https://unpkg.com/video.js/dist/video-js.css" rel="stylesheet">
+<script src="https://unpkg.com/video.js/dist/video.js"></script>
+<script src="https://unpkg.com/videojs-contrib-hls/dist/videojs-contrib-hls.js"></script>
+
+<video id="my_video_1" class="video-js vjs-default-skin" controls preload="auto" width="640" height="268"
+       data-setup='{}'>
+    <source src="/hls/test.m3u8" type="application/x-mpegURL">
+</video>
+
+
 ----------------------配置参数解释---------------------
 1.server name 为虚拟服务器的识别路径。因此不同的域名会通过请求头中的HOST字段，匹配到特定的server块，转发到对应的应用服务器中去。
 
@@ -207,7 +349,12 @@ Wss一样在https下配置，因为ws默认端口80，wss默认端口443
 	}
 
 
-
+4.autoindex
+autoindex on;
+autoindex_exact_size off;
+autoindex_localtime on;
+charset utf-8;
+允许以列表的形式访问目录
 
 
 
