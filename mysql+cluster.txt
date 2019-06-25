@@ -118,6 +118,12 @@ firewall-cmd --zone=public --add-port=3306/tcp --permanent
 显示数据目录：show variables like "datadir";
 查看：max_allowed_packet  show variables like '%max_allowed_packet%';
 
+(
+	普通用户无法用密码在localhost登录：
+		update user set host='%' where user='sccddw';
+		GRANT ALL ON *.* TO 'sccddw'@'localhost' IDENTIFIED BY'sccddw';
+)
+
 
 
 -----------------------------------Mac 安装mysql---------------------------------------
