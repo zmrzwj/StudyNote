@@ -120,8 +120,9 @@ firewall-cmd --zone=public --add-port=3306/tcp --permanent
 
 (
 	普通用户无法用密码在localhost登录：
-		update user set host='%' where user='sccddw';
-		GRANT ALL ON *.* TO 'sccddw'@'localhost' IDENTIFIED BY'sccddw';
+	    1、删除匿名用户：drop user ''@'localhost';(把无密码的用户都删除了吧)
+		2、update user set host='%' where user='sccddw';
+		   GRANT ALL ON xizang.* TO 'sccddw'@'localhost' IDENTIFIED BY'sccddw';
 )
 
 
