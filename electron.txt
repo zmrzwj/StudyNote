@@ -1,0 +1,55 @@
+1.安装：npm install electron --save-dev （可能安装不上）
+
+2.下载helloworld程序
+https://github.com/electron/electron-quick-star
+
+
+3.打包
+1）安装 asar
+npm install -g asar
+2) 安装 electron-packager
+npm install electron-packager -g
+3)appdmg
+npm install -g appdmg --unsafe-perm
+electron-packager 打包：
+"scripts": {
+    "win32": "electron-packager . electron-quick-start --platform=win32 --out=./dist --arch=x64  --asar --app-version=0.0.1",
+    "mac": "electron-packager . hello --platform=darwin --arch=x64  --out=./dist --asar --app-version=1.0.0"
+},
+wind下会生产exe，但mac下不会生产dmg或pkg
+命令说明： 
+* location of project：项目所在路径 
+* name of project：打包的项目名字 
+* platform：确定了你要构建哪个平台的应用（Windows、Mac 还是 Linux） 
+* architecture：决定了使用 x86 还是 x64 还是两个架构都用 
+* electron version：electron-prebuilt 的版本 
+* optional options：可选选项
+
+打包为dmg:
+在dist目录下添加pack.json
+{
+  "title": "hello",
+  "icon": "icon.icns", // 图标
+  "background": "background.png", // 背景图片
+  "contents": [
+    { "x": 448, "y": 344, "type": "link", "path": "/Applications" },
+    { "x": 192, "y": 344, "type": "file", "path": "./MyApp.app" }
+  ],
+  "window": {
+      "size": {
+          "width": 640,
+          "height": 480
+      }
+  },
+  "format": "UDBZ", // 还有很多种，具体看appdmg的官方文档
+}
+appdmg ./dist/pack.json ./dist/hello.dmg
+打包pkg:
+macos自带的打包工具pkgbuild(，打包出来的pkg能安装，但是安装完了不会再LaunchPad中显示)
+pkgbuild --install-location /Applications --component ./dist/hello.app ./dist/hello.pkg
+
+使用quickpkg工具来打包（推荐）
+https://github.com/scriptingosx/quickpkg里面的quickpkg可直接使用
+./quickpkg ./dist/hello.app --output ./dist/hello.pkg
+
+
