@@ -287,6 +287,22 @@ hls: m3u8的格式播放，m3u8延迟较大
 </video>
 
 
+
+nginx-http-flv-module
+在nginx-rtmp-module的基础上实现了基于HTTP方式的FLV直播功能
+下载地址：https://github.com/winshining/nginx-http-flv-module
+./configure --add-module=/path/to/nginx-http-flv-module
+make
+make install
+nginx配置：
+	location /live {
+            flv_live on; #当HTTP请求以/live结尾，匹配这儿，这个选项表示开启了flv直播播放功能
+            chunked  on; #HTTP协议开启Transfer-Encoding: chunked;方式回复
+    }
+客户端可以使用flv.js播放
+https://github.com/Bilibili/flv.js
+
+
 ----------------------配置参数解释---------------------
 1.server name 为虚拟服务器的识别路径。因此不同的域名会通过请求头中的HOST字段，匹配到特定的server块，转发到对应的应用服务器中去。
 
