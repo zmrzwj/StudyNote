@@ -13,11 +13,11 @@ redis-check-aof : 检查 aof 日志的工具
 redis-check-dump : 检查 rdb 日志的工具
 redis-cli : 连接用的客户端
 redis-server : Redis 服务进程
-(问题：1./bin/sh: cc: command not found，使用命令安装gcc：yum install gc。2、 error: jemalloc/jemalloc.h: No such file or directory，将make改为make MALLOC=libc，推测是因为编译库的问题。)
+(问题：1./bin/sh: cc: command not found，使用命令安装gcc：yum install gcc。2、 error: jemalloc/jemalloc.h: No such file or directory，将make改为make MALLOC=libc，推测是因为编译库的问题。)
 
 3.Redis源代码目录的utils文件夹中有一个名为redis_init_script的初始化脚本文件
 cp utils/redis_init_script /etc/init.d
-Cd /etc/init.d
+cd /etc/init.d
 mv redis_init_script redis_6379
 
 4.建立以下需要的文件夹
