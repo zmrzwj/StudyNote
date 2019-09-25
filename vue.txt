@@ -243,6 +243,16 @@ import {mapState,mapGetters,mapActions} from 'vuex';
     // ...
 })
 
+vuex保证只实例化一次：
+vuex的install方法：
+install(_vue){
+	if (vue && vue === _vue) {
+		console.log('vuex只能实例化一次')
+		return
+	}
+	
+	vue = _vue
+}
 
 13.路由懒加载
 方法1:
@@ -513,3 +523,26 @@ Vue.mixin({
 Vue.config.optionMergeStrategies.myOption = function (toVal, fromVal) {
   // 返回合并后的值
 }
+
+28、vue指令的修饰符
+v-model 修饰符
+.lazy 指令默认会在 input 事件中加载输入框中的数据,懒加载修饰符之后，只有在输入框失去焦点或者按回车键时才会更新 content 值
+.number 修饰符让其转换为 number 类型
+.trim 修饰符可以自动过滤掉输入框的首尾空格。
+
+v-on修饰符
+.stop - 调用 event.stopPropagation()。
+.prevent - 调用 event.preventDefault()。
+.capture - 添加事件侦听器时使用 capture 模式。
+.self - 只当事件是从侦听器绑定的元素本身触发时才触发回调。
+.{keyCode | keyAlias} - 只当事件是从特定键触发时才触发回调。
+.native - 监听组件根元素的原生事件。
+.once - 只触发一次回调。
+.left - (2.2.0) 只当点击鼠标左键时触发。
+.right - (2.2.0) 只当点击鼠标右键时触发。
+.middle - (2.2.0) 只当点击鼠标中键时触发。
+.passive - (2.3.0) 以 { passive: true } 模式添加侦听器
+
+v-bind修饰符
+.sync 是一个语法糖,作用(双向绑定的另一种方式) 
+直接在子组件使用this.$emit('update:word', newValue)更新word的值
