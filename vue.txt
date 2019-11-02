@@ -243,6 +243,16 @@ import {mapState,mapGetters,mapActions} from 'vuex';
     // ...
 })
 
+vuex保证只实例化一次：
+vuex的install方法：
+install(_vue){
+	if (vue && vue === _vue) {
+		console.log('vuex只能实例化一次')
+		return
+	}
+	
+	vue = _vue
+}
 
 13.路由懒加载
 方法1:
@@ -476,4 +486,63 @@ export default {
 
 26.eslint ‘no-mutiple-empty-lines’:[1,{'max':2}],//空行不能超过2行
 
+27.mixin
+混入 (mixin) 提供了一种非常灵活的方式，来分发 Vue 组件中的可复用功能。
+一个混入对象可以包含任意组件选项。当组件使用混入对象时，所有混入对象的选项将被“混合”进入该组件本身的选项。
+// 定义一个混入对象
+var myMixin = {
+  created: function () {
+    this.hello()
+  },
+  methods: {
+    hello: function () {
+      console.log('hello from mixin!')
+    }
+  }
+}
+// 定义一个使用混入对象的组件
+var Component = Vue.extend({
+  mixins: [myMixin]
+})
 
+数据对象在内部会进行递归合并，并在发生冲突时以组件数据优先
+同名钩子函数将合并为一个数组，因此都将被调用。另外，混入对象的钩子将在组件自身钩子之前调用。
+值为对象的选项，例如 methods、components 和 directives，将被合并为同一个对象。两个对象键名冲突时，取组件对象的键值对。
+
+全局混入
+Vue.mixin({
+  created: function () {
+    var myOption = this.$options.myOption
+    if (myOption) {
+      console.log(myOption)
+    }
+  }
+})
+
+自定义选项合并策略
+Vue.config.optionMergeStrategies.myOption = function (toVal, fromVal) {
+  // 返回合并后的值
+}
+
+28、vue指令的修饰符
+v-model 修饰符
+.lazy 指令默认会在 input 事件中加载输入框中的数据,懒加载修饰符之后，只有在输入框失去焦点或者按回车键时才会更新 content 值
+.number 修饰符让其转换为 number 类型
+.trim 修饰符可以自动过滤掉输入框的首尾空格。
+
+v-on修饰符
+.stop - 调用 event.stopPropagation()。
+.prevent - 调用 event.preventDefault()。
+.capture - 添加事件侦听器时使用 capture 模式。
+.self - 只当事件是从侦听器绑定的元素本身触发时才触发回调。
+.{keyCode | keyAlias} - 只当事件是从特定键触发时才触发回调。
+.native - 监听组件根元素的原生事件。
+.once - 只触发一次回调。
+.left - (2.2.0) 只当点击鼠标左键时触发。
+.right - (2.2.0) 只当点击鼠标右键时触发。
+.middle - (2.2.0) 只当点击鼠标中键时触发。
+.passive - (2.3.0) 以 { passive: true } 模式添加侦听器
+
+v-bind修饰符
+.sync 是一个语法糖,作用(双向绑定的另一种方式) 
+直接在子组件使用this.$emit('update:word', newValue)更新word的值

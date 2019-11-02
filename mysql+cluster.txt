@@ -104,11 +104,14 @@ grant all privileges on *.* to root@'%' identified by 'uestc@123456';
 flush privileges;
 
 新建用户：
- create user 'cddw'@'%' identified by 'uestc@123' 'uestc@111';
+ create user 'cddw'@'%' identified by 'uestc@123' 'uestc@111' 'kdum@123456';
+ create user 'sccddw'@'%' identified by 'sccddw';
 授权：
 grant select on XS.* to 'cddw'@'%';//对数据库XS只有select权限
 grant select,insert,update,delete on EHome.* to 'cddw'@'%';
 grant all privileges on EHome.* to 'cddw'@'%';
+取消权限：
+revoke all on *.* from 'cddw'@'%';
 
 Mysql5.7user表没有password字段了，改为authentication_string
 
@@ -120,7 +123,8 @@ firewall-cmd --zone=public --add-port=3306/tcp --permanent
 
 (
 	普通用户无法用密码在localhost登录：
-	    1、删除匿名用户：drop user ''@'localhost';(把无密码的用户都删除了吧)
+		SELECT User, Host, Password FROM mysql.user;
+	    1、删除匿名用户：drop user ''@'localhost';(把无密码的用户都删除了吧, delete from mysql.user where password='')
 		2、update user set host='%' where user='sccddw';
 		   GRANT ALL ON xizang.* TO 'sccddw'@'localhost' IDENTIFIED BY'sccddw';
 )
