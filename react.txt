@@ -1,0 +1,8 @@
+1.安装create-react-app
+npm install -g create-react-app
+create-react-app my-react-app
+create-react-app my-react-app --scripts-version=react-scripts-ts (使用typescript)
+
+2.安装ant-design,react-router-dom:
+npm install antd --save
+npm install --save react-router-dom
