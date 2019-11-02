@@ -1,0 +1,6 @@
+1.https://github.com/DefinitelyTyped/DefinitelyTyped
+所有框架的typescript类型声明文件都在这
+官网：http://definitelytyped.org/
+
+2.类型文件搜索工具
+https://github.com/typings/typings
