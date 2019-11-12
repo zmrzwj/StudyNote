@@ -379,6 +379,12 @@ autoindex_localtime on;
 charset utf-8;
 允许以列表的形式访问目录
 
+5、让图片以下载的形式出现，而不是在新页面打开
+if ($request_filename ~* ^.*?.(txt|jpg|png)$){
+    add_header Content-Disposition 'attachment';
+}
+
+
 
 
 

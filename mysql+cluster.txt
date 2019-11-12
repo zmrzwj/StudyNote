@@ -54,15 +54,16 @@ groups mysql
 chown -R mysql:mysql mysql/
 
 初始化mysqld：(mysqld 是服务端程序 ,mysql是命令行客户端程序 )
-./bin/mysqld --initialize --user=mysql --basedir=/usr/local/mysql --datadir=/usr/local/mysql/data
-（mysql5.6 ./scripts/mysql_install_db --basedir=/usr/local/mysql --datadir=/usr/local/mysql/data --user=mysql）
+./bin/mysqld --initialize --user=mysql
+（mysql5.6 ./scripts/mysql_install_db  --user=mysql）
+（--basedir=/usr/local/mysql --datadir=/usr/local/mysql/data）
 (
 	可能问题：libaio.so.1: cannot open shared object file，解决方法缺少安装包libaio和libaio-devel.命令行yum install libaio*。（apt-get install libaio*）自动安装这两个包.
 	5.6可能问题：please install the following Perl modules，安装autoconf库，yum -y install autoconf
 )
 会有一行：
 2018-06-01T02:10:16.805014Z 1 [Note] A temporary password is generated for root@localhost: -;PRuEYe<7h8  gysQ5dRwr6/j q=rreO+oO8J=
--;PRuEYe<7h8是初始的随机密码。
+-;PRuEYe<7h8是初始的随机密码。n8ytiU?/pl(<
 
 设置开机启动：
 1.复制启动脚本 cp ./support-files/mysql.server /etc/rc.d/init.d/mysqld
@@ -87,7 +88,7 @@ mkdir /var/lib/mysql
 更改权限 chmod 777 /var/lib/mysql
 
 再次service mysqld start
-SUCCESS! 
+SUCCESS!
 
 测试登陆：
 mysql -u root -p（mysql5.6 不需要密码，直接就登陆了）
@@ -97,7 +98,9 @@ set password = password("uestc@123456");(修改当前密码)
 
 mysql -u root -p登录错误：
 请把mysql整个chown给mysql用户
- Can't connect to local MySQL server through socket '/var/lib/mysql/mysql.sock' (2)
+ 2002 Can't connect to local MySQL server through socket '/var/lib/mysql/mysql.sock' (2)
+ 建立一个软连接：
+ln -s /var/lib/mysql/mysql.sock /tmp/mysql.sock
 
 运行远程登录：
 grant all privileges on *.* to root@'%' identified by 'uestc@123456';

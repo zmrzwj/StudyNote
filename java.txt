@@ -11,7 +11,7 @@ rpm -e -nodeps java-1.8.0-openjdk-1.8.0.191.b12-0.el7_5.x86_64
 在/usr/local/下mkdir java
 把jdk-8u171-linux-x64.tar.gz移动到/usr/local/java下
 tar -zxvf jdk-8u171-linux-x64.tar.gz
-修改/etc/profile,在末尾添加
+修改/etc/profile, 在末尾添加
 export JAVA_HOME=/usr/local/java/jdk8
 export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
 export PATH=$JAVA_HOME/bin:$PATH

@@ -284,6 +284,10 @@ st：这个虚拟机被hypervisor偷去的CPU时间
 /etc/systemd/system优先级高于/lib/systemd/system/,都可以添加xxx.service的开机启动脚本
 
 
+29.设置中国时区可以使用：
+cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+
 
 
 
