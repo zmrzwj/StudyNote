@@ -1,6 +1,183 @@
-1.https://github.com/DefinitelyTyped/DefinitelyTyped
+1.创建vue ts项目
+vue create vue-ts-helloworld
+Please pick a preset: Manually select features
+Check the features needed for your project: Babel,TypeScript,Router,Vuex,CSS Pre-processors,Linter / Formatter
+Use class-style component syntax? Y
+Use Babel alongside TypeScript for auto-detected polyfills? Y
+Use history mode for router? Y (创建好后可更改)
+Pick a CSS pre-processor：SCSS/SASS
+Pick a linter / formatter config: TSLint
+Pick additional lint features: Lint on save
+Where do you prefer placing config for Babel, PostCSS, ESLint, etc.? In dedicated config files（配置文件放在独立文件夹）
+
+再创建vue.config.js
+module.exports = {
+    // 基本路径
+    baseUrl: '/',
+    // 输出文件目录
+    outputDir: 'dist',
+    // eslint-loader 是否在保存的时候检查
+    lintOnSave: true,
+    devServer: {
+        open: true,
+        host: '0.0.0.0',
+        port: 8080,
+        https: false,
+        hotOnly: false,
+        proxy: null, // 设置代理
+        before: app => {}
+    }
+}
+
+
+
+2.vue-property-decorator
+此工具提供了以下装饰器
+@Component (from vue-class-component) == components: {}
+@Prop == props: {}
+@Model == model: {}
+@Watch == watch: {}
+@Emit == this.$emit()
+@Inject == inject:{}
+@Provide == provide(){ return {} }
+Mixins (the helper function named mixins defined at vue-class-component)
+
+注意Component必须添加，即使没有组件使用，
+无组件使用：@Component
+有组件：@Component( {components: { componentA } } )
+
+
+
+
+3.添加ant-design
+安装ant: npm i ant-design-vue --save
+安装插件：npm i babel-plugin-import --dev
+在src下创建types目录，添加index.d.ts，添加如下内容：
+declare module 'ant-design-vue' {
+    const Ant: any
+    export default Ant;
+}
+babel.config.js添加：
+plugins: [
+        [ "import", {
+            "libraryName": "ant-design-vue",
+            "libraryDirectory": "es",
+            "style": "css"
+        } ]
+    ]
+使用：
+<template>
+  <div>
+      <a-input placeholder="请输入名字"></a-input>
+  </div>
+</template>
+import Ant from 'ant-design-vue'
+@Component({
+  components: {
+      AInput: Ant.Input
+  },
+})
+全局引入则添加如下：
+import 'ant-design-vue/dist/antd.css';
+import Ant from 'ant-design-vue';
+const {
+    LocaleProvider,
+    Layout,
+    Input,
+    InputNumber,
+    Pagination,
+    Button,
+    Switch,
+    Radio,
+    Checkbox,
+    Select,
+    Card,
+    Form,
+    Row,
+    Col,
+    Modal,
+    Table,
+    Tabs,
+    Icon,
+    Badge,
+    Popover,
+    Dropdown,
+    List,
+    Avatar,
+    Breadcrumb,
+    Steps,
+    Spin,
+    Menu,
+    Drawer,
+    Tooltip,
+    Alert,
+    Tag,
+    Divider,
+    DatePicker,
+    TimePicker,
+    Carousel,
+    Upload,
+    Progress,
+    Skeleton,
+    Popconfirm,
+    message,
+    notification,
+} = Ant;
+
+Vue.use(LocaleProvider);
+Vue.use(Pagination);
+Vue.use(Layout);
+Vue.use(Input);
+Vue.use(InputNumber);
+Vue.use(Button);
+Vue.use(Switch);
+Vue.use(Radio);
+Vue.use(Checkbox);
+Vue.use(Select);
+Vue.use(Card);
+Vue.use(Form);
+Vue.use(Row);
+Vue.use(Col);
+Vue.use(Modal);
+Vue.use(Table);
+Vue.use(Tabs);
+Vue.use(Icon);
+Vue.use(Badge);
+Vue.use(Popover);
+Vue.use(Dropdown);
+Vue.use(List);
+Vue.use(Avatar);
+Vue.use(Breadcrumb);
+Vue.use(Steps);
+Vue.use(Spin);
+Vue.use(Menu);
+Vue.use(Drawer);
+Vue.use(Tooltip);
+Vue.use(Alert);
+Vue.use(Tag);
+Vue.use(Divider);
+Vue.use(DatePicker);
+Vue.use(TimePicker);
+Vue.use(Upload);
+Vue.use(Progress);
+Vue.use(Skeleton);
+Vue.use(Popconfirm);
+Vue.use(Carousel);
+
+Vue.prototype.$confirm = Modal.confirm;
+Vue.prototype.$message = message;
+Vue.prototype.$notification = notification;
+Vue.prototype.$info = Modal.info;
+Vue.prototype.$success = Modal.success;
+Vue.prototype.$error = Modal.error;
+Vue.prototype.$warning = Modal.warning;
+
+
+
+4.https://github.com/DefinitelyTyped/DefinitelyTyped
 所有框架的typescript类型声明文件都在这
 官网：http://definitelytyped.org/
 
-2.类型文件搜索工具
+5.类型文件搜索工具
 https://github.com/typings/typings
+
