@@ -605,6 +605,15 @@ flush privileges;
 方法2）在排序的字段加索引
 
 
+27.修改ROW_FORMAT
+修改配置文件，在[mysqld]下加：
+innodb_file_per_table=1 #打开mysql每张表都是独立存储空间的开关。
+show variables like '%per_table%'; #检查下上述开关是否打开,为on就是打开
+设置mysql全局变量：innodb_file_format = Barracuda（梭鱼）
+命令：set GLOBAL innodb_file_format = 'Barracuda';
+命令：show GLOBAL VARIABLES LIKE '%file_format%';
+设置对应表的属性：ROW_FORMAT=COMPRESSED
+通过navicat‘设计表’‘选项’‘行格式’选择‘DYNAMIC’或其它你要的
 
 
 
@@ -655,6 +664,12 @@ query_cache_limit = 2M
 
 key_buffer_size = 4M
 #指定用于索引的缓冲区大小，增加它可得到更好处理的索引(对所有读和多重写)，到你能负担得起那样多。如果你使它太大，系统将开始换页并且真的变慢了。
+
+
+
+
+
+
 
 
 

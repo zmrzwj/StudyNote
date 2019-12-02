@@ -48,7 +48,7 @@ chkconfig redis_6379 on
 通过上面的操作后，以后也可以直接用下面的命令对Redis进行启动和关闭了，如下
 service redis_6379 start
 service redis_6379 stop
-
+ 
 8.安全停止Redis
 考虑到 Redis 有可能正在将内存中的数据同步到硬盘中，强行终止 Redis 进程可能会导致数据丢失。正确停止Redis的方式应该是向Redis发送SHUTDOWN命令，方法为：
 redis-cli shutdown （-p 端口）
