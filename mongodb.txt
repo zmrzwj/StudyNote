@@ -55,7 +55,7 @@ mongodb目录下新建一个名为logs的文件夹，用来存放日志
 
 2)配置
 cd mongodb/bin
-vi mongodb.conf
+vim mongodb.conf
 # 设置端口号（默认的端口号是 27017）
 port=27017
 # 设置数据文件的存放目录

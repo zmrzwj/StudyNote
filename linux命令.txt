@@ -265,7 +265,6 @@ crontab -e
 
 
 
-
 27.top命令
 us, user： 运行(未调整优先级的) 用户进程的CPU时间
 sy，system: 运行内核进程的CPU时间
@@ -334,6 +333,55 @@ port = 11260
 当我们看到 Congratulations, Shadowsocks-Python server install completed! 时，则证明我们已经成功安装了 SS。请立即将这些信息复制下来加以保存，我们就会用到这几个比较重要的信息：主机服务器IP地址、端口号、密码和加密方式。
 
 
+31.设置中国时区可以使用：
+ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+(使用cp命令是错误的)
+
+32.samba安装
+yum install samba samba-client
+Samba 安装好后，就可以启动操作。
+# service smb start
+如果需要关闭，则使用命令：
+# service smb stop
+如果需要查看 smb 运行状态，可以使用命令：
+# service smb status
+
+Linux 组 smb 和用户 smb。
+# groupadd smb
+# useradd -g smb smb
+
+smbpasswd命令来创建 Samba 的用户：
+# smbpasswd -a smb
+sccddw
+
+Samba 的默认配置文件是/etc/samba/smb.conf。打开 smb.conf 文件，添加以下配置：
+[kdum]
+        comment = smb kdum
+        path = /usr/local/webFile/images
+        valid users = @smb
+        public = no
+        admin users = smb
+        writable = yes
+        create mask = 0640
+        directory mask = 0750
+		
+取消密码：
+[kdum]
+        comment = smb kdum
+        path = /usr/local/webFile/images
+        public = yes
+        writable = yes
+		create mask = 0777
+        directory mask = 0777
+
+将guest加入smbpasswd文件中
+smbpasswd -a guest 
+		
+Windows 窗口地址栏中输入\\192.168.11.217\kdum（改成实际 IP）	
+设置SELinux的策略,运行smb创建文件和目录
+setsebool -P samba_enable_home_dirs=on
+setsebool -P samba_export_all_rw=on
+getsebool -a | grep samba
 
 
 
