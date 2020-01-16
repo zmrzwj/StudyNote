@@ -156,7 +156,7 @@ log-bin=mysql-bin
 binlog-format=mixed
 log-slave-updates=1
 
-mysql>change master to master_host='10.11.17.8',master_user='repl',master_password='repl@123456',master_log_file='mysql-bin.000002,master_log_pos=407;
+mysql>change master to master_host='10.11.17.8',master_port=33306,master_user='repl',master_password='repl@123456',master_log_file='mysql-bin.000002,master_log_pos=407;
 
 start slave;
 show slave status;
