@@ -83,7 +83,7 @@ gcc -v
 
 12.分区时请选择standard partition,文件系统类型选择ext4。不要用默认分区，会分的很细。
 
-13.ss命令代替netstat
+13.ss命令代替net stat
 ss -tlnp | grep redis //通过服务名查看
 ss -pl | grep 3306   //通过端口名查看
 -l：显示处于监听状态的套接字；
@@ -384,6 +384,7 @@ Windows 窗口地址栏中输入\\192.168.11.217\kdum（改成实际 IP）
 setsebool -P samba_enable_home_dirs=on
 setsebool -P samba_export_all_rw=on
 getsebool -a | grep samba
+
 
 
 

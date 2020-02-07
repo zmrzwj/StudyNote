@@ -82,6 +82,7 @@ service mysqld start 启动mysql
 错误：
 '/var/lib/mysql' for UNIX socket file don't exists.
  ERROR! The server quit without updating PID file (/usr/local/mysql/data/cdh225.pid).
+(查看data下的err日志，定位具体错误原因)
 
 在/var/lib下创建mysql目录
 mkdir /var/lib/mysql
@@ -131,6 +132,40 @@ firewall-cmd --zone=public --add-port=3306/tcp --permanent
 		2、update user set host='%' where user='sccddw';
 		   GRANT ALL ON xizang.* TO 'sccddw'@'localhost' IDENTIFIED BY'sccddw';
 )
+
+
+-------------------------------------主备配置-------------------------------------------
+mysql主:
+添加配置：
+[mysqld]
+log-bin=mysql-bin
+binlog-do-db=xizang （要备份的数据库）
+server-id=1
+binlog-format=mixed
+binlog-ignore-db=mysql
+创建备份账号：
+mysql>grant replication slave on *.* to 'repl'@'10.11.17.10' identified by 'repl@123456';
+查看master状态：
+show master status;
+（记下，File，Position）
+
+备：
+[mysqld]
+server-id=2
+log-bin=mysql-bin
+binlog-format=mixed
+log-slave-updates=1
+
+mysql>change master to master_host='10.11.17.8',master_port=33306,master_user='repl',master_password='repl@123456',master_log_file='mysql-bin.000002,master_log_pos=407;
+
+start slave;
+show slave status;
+是否成功：
+Slave_IO_Running=Yes
+Slave_SQL_Running=Yes
+
+	
+
 
 
 
