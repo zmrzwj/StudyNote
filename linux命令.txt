@@ -151,6 +151,8 @@ i, --install
 2) yumdownloader
 yum install yum-utils -y
 yumdownloader xxx --resolve --destdir=/home(保存到home目录下)
+rpm -Uvh *.rpm --nodeps --force
+
 
 
 17.查看网线是否连接

@@ -185,6 +185,26 @@ irb(main):006:0> u.save!
 
 
 
+17.gitlab仓库默认存放路径为/var/opt/gitlab/git-data/repositories
+创建/mnt/sdb4T/gitlab目录
+修改gitlab配置文件，找到git_data_dir
+vim /etc/gitlab/gitlab.rb
+去掉git_data_dirs的注释
+git_data_dirs({
+   "default" => {
+     "path" => "mnt/sdb4T/gitlab"
+    }
+ })
+
+停止当前gitlab，重新加载配置
+gitlab-ctl stop
+gitlab-ctl reconfigure
+最后启动gitlab即可
+gitlab-ctl start
+
+
+
+
 
 
 
