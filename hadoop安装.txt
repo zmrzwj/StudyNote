@@ -478,6 +478,256 @@ HUE
 
 
 
+---------------------------------------HDP(Hortonworks Data Platform)---------------------------------
+1.安装jdk
+修改/etc/profile,在末尾添加
+export JAVA_HOME=/usr/local/java/jdk8
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export PATH=$JAVA_HOME/bin:$PATH
+在/usr下创建java目录，然后添加软连接
+ln -s /usr/local/java  /usr/java/default
+
+2.配置hosts
+vi /etc/hosts
+192.168.2.200 master
+192.168.2.201 slave1
+192.168.2.202 slave2
+
+3.配置ssh免密码
+cd  ~/.ssh/	# 若没有该目录，请先执行一次ssh localhost
+#ssh-keygen -t rsa	# 会有提示，都按回车就可以
+#scp  id_rsa.pub root@192.168.2.201:/home
+#cat /home/id_rsa.pub >> ~/.ssh/authorized_keys  # 加入授权,在192.168.2.201上操作
+(202执行同样的操作，master自己也要)
+#ssh root@192.168.2.201 #测试是否可以免密码登录，在192.168.2.200上操作
+（201，200上同样进行上面操作使免密码登录）
+
+
+3.安装ambari server
+下载ambari repo文件 ，并拷贝到/etc/yum.repos.d中
+wget -nv http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.5.1.0/ambari.repo -O /etc/yum.repos.d/ambari.repo
+-nv, –non-verbose 关掉冗长模式，但不是安静模式
+-O –output-document=FILE 把文档写到FILE文件中
+yum –y install ambari-server
+配置：
+ambari-server setup
+WARNING: SELinux is set to 'permissive' mode and temporarily disabled.
+OK to continue [y/n] (y)? y
+Customize user account for ambari-server daemon [y/n] (n)? y
+Enter user account for ambari-server daemon (root):root
+Adjusting ambari-server permissions and ownership...
+Checking firewall status...
+Checking JDK...
+Do you want to change Oracle JDK [y/n] (n)? y
+[1] Oracle JDK 1.8 + Java Cryptography Extension (JCE) Policy Files 8
+[2] Oracle JDK 1.7 + Java Cryptography Extension (JCE) Policy Files 7
+[3] Custom JDK
+==============================================================================
+Enter choice (1): 1 （如果选3，请先安装Java，后面会提示输入java_home）
+Configuring database...
+==============================================================================
+Choose one of the following options:
+[1] - PostgreSQL (Embedded)
+[2] - Oracle
+[3] - MySQL / MariaDB
+[4] - PostgreSQL
+[5] - Microsoft SQL Server (Tech Preview)
+[6] - SQL Anywhere
+[7] - BDB
+==============================================================================
+Enter choice (1): 1 
+（
+如果要用MySQL，请先安装
+#进入数据库创建ambari库和导入数据
+mysql>create database ambari DEFAULT CHARSET utf8;
+mysql>use ambari
+mysql>source /var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql
+）
+#启动服务
+ambari-server start
+#停止服务
+ambari-server stop
+#重置服务
+ambari-server reset
+
+
+
+4、安装httpd
+# yum -y install httpd
+# service httpd restart
+# chkconfig httpd on
+# cd /var/www/html/
+# mkdir ambari（下载好的离线包解压在这里）
+# cd ambari
+# mkdir HDP
+# mkdir HDP-UTILS
+
+
+
+5、安装mysql5.7
+wget http://repo.mysql.com/mysql57-community-release-el7-8.noarch.rpm
+rpm -ivh mysql57-community-release-el7-8.noarch.rpm
+yum install mysql-server
+systemctl start mysqld
+vim /var/log/mysqld.log(查看初始root密码)
+找到 A temporary password is generated for root@localhost: f-BcwmSCq0Ot
+mysql -uroot -p
+set password = password("Sccddw123456!");(5.7.6以前)
+ ALTER USER USER() IDENTIFIED BY 'Sccddw123456!';(5.7.6以后)
+ (问题：Your password does not satisfy the current policy requirements？ 因为密码强度不够
+ SHOW VARIABLES LIKE 'validate_password%'; 查看 mysql 初始的密码策略
+ set global validate_password_policy=LOW;  将密码强度降低
+ )
+  grant all privileges on *.* to 'root'@'%' identified by 'Sccddw123456!';
+ 为hive，oozie创建数据库：
+CREATE DATABASE hive;  
+use hive;  
+CREATE USER 'hive'@'%' IDENTIFIED BY 'hive';  
+GRANT ALL PRIVILEGES ON *.* TO 'hive'@'%';  
+CREATE USER 'hive'@'localhost' IDENTIFIED BY 'hive';  
+GRANT ALL PRIVILEGES ON *.* TO 'hive'@'localhost';  
+CREATE USER 'hive'@'master' IDENTIFIED BY 'hive';  
+GRANT ALL PRIVILEGES ON *.* TO 'hive'@'master';  
+FLUSH PRIVILEGES;  
+CREATE DATABASE oozie;  
+use oozie;  
+CREATE USER 'oozie'@'%' IDENTIFIED BY 'oozie';  
+GRANT ALL PRIVILEGES ON *.* TO 'oozie'@'%';  
+CREATE USER 'oozie'@'localhost' IDENTIFIED BY 'oozie';  
+GRANT ALL PRIVILEGES ON *.* TO 'oozie'@'localhost';  
+CREATE USER 'oozie'@'master' IDENTIFIED BY 'oozie';  
+GRANT ALL PRIVILEGES ON *.* TO 'oozie'@'master'; 
+FLUSH PRIVILEGES;
+ 
+下载mysql-connector-java-5.1.48.jar
+https://mvnrepository.com/artifact/mysql/mysql-connector-java
+mkdir /usr/share/java
+cp mysql-connector-java-5.1.40.jar /usr/share/java/mysql-connector-java.jar
+cp /usr/share/java/mysql-connector-java.jar /var/lib/ambari-server/resources/mysql-jdbc-driver.jar
+vi  /etc/ambari-server/conf/ambari.properties
+添加server.jdbc.driver.path=/usr/share/java/mysql-connector-java.jar
+ambari-server setup --jdbc-db=mysql --jdbc-driver=/usr/share/java/mysql-connector-java.jar
+
+
+
+
+6.下载离线包
+http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.6.1.5/ambari-2.6.1.5-centos7.tar.gz
+http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.6.3.0/HDP-2.6.3.0-centos7-rpm.tar.gz
+http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos7/HDP-UTILS-1.1.0.21-centos7.tar.gz
+tar -zxvf HDP-2.6.3.0-centos7-rpm.tar.gz -C /var/www/html/ambari/HDP
+tar -zxvf HDP-UTILS-1.1.0.21-centos7.tar.gz -C /var/www/html/ambari/HDP-UTILS
+tar -zxvf ambari-2.6.1.5-centos7.tar.gz -C /var/www/html/ambari/ambari-2.6.1.5
+设置离线源
+vi /etc/yum.repos.d/ambari.repo
+#VERSION_NUMBER=2.6.1.5-3
+[ambari-2.6.1.5]
+name=ambari Version - ambari-2.6.1.5
+baseurl=http://192.168.11.211/ambari/ambari-2.6.1.5/ambari/centos7/2.6.1.5-3/
+gpgcheck=1
+gpgkey=http://192.168.11.211/ambari/ambari-2.6.1.5/ambari/centos7/2.6.1.5-3/RPM-GPG-KEY/RPM-GPG-KEY-Jenkins
+enabled=1
+priority=1
+
+vi /etc/yum.repos.d/hdp.repo
+#VERSION_NUMBER=2.6.3.0-235
+[HDP-2.6.3.0]
+name=HDP Version - HDP-2.6.3.0
+baseurl=http://192.168.11.211/ambari/HDP/centos7/2.6.3.0-235/
+gpgcheck=1
+gpgkey=http://192.168.11.211/ambari/HDP/centos7/2.6.3.0-235/RPM-GPG-KEY/RPM-GPG-KEY-Jenkins
+enabled=1
+priority=1
+
+[HDP-UTILS-1.1.0.21]
+name=HDP-UTILS Version - HDP-UTILS-1.1.0.21
+baseurl=http://192.168.11.211/ambari/HDP-UTILS
+gpgcheck=1
+gpgkey=http://192.168.11.211/ambari/HDP-UTILS/RPM-GPG-KEY/RPM-GPG-KEY-Jenkins
+enabled=1
+priority=1
+
+在线源：
+先备份：
+mv /etc/yum.repos.d/CentOS-Base.repo  /etc/yum.repos.d/CentOS-Base.repo.bak
+阿里源：
+wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.163.com/.help/CentOS6-Base-163.repo
+
+
+
+
+
+7、安装平台
+浏览器访问：http://master:8080 默认用户名密码admin/admin
+1).点击‘Launch install wizard’
+2).配置集群的名字为sccddw
+3).选择版本并修改为本地源地址
+选择redhat7:
+	HDP-2.6: http://192.168.11.211/ambari/HDP/centos7/2.6.3.0-235/
+	HDP-UTILS-1.1.0.21: http://192.168.11.211/ambari/HDP-UTILS/
+4).安装配置
+	Target Hosts：
+		master
+		slave1
+		slave2
+	选择要安装的服务器和上传上面教程所拷贝出来的秘钥文件id_rsa
+可能错误：
+	1）SSLError: Failed to connect. Please check openssl library versions
+	vim /etc/python/cert-verification.cfg
+	[https]
+		verify=platform_default
+		修改为verify=disable，就可以正常注册。
+	vi /etc/ambari-agent/conf/ambari-agent.ini
+	[security]
+		force_https_protocol=PROTOCOL_TLSv1_2
+	(升级openssl:(不一定需要)
+		yum upgrade openssl)
+
+	2）提示namenode不能以home开头
+	vi /usr/lib/ambari-server/web/javascripts/app.js
+	isAllowedDir: function(value) {
+		var dirs = value.replace(/,/g,' ').trim().split(new RegExp("\\s+", "g"));
+		for(var i = 0; i < dirs.length; i++){
+			if(dirs[i].startsWith('/home') || dirs[i].startsWith('/homes')) {
+				return false;
+			}
+		}
+		return true;
+	}
+	把false改为true
+	
+Customize Services:
+	除了hive, oozie需要填写上面mysql相应创建的密码。其它都是填要设置的初始密码随便填但要做好记录。
+设置hive和oozie时点击‘Test Connection’测试是否可以连接成功。出错时看Database URL是否设置成功。
+
+(注意事项：
+hive：Tez Container Size最好不超过5120M
+Ambari Metrics: hbase_master_heapsize 尽量大些
+Ambari Metrics	hbase_master_xmn_size 尽量大些
+Ambari Metrics	metrics_collector_heapsize 尽量大些
+Hive：hive.auto.convert.join.noconditionaltask.size 不超过5120M
+)
+安装出错请查看日志：
+agent端：
+cd /var/log/ambari-agent/
+tail -f ambari-agent.log
+server端：
+cd /var/log/ambari-server/
+tail -f ambari-server.log
+
+
+
+
+8.安装完成后启动
+出现问题后一一排查
+strom问题：
+日志：/var/log/storm/
+
+
+
+
+
 
 
 

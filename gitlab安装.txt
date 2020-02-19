@@ -178,8 +178,8 @@ gitlab-ctl reconfigure
 #gitlab-rails console production
 
 irb(main):001:0>u = User.where(id:1).first
-irb(main):002:0> u.password='18215606560'
-irb(main):003:0> u.password_confirmation='18215606560'
+irb(main):002:0> u.password='Cuiwenhu'
+irb(main):003:0> u.password_confirmation='Cuiwenhu'
 irb(main):006:0> u.save!
 
 
