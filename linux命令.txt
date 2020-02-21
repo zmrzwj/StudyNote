@@ -334,6 +334,64 @@ Please enter a port for Shadowsocks-Python [1-65535]
 port = 11260
 当我们看到 Congratulations, Shadowsocks-Python server install completed! 时，则证明我们已经成功安装了 SS。请立即将这些信息复制下来加以保存，我们就会用到这几个比较重要的信息：主机服务器IP地址、端口号、密码和加密方式。
 
+各版本默认配置文件
+Shadowsocks-Python 版：
+/etc/shadowsocks-python/config.json
+ShadowsocksR 版：
+/etc/shadowsocks-r/config.json
+Shadowsocks-Go 版：
+/etc/shadowsocks-go/config.json
+Shadowsocks-libev 版：
+/etc/shadowsocks-libev/config.json
+
+启动脚本
+启动脚本后面的参数含义，从左至右依次为：启动，停止，重启，查看状态。
+Shadowsocks-Python 版：
+/etc/init.d/shadowsocks-python start | stop | restart | status
+ShadowsocksR 版：
+/etc/init.d/shadowsocks-r start | stop | restart | status
+Shadowsocks-Go 版：
+/etc/init.d/shadowsocks-go start | stop | restart | status
+Shadowsocks-libev 版：
+/etc/init.d/shadowsocks-libev start | stop | restart | status
+
+
+
+v2ray安装：
+
+查看v2ray的运行状态
+# systemctl status v2ray
+
+查看端口占用，如果发现v2ray并没有监听我们的公网IP，只监听了一个IPV6
+# netstat -apn | grep v2ray
+tcp6       0      0 :::21xxx                :::*                    LISTEN      22194/v2ray
+unix  3      [ ]         STREAM     CONNECTED     788043   22194/v2ray
+v2ray默认配置文件在/etc/v2ray/conf.json，我们只需编辑这个文件并添加一行就行
+"inbound": {
+    "port": 21xxx,
+    "protocol": "vmess",
+        "listen":"12.34.56.78", <------就是这一行
+    "settings": {
+      "clients": [
+        {
+          "id": "e59b0cba-204c-4d58-85a5-xxxxxxxxxxxxxxx",
+          "level": 1,
+          "alterId": 64
+        }
+      ]
+    }
+  },
+listen字段中的12.34.56.78替换成真实IP，保存，退出，然后用v2ray测试配置文件是否正确：
+# /usr/bin/v2ray/v2ray --test --config /etc/v2ray/config.json
+这样表示配置文件没什么问题，重启即可：
+systemctl restart v2ray
+再次检查v2ray的端口监听情况：
+root@xxx:~# netstat -apn | grep v2ray
+tcp        0      0 104.238.xxx.xxx:191xx   0.0.0.0:*               LISTEN      16814/v2ray
+unix  3      [ ]         STREAM     CONNECTED     3918255  16814/v2ray
+
+
+
 
 31.设置中国时区可以使用：
 ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime

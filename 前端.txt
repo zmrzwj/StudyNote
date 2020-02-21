@@ -97,3 +97,14 @@ vue 子组件报错,如:<template>
 parser: 'vue-eslint-parser',(同rules同级)
 npm install babel-eslint --save
 
+
+10.Html5 hidden属性
+它的表现跟CSS的display: none;作用非常相似，元素将会消失，而且不占用任何页面空间。写法很简单：
+<div hidden>
+	I was hiding
+</div>
+老式浏览器，不支持这个属性，你可以在CSS里添加下面的代码来支持它：
+*[hidden] { display: none; }
+注：加上后IE6仍不能支持
+
+

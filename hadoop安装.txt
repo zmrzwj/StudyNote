@@ -505,10 +505,10 @@ cd  ~/.ssh/	# 若没有该目录，请先执行一次ssh localhost
 
 3.安装ambari server
 下载ambari repo文件 ，并拷贝到/etc/yum.repos.d中
-wget -nv http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.5.1.0/ambari.repo -O /etc/yum.repos.d/ambari.repo
+wget -nv http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.6.2.2/ambari.repo -O /etc/yum.repos.d/ambari.repo
 -nv, –non-verbose 关掉冗长模式，但不是安静模式
 -O –output-document=FILE 把文档写到FILE文件中
-yum –y install ambari-server
+yum install ambari-server
 配置：
 ambari-server setup
 WARNING: SELinux is set to 'permissive' mode and temporarily disabled.
@@ -612,9 +612,15 @@ ambari-server setup --jdbc-db=mysql --jdbc-driver=/usr/share/java/mysql-connecto
 
 
 6.下载离线包
-http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.6.1.5/ambari-2.6.1.5-centos7.tar.gz
-http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.6.3.0/HDP-2.6.3.0-centos7-rpm.tar.gz
+(版本请访问：https://supportmatrix.hortonworks.com/)
+ambari:(ambari2.6.2.2为2.6最高版本，ambari2.7仅支持hdp3)
+http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.6.2.2/ambari-2.6.2.2-centos7.tar.gz
+HDP:(hdp2.6.5为2.6最高版本，hdp3.0不支持flume)
+http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.6.5.0/HDP-2.6.5.0-centos7-rpm.tar.gz
+HDP-UTILS:
 http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos7/HDP-UTILS-1.1.0.21-centos7.tar.gz
+HDP-GPL:
+http://public-repo-1.hortonworks.com/HDP-GPL/centos7/2.x/updates/2.6.5.0/HDP-GPL-2.6.5.0-centos7-gpl.tar.gz
 tar -zxvf HDP-2.6.3.0-centos7-rpm.tar.gz -C /var/www/html/ambari/HDP
 tar -zxvf HDP-UTILS-1.1.0.21-centos7.tar.gz -C /var/www/html/ambari/HDP-UTILS
 tar -zxvf ambari-2.6.1.5-centos7.tar.gz -C /var/www/html/ambari/ambari-2.6.1.5
@@ -696,6 +702,7 @@ wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.163.com/.help/CentOS6-B
 		return true;
 	}
 	把false改为true
+	(每个节点都要做)
 	
 Customize Services:
 	除了hive, oozie需要填写上面mysql相应创建的密码。其它都是填要设置的初始密码随便填但要做好记录。
@@ -723,6 +730,17 @@ tail -f ambari-server.log
 出现问题后一一排查
 strom问题：
 日志：/var/log/storm/
+
+
+9.卸载ambari
+ambari-agent stop
+ambari-server stop
+yum remove -y hadoop_2* hdp-select* ranger_2* zookeeper* bigtop*atlas-metadata* ambari* spark* slide* strom* hive*
+rpm –qa | grep Ambari版本
+rm -rf /var/lib/pgsql/
+yum remove -y postgresql
+把 /usr/hdp也删除
+
 
 
 

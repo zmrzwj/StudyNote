@@ -1,0 +1,33 @@
+1.scss是sass的支持css3的版本
+
+2.编译
+sass a.scss:css/a.scss
+sass --watch scss:css(可以监听目录也可以监听文件)
+
+3.变量
+$highlight-color: #F90;
+
+3.嵌套
+.nav {
+  a {
+    &:hover {
+        color: '#ccc';
+    }
+    border:1px solid #ccc {
+        Left:0;
+	right:0;
+    }
+  }
+  
+}
+.nav a:hover {
+  color: '#ccc';
+}
+.nav a {
+  border:1px solid #ccc;
+  border-left:0;
+  border-right:0;
+}
+
+4.混合mixins
+

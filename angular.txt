@@ -1,0 +1,119 @@
+1.安装angulr-cli
+npm install -g @angular/cli
+
+2.查看angular-cli版本，检查是否安装成功
+ng -v
+
+3.新建项目
+ng new Anuglar2Demo1
+
+4.启动项目
+进入项目目录
+cd Anuglar2Demo1
+ng serve --port(指定端口) 8088 --open(打开浏览器)
+
+5.构建应用程序
+$ ng built
+
+6.添加组件
+ng g component components/site-header  ////创建一个名称为app-side-header的组件,并放到components目录下
+使用组件
+
+7.ngModel双向数据绑定
+在app.module.ts
+import { FormsModule } from '@angular/forms';
+@NgModule({
+  imports: [
+    FormsModule
+  ]
+})
+<input type="text" [(ngModel)]="inputValue" />
+
+8.事件
+export class NewsComponent implements OnInit {
+  myRun() {
+    alert(123)
+  }
+}
+<button (click)="myRun()">istrue</button>
+
+9.*ngIf条件判断, *ngFor搜索
+<span [title]="123" class="red" *ngIf="isTrue">123</span>
+<div *ngFor="let item of myArr" >
+    <span class="red">{{item}}</span>
+</div>
+  
+10.管道（辅助转换数据）
+<p>{{birthday|date:"MM/dd/y"}}</p>
+export class PipeDemoComponent{
+    birthday=new Date(1993,3,15);
+}
+ng内置管道：
+1、大小写转换管道
+uppercase将字符串转换为大写 
+lowercase将字符串转换为小写
+<p>将字符串转换为大写{{str | uppercase}}</p>
+2、日期管道
+date。日期管道符可以接受参数，用来规定输出日期的格式。
+<p>现在的时间是{{today | date:'yyyy-MM-dd HH:mm:ss'}}</p>
+3、小数管道
+number管道用来将数字处理为我们需要的小数格式 
+接收的参数格式为{最少整数位数}.{最少小数位数}-{最多小数位数} 
+其中最少整数位数默认为1 
+最少小数位数默认为0 
+最多小数位数默认为3 
+当小数位数少于规定的{最少小数位数}时，会自动补0 
+当小数位数多于规定的{最多小数位数}时，会四舍五入
+<p>圆周率是{{pi | number:'2.2-4'}}</p>
+4、货币管道
+currency管道用来将数字转换为货币格式
+<p>{{a | currency:'USD':false}}</p>
+<p>{{b | currency:'USD':true:'4.2-2'}}</p>
+5、Json管道
+Json管道通过JSON.stringify()来将输入数据对象转换成对象字符串
+<pre>{{jsonObject | json}}</pre>
+6、Percent管道
+PercentPipe管道可以对数值进行百分比处理。参数和DecimalPipe的参数一样
+{{0.5 | percent:'5.3-5'}} 00,050.000%
+7、SlicePipe 裁剪管道
+SlicePipe管道用于裁剪数组或字符串，返回裁剪后的目标子集。
+| slice: start[: end]
+<p>{{'abcd' | slice:1:3}}</p>  bc
+8、自定义管道
+新建管道：ng g p pipes/sexReform（ng g pipe sexReform）
+transform(value: string, args?: any): string {
+    switch (value) {
+      case 'male': return '男';
+      case 'female': return '女';
+      default: return '不男不女或雌雄同体';
+    }
+  }
+
+public sex: string = 'male';
+<p>{{ sex | sexReform }}</p>
+
+
+
+11、服务(公共方法)
+创建：ng g service services/storage
+引入服务
+app.modules.ts
+import { StorageService } from './services/storage.service'
+providers: [
+   StorageService
+]
+
+在storage.service.ts中添加
+get() {
+    return 'this is a service';
+  }
+
+使用服务
+import { StorageService } from '../../services/storage.service'
+然后在构造函数：
+constructor(storage: StorageService) {
+  let s = storage.get()
+}
+
+
+
