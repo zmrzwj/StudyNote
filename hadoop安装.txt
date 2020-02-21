@@ -735,6 +735,8 @@ strom问题：
 修改nimbus.childopts配置：去掉jmx相关的只保留-Xmx1024m _JAAS_PLACEHOLDER
 supervisor.childopts同样也要去掉
 ）
+Faclon:
+日志：/var/log/faclon/faclon.application.log
 
 
 9.卸载ambari
