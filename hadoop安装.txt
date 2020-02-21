@@ -737,6 +737,12 @@ supervisor.childopts同样也要去掉
 ）
 Faclon:
 日志：/var/log/faclon/faclon.application.log
+Faclou web ui 无法启动：
+HDP 2.5或更高版本，则必须手动安装Falcon所需的Berkeley DB文件
+下载je.jar: http://search.maven.org/remotecontent?filepath=com/sleepycat/je/5.0.73/je-5.0.73.jar
+mv remotecontent?filepath=com%2Fsleepycat%2Fje%2F5.0.73%2Fje-5.0.73.jar /usr/share/je-5.0.73.jar
+ambari-server setup --jdbc-db=bdb --jdbc-driver=/usr/share/je-5.0.73.jar
+ambari-server restart
 
 
 9.卸载ambari
@@ -942,7 +948,32 @@ Instance Secret: accumulo
 Superset: superset
 )
 
-
+sccddw密码：
+PostgreSQL:
+Database admin user (postgres): 
+Database name (ambari): 
+Postgres schema (ambari): 
+Username (ambari): 
+Enter Database Password (bigdata): 
+ambari webUI：
+http:/192.168.11.211:8080 默认用户名密码admin/admin
+Accumulo root password：accumulo123###
+Instance Secret: accumulo123###
+smartSense:
+Password for user 'admin'： smartSense
+Knox Master Secret: knox123###
+mysql:
+user: root
+password: Sccddw123456!
+hive:
+database: hive
+user: hive
+password：hive
+oozie:
+database: oozie
+user: oozie
+password：oozie
+Grafana Admin Password: grafana
 
 
 
