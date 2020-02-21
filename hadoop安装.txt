@@ -738,13 +738,199 @@ supervisor.childopts同样也要去掉
 
 
 9.卸载ambari
+停止ambari:
 ambari-agent stop
 ambari-server stop
-yum remove -y hadoop_2* hdp-select* ranger_2* zookeeper* bigtop*atlas-metadata* ambari* spark* slide* strom* hive*
+卸载ambari：
+yum remove ambari-agent  
+yum remove ambari-server
+删除服务：
+yum list installed | grep ambari  
+yum list installed | grep hdp  
+yum remove -y hive*   
+yum remove -y hdfs*   
+yum remove -y yarn*   
+yum remove -y mapreduce2*   
+yum remove -y tez*   
+yum remove -y hbase*   
+yum remove -y pig*   
+yum remove -y sqoop*   
+yum remove -y oozie*   
+yum remove -y zookeeper*   
+yum remove -y falcon*   
+yum remove -y storm*   
+yum remove -y flume*   
+yum remove -y accumulo*   
+yum remove -y Ambari Infra*   
+yum remove -y Ambari Metrics*   
+yum remove -y Atlas*   
+yum remove -y Kafka*   
+yum remove -y Knox*   
+yum remove -y Log Search*   
+yum remove -y Ranger*   
+yum remove -y Ranger KMS*   
+yum remove -y SmartSense*   
+yum remove -y Zeppelin Notebook*   
+yum remove -y Druid*   
+yum remove -y Mahout*   
+yum remove -y Slider* 
+yum remove -y hadoop*
+yum remove -y spark*
+yum remove -y strom*
+删除用户
+userdel nagios   
+userdel hive   
+userdel ambari-qa   
+userdel hbase   
+userdel oozie   
+userdel hcat   
+userdel mapred   
+userdel hdfs   
+userdel rrdcached   
+userdel zookeeper   
+userdel mysql   
+userdel sqoop  
+userdel puppet  
+userdel yarn  
+userdel tez  
+userdel hadoop  
+userdel knox  
+userdel storm  
+userdel falcon  
+userdel flume  
+userdel nagios  
+userdel admin  
+userdel postgres  
+userdel  hdfs  
+userdel  zookeeper  
+userdel hbase  
+userdel ams       
+userdel spark     
+userdel kafka     
+userdel ranger    
+userdel kms       
+userdel zookeeper     
+userdel ambari-qa     
+userdel hdfs      
+userdel yarn      
+userdel mapred 
+删除文件
+rm -rf /hadoop/*  
+rm -rf /etc/ambari*  
+rm -rf /etc/zookeeper/  
+rm -rf /etc/ranger*  
+rm -rf /etc/rc.d/init.d/ranger*  
+rm -rf /etc/hadoop/  
+rm -rf /etc/hadoop/  
+rm -rf /etc/hbase/  
+rm -rf /etc/hive  
+rm -rf /usr/hdp/  
+rm -rf /etc/zookeeper/  
+rm -rf /tmp/ambari-qa  
+rm -rf /tmp/sqoop-ambari-qa/  
+rm -rf /kafka-logs/  
+rm -rf /var/lib/ambari*  
+rm -rf /var/lib/hive2*  
+rm -rf /var/run/kafka/  
+rm -rf /etc/flume     
+rm -rf /etc/hive-hcatalog     
+rm -rf /etc/hive-webhcat      
+rm -rf /etc/phoenix       
+rm -rf /etc/ambari-metrics-collector      
+rm -rf /etc/ambari-metrics-monitor    
+rm -rf /tmp/hdfs      
+rm -rf /tmp/hcat      
+rm -rf /etc/kafka  
+rm -rf /etc/oozie     
+rm -rf /etc/storm     
+rm -rf /etc/tez       
+rm -rf /etc/falcon    
+rm -rf /etc/slider    
+rm -rf /etc/pig       
+rm -rf /etc/ranger    
+rm -rf /var/log/hadoop    
+rm -rf /var/log/hbase     
+rm -rf /var/log/hive      
+rm -rf /var/log/oozie     
+rm -rf /var/log/sqoop     
+rm -rf /var/log/zookeeper     
+rm -rf /var/log/flume     
+rm -rf /var/log/storm     
+rm -rf /var/log/hive-hcatalog     
+rm -rf /var/log/falcon    
+rm -rf /var/log/webhcat       
+rm -rf /var/log/hadoop-hdfs       
+rm -rf /var/log/hadoop-yarn       
+rm -rf /var/log/hadoop-mapreduce      
+rm -rf /var/log/spark     
+rm -rf /var/log/ranger    
+rm -rf /usr/lib/flume     
+rm -rf /usr/lib/storm     
+rm -rf /var/lib/hive      
+rm -rf /var/lib/oozie     
+rm -rf /var/lib/zookeeper     
+rm -rf /var/lib/flume     
+rm -rf /var/lib/hadoop-hdfs       
+rm -rf /var/lib/slider    
+rm -rf /var/lib/ranger    
+rm -rf /var/tmp/oozie     
+rm -rf /var/tmp/sqoop     
+rm -rf /tmp/hive      
+rm -rf /tmp/hadoop-hdfs       
+rm -rf /etc/sqoop     
+rm -rf /var/log/ambari-metrics-collector      
+rm -rf /var/log/ambari-metrics-monitor    
+rm -rf /usr/lib/ambari-metrics-collector      
+rm -rf /var/lib/hadoop-yarn       
+rm -rf /var/lib/hadoop-mapreduce      
+rm -rf /var/lib/ambari-metrics-collector      
+rm -rf /var/log/kafka     
+rm -rf /tmp/hadoop-yarn       
+rm -rf /hadoop/zookeeper      
+rm -rf /hadoop/hdfs       
+rm -rf /kafka-logs    
+rm -rf /etc/storm-slider-client
+
+yum remove -y hadoop_2* hdp-select* ranger_2* zookeeper* bigtop* atlas-metadata* ambari* spark* slide* strom* hive*
 rpm –qa | grep Ambari版本
 rm -rf /var/lib/pgsql/
 yum remove -y postgresql
 把 /usr/hdp也删除
+
+
+
+
+
+
+10.服务介绍
+Ambari  Hadoop生态系统管理监控。
+PostgreSQL  Ambari内置数据库。
+Hdfs 分布式文件系统。
+Yarn 资源调度管理。
+MapReduce是一个分布式运算程序的编程框架,是hadoop数据分析的核心。
+Tez  Tez是在YARN之上编写的下一代Hadoop查询处理框架。
+Hive 数据仓库系统，用于临时查询和分析大型数据集以及表和存储管理服务。
+HBase 分布式列数据库。
+Pig  Pig是MapReduce的一个抽象，它是一个工具/平台，用于分析较大的数据集，并将它们表示为数据流。
+Sqoop  用于在Hadoop(Hive)与传统的数据库(mysql、postgresql...)间进行数据的传递。
+Oozie  用于Hadoop平台的开源的工作流调度引擎，是用来管理Hadoop作业。
+ZooKeeper  开放源码的分布式应用程序协调服务，是Hadoop和Hbase的重要组件。它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置维护、域名服务、分布式同步、组服务等。
+Falcon  一个开源的hadoop数据生命周期管理框架, 它提供了数据源的管理服务
+Storm  一个分布式实时大数据处理系统。
+Flume  一种分布式，可靠且可用的服务，用于有效地收集，聚合和移动大量日志数据。
+Accumulo  一个可靠的、可伸缩的、高性能的排序分布式的 Key-Value 存储解决方案，基于单元访问控制以及可定制的服务器端处理。
+Ambari Infra  为安装栈上组件提供公共索引服务。
+Ambari Metrics  为系统管理员提供了集群性能的监察功能。
+Atlas  为Hadoop集群提供了包括 数据分类、集中策略引擎、数据血缘、安全和生命周期管理在内的元数据治理核心能力。
+Kafka  开源消息系统，为处理实时数据提供一个统一、高通量、低等待的平台。
+Knox   是一个 REST API 网关，用于提供对数据的安全访问和处理 Hadoop 集群的资源。
+SmartSense  用于收集群集诊断数据，用于协助支持案例故障排除和SmartSense分析。
+Spark2  大规模数据处理而设计的快速通用的计算引擎。
+Zeppelin Notebook  一个让交互式数据分析变得可行的基于网页的notebook。Zeppelin提供了数据可视化的框架。
+Mahout    一个开源项目，提供一些可扩展的机器学习领域经典算法的实现，旨在帮助开发人员更加方便快捷地创建智能应用程序。
+Apache Slider    将用户的已有服务或者应用直接部署到YANR上。
+
+
 
 
 
