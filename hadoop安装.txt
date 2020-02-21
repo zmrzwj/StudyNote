@@ -730,6 +730,11 @@ tail -f ambari-server.log
 出现问题后一一排查
 strom问题：
 日志：/var/log/storm/
+（
+如果报missing:xxx/jmxetric-xxx.jar
+修改nimbus.childopts配置：去掉jmx相关的只保留-Xmx1024m _JAAS_PLACEHOLDER
+supervisor.childopts同样也要去掉
+）
 
 
 9.卸载ambari
@@ -740,6 +745,14 @@ rpm –qa | grep Ambari版本
 rm -rf /var/lib/pgsql/
 yum remove -y postgresql
 把 /usr/hdp也删除
+
+
+
+(
+Accumulo root pwd: accumulo
+Instance Secret: accumulo
+Superset: superset
+)
 
 
 
