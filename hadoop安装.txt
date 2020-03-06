@@ -738,7 +738,7 @@ supervisor.childopts同样也要去掉
 Faclon:
 日志：/var/log/faclon/faclon.application.log
 Faclou web ui 无法启动：
-HDP 2.5或更高版本，则必须手动安装Falcon所需的Berkeley DB文件
+HDP 2.5或更高版本，则必须手动安装Falcon所需的Berkeley DB文件(在ambari server上)
 下载je.jar: http://search.maven.org/remotecontent?filepath=com/sleepycat/je/5.0.73/je-5.0.73.jar
 mv remotecontent?filepath=com%2Fsleepycat%2Fje%2F5.0.73%2Fje-5.0.73.jar /usr/share/je-5.0.73.jar
 ambari-server setup --jdbc-db=bdb --jdbc-driver=/usr/share/je-5.0.73.jar
