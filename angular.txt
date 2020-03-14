@@ -42,6 +42,7 @@ export class NewsComponent implements OnInit {
 <div *ngFor="let item of myArr" >
     <span class="red">{{item}}</span>
 </div>
+ng不允许在一个div同时使用 *ngFor， *ngIf
   
 10.管道（辅助转换数据）
 <p>{{birthday|date:"MM/dd/y"}}</p>
@@ -114,6 +115,140 @@ import { StorageService } from '../../services/storage.service'
 constructor(storage: StorageService) {
   let s = storage.get()
 }
+
+
+12.父子组件通信
+子获取父：
+父：
+Public title: string = 'I am title';
+parentFun() {
+    alert('1');
+}
+<app-child [title]="title" [parentFun]="parentFun"></app-child>
+子：
+import { Component, OnInit, Input } from '@angular/core';
+@Input() title: any;
+@Input() parentFun: any;
+run() {
+    this.parentFun()
+  }
+父获取子：
+父：
+import { Component, OnInit, ViewChild } from '@angular/core';
+@ViewChild('footer') footer: any;
+run(){
+    this.footer.msg
+    this.footer.childFun()
+  }
+<app-header #footer></app-header>
+子：
+public msg: string = "i am msg";
+childFun(){
+    alert('child fun')
+  }
+
+
+13.生命周期函数
+ngOnChanges() 设置数据绑定输入属性时响应，首次调用一 定会发生在 ngOnInit() 之前
+ngOnInit() 第一次显示数据绑定和设置指令/组件的输 入属性之后，初始化指令/组件。
+ngAfterViewInit() 初始化完组件视图及其子视图之后调用
+ngOnDestroy() 在 Angular 销毁指令/组件之前调用。
+
+
+14.rxjs
+import { Observable } from 'rxjs'(不需要安装)
+
+new Observable((observer) => {
+    setTimeout(() => {
+	observer.next()
+    })
+})
+
+
+15.httpClient
+App.module.ts
+import { HttpClientModule } from '@angular/common/http'
+imports: [
+    HttpClientModule
+]
+在要用到的地方：
+constructor(public http: HttpClient) {}
+const options = {
+      headers: new HttpHeaders({'content-type':'application/json'})
+    }
+    this.http.post('http://177.0.0.1/login', {}, options)
+Jsonp:
+import { HttpClientModule, HttpClientJsonpModule } from '@angular/common/http'
+imports: [
+    HttpClientModule
+]
+使用axios:
+Npm install --save axios 
+import axios from 'axios';
+axios.get('http://127.0.0.1/login').then(v => {})
+
+
+
+16.路由
+App-routing.module.ts
+import { HomeComponent } from './components/home/home.component';
+
+const routes: Routes = [
+  {
+    path: 'home',
+    component: HomeComponent
+  }
+];
+Link:
+<a [routerLink]="['/home']" routerLinkActive="router-link-active" >home</a>
+默认路由：
+const routes: Routes = [
+  {
+    path: '',
+    component: HomeComponent
+  }
+];
+路由传值：
+<a [routerLink]="['/home']" [queryParams]="{a:5}" routerLinkActive="router-link-active" >home</a>
+获取值：
+this.route.queryParams.subscribe(v => {
+      console.log('queryParams', v) // {a: "5"}
+    })
+编程式路由
+constructor (public route:Router ) {}
+this.route.navigate(['/news'])
+带参数传值：
+let params = {
+      queryParams: {'a': 123}
+    }
+    this.route.navigate(['/news'], params)
+或使用NavigationExtras
+import { Router, NavigationExtras } from '@angular/router';
+let navigateExtraDatas: NavigationExtras = {
+      queryParams: {'a': 123}
+    }
+    this.route.navigate(['/news'], navigateExtraDatas)
+父子路由：
+{
+    path: 'home',
+    component: HomeComponent,
+    children: [
+      {
+        path: 'test',
+        component: TestComponent
+      }
+    ]
+  }
+<div style="float: left;width: 40%;">
+	<a [routerLink]="['/home/test']">home/test</a>
+</div>
+<div style="float: left;width: 50%;">
+    <router-outlet></router-outlet>
+</div>
+
+
+
+
 
 
 

@@ -355,6 +355,11 @@ Shadowsocks-Go 版：
 Shadowsocks-libev 版：
 /etc/init.d/shadowsocks-libev start | stop | restart | status
 
+ssr安装：
+bash <(curl -sL https://raw.githubusercontent.com/hijkpw/scripts/master/centos_install_ssr.sh)
+systemctl status shadowsocksR
+systemctl stop shadowsocksR
+systemctl start shadowsocksR
 
 
 v2ray安装：
