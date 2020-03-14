@@ -60,16 +60,32 @@ Git checkout zwj //切换到zwj
 Git push origin zwj:zwj (提交本地的zwj到zwj)
 Git push origin master:zwj
 
+git添加tag
+git tag -a v1.0.0 -m '新版本'（git push并不会把tag标签传送到远端服务器上，只有通过显式命令才能分享标签到远端仓库）
+git push origin v1.0.0 #将本地v1.0的tag推送到远端服务器
+
 
 //默认情况master分支不允许push
 git clone http://www.sccps.cn:82/xs/xs-intelligence-system.git后
 git checkout -b xxx(你名字的首字母，如邓带雨，git checkout -b ddy)(这步是创建分支并切换到此分子)
-
 以后提交代码：
 git push -u origin xxx(如邓带雨，git push -u origin ddy)
 
 
---------git 安装--------
+// 放弃本地修改
+git checkout .
+git checkout --filename
+(此命令用来放弃掉所有还没有加入到缓存区（就是 git add 命令）的修改：内容修改与整个文件删除
+此命令不会删除新建的文件，因为新建的文件还没加入git管理系统中，所以对git来说是未知，只需手动删除即可
+)
+//对于已使用git add 缓存代码，未使用git commit
+git reset HEAD
+//已经用 git commit 提交了代码
+git reset --hard HEAD^
+
+
+
+---------------------------------------git 安装------------------------------------------------------
 下载tar.gz
 下载地址：https://mirrors.edge.kernel.org/pub/software/scm/git/
 然后
