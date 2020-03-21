@@ -249,6 +249,48 @@ let navigateExtraDatas: NavigationExtras = {
 
 
 
+16.模块
+创建模块
+ng g module module/user
+创建模块下的组件
+ng g component module/user/components/address
+创建模块根组建
+ng g component module/user
+
+使用模块：
+user.module.ts
+exports: [UserComponent]
+app.module.ts
+import { UserModule } from './module/user/user.module';
+imports: [
+    UserModule
+]
+app.component.html:
+<app-user></app-user>
+
+模块中添加路由：
+ng g module module/user --routing
+在各个模块的路由添加：
+import { ArticleComponent } from './article.component';
+const routes: Routes = [
+  {
+    path: '',
+    component: ArticleComponent
+  }
+];
+在app-routing.module.ts:
+const routes: Routes = [
+{
+    path: 'article',
+    loadChildren: './module/article/article.module#ArticleModule'
+  }
+]
+<header>
+  <a [routerLink]="['/product']" >product</a>
+  <a [routerLink]="['/article']" >article</a>
+</header>
+(注意代码敲对，每行后面有分号)
+
 
 
 

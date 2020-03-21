@@ -524,6 +524,7 @@ Vue.config.optionMergeStrategies.myOption = function (toVal, fromVal) {
   // 返回合并后的值
 }
 
+
 28、vue指令的修饰符
 v-model 修饰符
 .lazy 指令默认会在 input 事件中加载输入框中的数据,懒加载修饰符之后，只有在输入框失去焦点或者按回车键时才会更新 content 值
@@ -546,3 +547,67 @@ v-on修饰符
 v-bind修饰符
 .sync 是一个语法糖,作用(双向绑定的另一种方式) 
 直接在子组件使用this.$emit('update:word', newValue)更新word的值
+
+
+
+29.mock.js使用
+npm install mockjs --save-dev
+在src 目录下创建mock目录 再在mock目录下创建index.js
+import Mock from 'mockjs'
+let { Random } = Mock
+const getdata = function (option) { // 定义请求数据方法
+  let datalist = []
+  for (let i = 0; i < 20; i += 1) {
+    const o = { // mockjs模拟随机生成数据，生成20条
+      recipeId: Random.guid(),
+      billId: Random.string(10),
+      orgId: Random.string('number', 8, 10),
+      Date: Random.date('yyyy-MM-dd'),
+      time: Random.time('A HH:mm:ss'),
+      adress: Random.county(),
+      viewName: Random.cword(4, 16), // 随机生成任意名称
+      personName: Random.cname(),
+      reason: Random.csentence(10, 32)
+    }
+    datalist.push(o)
+  }
+  return {
+    code: 1,
+    msg: '成功',
+    data: datalist
+  }
+}
+Mock.mock('/user', /post|get/i, getdata) // 调用模拟数据方法
+对带参数的请求：
+Mock.mock(RegExp('/user' + '.*'), /post|get/i, getdata)
+
+在main.js引入：
+import './mock/index'
+
+使用：
+import axios from 'axios'
+axios.get('/user').then(res => {})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
