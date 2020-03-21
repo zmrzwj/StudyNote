@@ -588,7 +588,8 @@ import './mock/index'
 import axios from 'axios'
 axios.get('/user').then(res => {})
 
-
+mockjs它的原理是重写了XMLHttpRequest，它可以在接口没出来时非常方便的模拟数据，上线之后不引用它即可。
+window. XMLHttpRequest是可以被覆盖的。
 
 
 
