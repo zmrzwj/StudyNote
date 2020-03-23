@@ -524,6 +524,9 @@ Vue.config.optionMergeStrategies.myOption = function (toVal, fromVal) {
   // 返回合并后的值
 }
 
+
+
+
 28、vue指令的修饰符
 v-model 修饰符
 .lazy 指令默认会在 input 事件中加载输入框中的数据,懒加载修饰符之后，只有在输入框失去焦点或者按回车键时才会更新 content 值
@@ -546,3 +549,8 @@ v-on修饰符
 v-bind修饰符
 .sync 是一个语法糖,作用(双向绑定的另一种方式) 
 直接在子组件使用this.$emit('update:word', newValue)更新word的值
+
+
+
+
+29.修改key可以是页面重绘
