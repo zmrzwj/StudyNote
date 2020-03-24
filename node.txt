@@ -1,0 +1,96 @@
+package-lock.json的作用：
+就是锁定安装时的包的版本号，并且需要上传到git，以保证其他人在npm install时大家的依赖能保证一致。
+
+
+一、自己写脚手架
+1、npm link
+在本地开发npm模块的时候，我们可以使用npm link命令，将npm 模块链接到对应的运行项目中去，方便地对模块进行调试和测试
+cd到模块目录，npm link，进行全局link。
+将在全局文件夹{prefix}/lib/node_modules/<package>中创建一个符号链接，该 链接链接到 npm link 执行命令的包。
+解除link
+解除项目和模块link，项目目录下，npm unlink 模块名
+
+操作步骤：
+# zwj-cli
+    自己写脚手架
+
+### 1、第一步
+    github创建自己的仓库（用来存放下载的模板）
+
+### 2、第二步
+**注册npm账号：**
+    [npm](https://www.npmjs.com/)
+
+**登录：** 
+
+    $npm login
+
+**添加用户信息到注册表** 
+
+    $npm adduser
+
+### 3、编码
+**初始化**
+
+    npm init
+
+**下载依赖**
+
+    npm i chalk commander download-git-repo inquirer ora request --save
+
+    chalk node终端样式库
+
+    commander 帮助命令行工具的开发
+        用于命令行参数开发
+        · version
+        作用：定义命令程序的版本号
+        用法示例：.version('0.0.1', '-v, --version')
+        · option
+        作用：用于定义命令选项
+        用法示例：.option('-n, --name<path>', 'name description', 'default name')
+        · command
+        作用：添加命令名称
+        用法示例：.command('rmdir <dir> [otherDirs...]', 'install description', opts)
+        · description
+        作用：定义命令的描述
+        用法示例：.description('rmdir desc')
+        · action
+        作用：定义命令的回调函数
+        用法示例：.action(fn)
+        · parse
+        作用：用于解析process.argv，设置options以及触发commands
+        用法示例：.parse(process.argv)
+
+    inquirer
+        脚手架的时候最明显的就是与命令行的交互，如果想做一个脚手架或者在某些时候要与用户进行交互，这个时候就不得不提到inquirer.js了。
+        inquirer为每个问题提供很多参数：
+        type：表示提问的类型，包括：input, confirm, list, rawlist, expand, checkbox, password, editor；
+        name: 存储当前问题回答的变量；
+        message：问题的描述；
+        default：默认值；
+        choices：列表选项，在某些type下可用，并且包含一个分隔符(separator)；
+        validate：对用户的回答进行校验；
+        filter：对用户的回答进行过滤处理，返回处理后的值；
+        transformer：对用户回答的显示效果进行处理(如：修改回答的字体或背景颜色)，但不会影响最终的答案的内容；
+        when：根据前面问题的回答，判断当前问题是否需要被回答；
+        pageSize：修改某些type类型下的渲染行数；
+        prefix：修改message默认前缀；
+        suffix：修改message默认后缀。
+        inquirer.prompt(promptList).then(answers => {
+            console.log(answers); // 返回的结果
+        })
+
+    ora 一个优雅的 Node.js 终端加载动画效果
+
+    download-git-repo 下载git仓库
+    var download = require('download-git-repo');
+    download('git仓库地址', '目录地址', function (err) {
+        console.log(err ? 'Error' : 'success')
+    })
+
+#### 模版来源    
+    创建一个github账号，将所有模版上传到这个仓库下
+    使用api.github可以查询这个账号下的全部仓库：
+    如要查询zmrzwj账号下全部仓库：
+    https://api.github.com/users/zmrzwj/repos
+
