@@ -595,6 +595,22 @@ window. XMLHttpRequest是可以被覆盖的。
 
 
 
+31.vue-cli3修改NODE_ENV
+新建文件.env.dev
+NODE_ENV=dev
+新建.env.prod
+NODE_ENV=prod
+修改package.json
+"scripts": {
+    "serve": "vue-cli-service serve --mode dev",
+	"build": "vue-cli-service build --mode prod"
+ },
+ 这样使用：process.env.NODE_ENV就得到dev,prod
+NODE_ENV默认为‘development’和‘production’
+process.env包含2个值：
+BASE_URL和NODE_ENV
+
+
 
 
 
