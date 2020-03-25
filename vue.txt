@@ -550,7 +550,9 @@ v-bind修饰符
 
 
 
-29.mock.js使用
+29.修改key可以是页面重绘
+
+30.mock.js使用
 npm install mockjs --save-dev
 在src 目录下创建mock目录 再在mock目录下创建index.js
 import Mock from 'mockjs'
@@ -590,6 +592,23 @@ axios.get('/user').then(res => {})
 
 mockjs它的原理是重写了XMLHttpRequest，它可以在接口没出来时非常方便的模拟数据，上线之后不引用它即可。
 window. XMLHttpRequest是可以被覆盖的。
+
+
+
+31.vue-cli3修改NODE_ENV
+新建文件.env.dev
+NODE_ENV=dev
+新建.env.prod
+NODE_ENV=prod
+修改package.json
+"scripts": {
+    "serve": "vue-cli-service serve --mode dev",
+	"build": "vue-cli-service build --mode prod"
+ },
+ 这样使用：process.env.NODE_ENV就得到dev,prod
+NODE_ENV默认为‘development’和‘production’
+process.env包含2个值：
+BASE_URL和NODE_ENV
 
 
 

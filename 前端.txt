@@ -108,3 +108,7 @@ npm install babel-eslint --save
 注：加上后IE6仍不能支持
 
 
+11.自动化测试
+端到端测试：
+    Cypress
+    Nightwatch
