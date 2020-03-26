@@ -611,6 +611,75 @@ process.env包含2个值：
 BASE_URL和NODE_ENV
 
 
+32.Vue中的动态组件（v-bind:is）的使用及组件传值
+<component v-bind:is ="currentTabComponent" :callbackdata="callbackdata"></component>
+参数传递和普通组建一样
+
+33.Object.create(null)与{}
+使用create创建的对象，没有任何属性，显示No properties，我们可以把它当作一个非常纯净的map来使用.
+{}创建时会继承Object自身的方法，如hasOwnProperty、toString等，在新对象上可以直接使用。
+
+
+33.vuex
+1）```
+new Vue({
+    router,
+    store,
+    render: (h) => h(App),
+}).$mount('#app');
+
+render: (h) => h(App)是如下的简写：
+render: function (createElement) {
+    return createElement(App)
+}
+new Vue({
+    router
+})
+通过 router 配置参数注入路由，
+从而让整个应用都有路由功能
+```
+2）var index = {
+    Store: Store,
+    install: install,
+    version: '3.1.1',
+    mapState: mapState,
+    mapMutations: mapMutations,
+    mapGetters: mapGetters,
+    mapActions: mapActions,
+    createNamespacedHelpers: createNamespacedHelpers
+  };
+  return index;
+3）install 函数
+install保证vuex只绑定一次
+export function install (_Vue) {
+  // Vue 已经存在并且相等，说明已经Vuex.use过
+  if (Vue && _Vue === Vue) {
+    // 省略代码：非生产环境报错，vuex已经安装
+    return
+  }
+  Vue = _Vue
+  applyMixin(Vue)
+}
+4）applyMixin
+使最终每个Vue的实例对象，都有一个$store属性。且是同一个Store实例。
+怎么做到的呢？Vue.mixin({ beforeCreate: vuexInit });（全局混入）
+function vuexInit () {
+  // 这里的this指向Vue实例
+  var options = this.$options;
+  // store injection
+  if (options.store) {
+    // 存在options.store，就将实例的$store指向Store实例对象。
+    this.$store = typeof options.store === 'function'
+      ? options.store()
+      : options.store;
+  } else if (options.parent && options.parent.$store) {
+    this.$store = options.parent.$store;
+  }
+}
+this.$options是什么？执行new Vue的时候，其中的参数会被合并到$options中。
+5）store
+
+
 
 
 
