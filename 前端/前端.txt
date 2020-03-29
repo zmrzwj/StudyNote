@@ -109,6 +109,9 @@ npm install babel-eslint --save
 
 
 11.自动化测试
+单元测试
+    jest
+    Moachi Chai
 端到端测试：
     Cypress
     Nightwatch
