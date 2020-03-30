@@ -1145,10 +1145,97 @@ return typeof val === 'function'
 
 
 
+
 36.vue-router源码解析
-install 方法做了这麽几件事：
+1）install 方法做了这麽几件事：
 声明一个全局变量 _Vue，用于保存传入的 Vue 然后将其暴露出去，供源码中其他地方使用，这样可以在不将 Vue 打包进源码的前提下随心使用 Vue。
 Vue.mixin 全局混入钩子函数（beforeCreate ,destroyed）。
+export function initMixin (Vue: GlobalAPI) {
+ //mixin 方法，接收一个 Object 类型 mixin 参数
+  Vue.mixin = function (mixin: Object) {
+    //调用 mergeOptions 将传入的 mixin 对象 合并到 Vue 的 options 上
+    this.options = mergeOptions(this.options, mixin)
+    return this
+  }
+}
+Vue.mixin 中会调用 mergeOptions 这个方法将传入的 mixin 对象通过与 Vue 原有的 options 选项合并成一个新的 option， 然后重新赋给 Vue 的 options 。由于在 Vue 中每个组件的构造函数都会在 extend 阶段合并 Vue.options 到自己的 options 中，这样也就相当于每个组件都定义了 mixin 中定义的选项。所以这也就是通过 Vue.mixin 全局混入的钩子函数会在每一个组件实例初始化的时候被触发调用一次的原因了。
+
+2）class VueRouter
+import VueRouter from 'vue-router' 导入的 vue-router 入口文件其实导出的东西就是 VueRouter 这个类。index.js 文件中首先是定义了 vue-router 核心 VueRouter 类，然后是定义了一个注册路由钩子函数的方法和一个创建 href路由跳转路径的方法，下来是将 install 方法挂载给 VueRouter 类的静态 install 方法，最后是一个判断当前运行的浏览器环境的 window 对象上如果挂载了 Vue ,则执行自动安装 vue-router 插件，也就是说只要 import VueRouter from 'vue-router'一执行，上面这些事就会被完成。分析完入口文件被加载时所做的事情后，我们来分析 VueRouter 的实例初始化过程
+
+createMatcher
+createMatcher 其实内部就 调用了一个 createRouteMap 方法，这个方法是干嘛的呢，从名字我们就可以猜个差不多，是用来创建路由映射表的一个函数，那辗转又去 createRouteMap 里面吧。
+createRouteMap
+createRouteMap 方法的功能就是将我们在项目中传入的路由配置（即 new VueRouter({routes,...})中的 routes ）转换成路由映射表,该方法会返回一个对象，对象中包含三个属性，pathList 保存所有的 path； pathMap 保存每个 path 到 RouteRecord 的映射关系；nameMap 保存每个 name 到 RouteRecord 的关系。
+
+3）class History {
+    ...
+  constructor (router: Router, base: ?string) {
+    //将router实例挂载到history实例上
+    this.router = router
+    //规范化base,如果未配置则给默认值:'/'
+    this.base = normalizeBase(base)
+
+    // start with a route object that stands for "nowhere"
+    //START: 初始化一个原始current对象（初始化current),项目最开始启动时的current就是这里的START
+    /**
+     * fullPath: "/"
+     * hash: ""
+     * matched: []
+     * meta: {}
+     * name: null
+     * params: {}
+     * path: "/"
+     * query: {}
+     */
+    this.current = START
+   
+    this.pending = null
+    this.ready = false
+    this.readyCbs = []
+    this.readyErrorCbs = []
+    this.errorCbs = []
+  }
+}
+History 基类的构造函数先将 router (new VueRouter) 实例挂载到 history 实例上，然后对 base 进行规范化（如果未配置则给默认值:'/'），下来初始化一个原始 current 对象（初始化current),这里的 current 初始值 是通过 START 产生的，START 其实是 createRoute 方法用 path = '/'创建的一个 route 对象，也被称为原始 route 对象，这样 current 就拿到了项目初始化（项目启动）时最原始的 route 路由对象，最后初始化了一些内置属性。
+
+4）transitionTo
+
+5) RouteLink
+RouteLink 组件首先是可以接收多个 props 选项，其中 to 是必传选型，其余都是可选，默认 tag 标签为 a ，默认触发跳转的事件为 click。该组件渲染也依赖于 render 函数，render 函数中首先拿到 router （$router）实例 和 当前激活态 route 对象（$route）,然后调用 router.resolve() 进行路由解析后取出 location、route、href。（location 表示规范化后的目标 location, route表示通过 match 匹配然后调用 createRoute 生成的最终目标 route，href 表示通过调用 createHref 计算出来的最终要跳转的 href ）
+<router-view>是一个渲染函数，它的渲染是用了Vue的 render 函数，它接收两个参数，第一个是Vue实例，第二个是一个context，通过对象解析的方式可以拿到 props、children、parent、data，供创建 <router-view> 使用。
+const component = cache[name] = matched.components[name]
+
+6）导航守卫
+导航 表示路由正在发生变化，vue-router 提供的导航守卫主要用来通过跳转或者取消的方式守卫导航。导航守卫分为三种：全局守卫、单个路由守卫和组件内的守卫。
+全局守卫：
+全局前置守卫 beforeEach (to, from, next)
+全局解析守卫 beforeResolve (to, from, next)
+全局后置钩子 afterEach (to, from)
+单个路由守卫：
+路由前置守卫 beforeEnter (to, from, next)
+组件内的守卫：
+渲染组件的对应路由被confirm前 beforeRouterEnter (to, from, next) next可以是函数，因为该守卫不能获取组件实例，新组件还没被创建
+路由改变，该组件被复用时调用 (to, from, next)
+导航离开该组件对应路由时调用 beforeRouteLeave
+
+router.beforeEach((to, from, next) => {
+  // ...
+})
+每个守卫方法接收三个参数：
+to: Route: 即将要进入的目标 路由对象
+from: Route: 当前导航正要离开的路由
+next: Function: 一定要调用该方法来 resolve 这个钩子。执行效果依赖 next 方法的调用参数。
+next(): 进行管道中的下一个钩子。如果全部钩子执行完了，则导航的状态就是 confirmed (确认的)。
+next(false): 中断当前的导航。如果浏览器的 URL 改变了 (可能是用户手动或者浏览器后退按钮)，那么 URL 地址会重置到 from 路由对应的地址。
+next('/') 或者 next({ path: '/' }): 跳转到一个不同的地址。
+
+
+
+
+
+
+
 
 
 
