@@ -486,6 +486,8 @@ export default {
 
 26.eslint ‘no-mutiple-empty-lines’:[1,{'max':2}],//空行不能超过2行
 
+
+
 27.mixin
 混入 (mixin) 提供了一种非常灵活的方式，来分发 Vue 组件中的可复用功能。
 一个混入对象可以包含任意组件选项。当组件使用混入对象时，所有混入对象的选项将被“混合”进入该组件本身的选项。
@@ -525,6 +527,7 @@ Vue.config.optionMergeStrategies.myOption = function (toVal, fromVal) {
 }
 
 
+
 28、vue指令的修饰符
 v-model 修饰符
 .lazy 指令默认会在 input 事件中加载输入框中的数据,懒加载修饰符之后，只有在输入框失去焦点或者按回车键时才会更新 content 值
@@ -551,6 +554,8 @@ v-bind修饰符
 
 
 29.修改key可以是页面重绘
+
+
 
 30.mock.js使用
 npm install mockjs --save-dev
@@ -595,6 +600,7 @@ window. XMLHttpRequest是可以被覆盖的。
 
 
 
+
 31.vue-cli3修改NODE_ENV
 新建文件.env.dev
 NODE_ENV=dev
@@ -612,11 +618,617 @@ BASE_URL和NODE_ENV
 
 
 
+32.Vue中的动态组件（v-bind:is）的使用及组件传值
+<component v-bind:is ="currentTabComponent" :callbackdata="callbackdata"></component>
+参数传递和普通组建一样
+
+
+
+33.Object.create(null)与{}
+使用create创建的对象，没有任何属性，显示No properties，我们可以把它当作一个非常纯净的map来使用.
+{}创建时会继承Object自身的方法，如hasOwnProperty、toString等，在新对象上可以直接使用。
+
+
+
+34.热重载
+热重载跟业务无关，是为了让开发更加便捷，不需要频繁刷新重来。
+
+
+35.
+在_init()中有这样的一个执行顺序：其中initState()是在beforeCreate和created之间
+  initLifecycle(vm)
+  initEvents(vm)
+  initRender(vm)
+  callHook(vm, 'beforeCreate')
+  initInjections(vm) // resolve injections before data/props
+  initState(vm) //初始化
+  initProvide(vm) // resolve provide after data/props
+  callHook(vm, 'created')
+initState()做了这些事情：
+if (opts.props) initProps(vm, opts.props)//初始化Props
+if (opts.methods) initMethods(vm, opts.methods)//初始化methods
+if (opts.data) {
+  initData(vm)} else {
+  observe(vm._data = {}, true /* asRootData */)}//初始化data
+if (opts.computed) initComputed(vm, opts.computed)//初始化computed
+// immediate: true watch执行(watch执行不一定在computed后)
+所以Props，methods,data和computed的初始化都是在beforeCreated和created之间完成的
+
+
+
+35.vuex
+1）```
+new Vue({
+    router,
+    store,
+    render: (h) => h(App),
+}).$mount('#app');
+
+render: (h) => h(App)是如下的简写：
+render: function (createElement) {
+    return createElement(App)
+}
+new Vue({
+    router
+})
+通过 router 配置参数注入路由，
+从而让整个应用都有路由功能
+```
+2）var index = {
+    Store: Store,
+    install: install,
+    version: '3.1.1',
+    mapState: mapState,
+    mapMutations: mapMutations,
+    mapGetters: mapGetters,
+    mapActions: mapActions,
+    createNamespacedHelpers: createNamespacedHelpers
+  };
+  return index;
+3）install 函数
+install保证vuex只绑定一次
+export function install (_Vue) {
+  // Vue 已经存在并且相等，说明已经Vuex.use过
+  if (Vue && _Vue === Vue) {
+    // 省略代码：非生产环境报错，vuex已经安装
+    return
+  }
+  Vue = _Vue
+  applyMixin(Vue)
+}
+4）applyMixin
+使最终每个Vue的实例对象，都有一个$store属性。且是同一个Store实例。
+怎么做到的呢？Vue.mixin({ beforeCreate: vuexInit });（全局混入）
+function vuexInit () {
+  // 这里的this指向Vue实例
+  var options = this.$options;
+  // store injection
+  if (options.store) {
+    // 存在options.store，就将实例的$store指向Store实例对象。
+    this.$store = typeof options.store === 'function'
+      ? options.store()
+      : options.store;
+  } else if (options.parent && options.parent.$store) {
+    this.$store = options.parent.$store;
+  }
+}
+this.$options是什么？执行new Vue的时候，其中的参数会被合并到$options中。
+5）store
+（1）***如果是单页面导入vue，那么如果实例化之前没有Vue.use(Vuex) ,如果是脚本进入挂载在window，vue会自动安装插件***
+if (!Vue && typeof window !== 'undefined' && window.Vue) { (当为浏览器引入vuex时)
+      install(window.Vue);
+    }
+（2）// asset 函数实现
+export function assert (condition, msg) {
+  if (!condition) throw new Error(`[vuex] ${msg}`)
+}
+条件断言：不满足直接抛出错误
+1.必须使用 Vue.use(Vuex) 创建 store 实例。
+2.当前环境不支持Promise，报错：vuex 需要 Promise polyfill。
+3.Store 函数必须使用 new 操作符调用。
+
+（3）const {
+  // 插件默认是空数组
+  plugins = [],
+  // 严格模式默认是false
+  strict = false
+} = options
+这里就是利用 es6 的结构赋值拿到 options 里的 state，plugins 和 strict。state 表示 rootState，plugins 表示应用的插件、strict 表示是否开启严格模式。
+// store internal state
+this._options = options
+this._committing = false
+this._actions = Object.create(null)
+this._mutations = Object.create(null)
+this._wrappedGetters = Object.create(null)
+this._runtimeModules = Object.create(null)
+this._subscribers = []
+this._watcherVM = new Vue()
+这里主要是创建一些内部的属性：
+this._options 存储参数 options。
+this._committing 标志一个提交状态，作用是保证对 Vuex 中 state 的修改只能在 mutation 的回调函数中，而不能在外部随意修改 state。
+this._actions 用来存储用户定义的所有的 actions。
+this._mutations 用来存储用户定义所有的 mutatins。
+this._wrappedGetters 用来存储用户定义的所有 getters 。
+this._runtimeModules 用来存储所有的运行时的 modules。
+this._subscribers 用来存储所有对 mutation 变化的订阅者。
+this._watcherVM 是一个 Vue 对象的实例，主要是利用 Vue 实例方法 $watch 来观测变化的。
+
+（4）installModule(this, state, [], this._modules.root)
+初始化 根模块。
+并且也递归的注册所有子模块。
+并且收集所有模块的 getters 放在 this._wrappedGetters 里面。
+
+（5）resetStoreVM(this, state)
+初始化 store._vm 响应式的
+并且注册 _wrappedGetters 作为 computed 的属性
+plugins.forEach(plugin => plugin(this))
+
+（6）// Base data struct for store's module, package with some attribute and method
+// store 的模块 基础数据结构，包括一些属性和方法
+export default class Module {
+  constructor (rawModule, runtime) {
+    // 接收参数 runtime
+    this.runtime = runtime
+    // Store some children item
+    // 存储子模块
+    this._children = Object.create(null)
+    // Store the origin module object which passed by programmer
+    // 存储原始未加工的模块
+    this._rawModule = rawModule
+    // 模块 state
+    const rawState = rawModule.state
+
+    // Store the origin module's state
+    // 原始Store 可能是函数，也可能是是对象，是假值，则赋值空对象。
+    this.state = (typeof rawState === 'function' ? rawState() : rawState) || {}
+  }
+}
+
+（7）installModule 函数
+function installModule (store, rootState, path, module, hot) {
+  // 是根模块
+  const isRoot = !path.length
+  // 命名空间 字符串
+  const namespace = store._modules.getNamespace(path)
+  if (module.namespaced) {
+    // 省略代码： 模块命名空间map对象中已经有了，开发环境报错提示重复
+    // module 赋值给 _modulesNamespaceMap[namespace]
+    store._modulesNamespaceMap[namespace] = module
+  }
+  // ... 后续代码 移出来 待读解释
+}
+
+（8）注册 state
+// set state
+// 不是根模块且不是热重载
+if (!isRoot && !hot) {
+  // 获取父级的state
+  const parentState = getNestedState(rootState, path.slice(0, -1))
+  // 模块名称
+  // 比如 cart
+  const moduleName = path[path.length - 1]
+  // state 注册
+  store._withCommit(() => {
+    // 省略代码：非生产环境 报错 模块 state 重复设置
+    Vue.set(parentState, moduleName, module.state)
+  })
+}
+
+（9）遍历注册 mutation
+module.forEachMutation((mutation, key) => {
+  const namespacedType = namespace + key
+  registerMutation(store, namespacedType, mutation, local)
+})
+/**
+     * mutations: {
+     *    pushProductToCart (state, { id }) {
+     *        console.log(state);
+     *    }
+     * }
+     * 也就是为什么用户定义的 mutation 第一个参数是state的原因，第二个参数是payload参数
+     */
+    handler.call(store, local.state, payload)
+
+（10）遍历注册 action
+module.forEachAction((action, key) => {
+  const type = action.root ? key : namespace + key
+  const handler = action.handler || action
+  registerAction(store, type, handler, local)
+})
+/*为什么用户定义的actions中的函数第一个参数有
+     *  { dispatch, commit, getters, state, rootGetters, rootState } 的原因
+     * actions: {
+     *    checkout ({ commit, state }, products) {
+     *        console.log(commit, state);
+     *    }
+     * }
+*/
+let res = handler.call(store, {
+      dispatch: local.dispatch,
+      commit: local.commit,
+      getters: local.getters,
+      state: local.state,
+      rootGetters: store.getters,
+      rootState: store.state
+    }, payload)
+
+
+（11）遍历注册 getter
+module.forEachGetter((getter, key) => {
+  const namespacedType = namespace + key
+  registerGetter(store, namespacedType, getter, local)
+})
+/**
+     * 这也就是为啥 getters 中能获取到  (state, getters, rootState, rootGetters)  这些值的原因
+     * getters = {
+     *      cartProducts: (state, getters, rootState, rootGetters) => {
+     *        console.log(state, getters, rootState, rootGetters);
+     *      }
+     * }
+     */
+    return rawGetter(
+      local.state, // local state
+      local.getters, // local getters
+      store.state, // root state
+      store.getters // root getters
+    )
+
+（12）resetStoreVM(this, state, hot)
+// 绑定 store.getter
+  store.getters = {}
+  // reset local getters cache
+  // 重置 本地getters的缓存
+  store._makeLocalGettersCache = Object.create(null)
+  // 注册时收集的处理后的用户自定义的 wrappedGetters
+  const wrappedGetters = store._wrappedGetters
+  // 声明 计算属性 computed 对象
+  const computed = {}
+  // 遍历 wrappedGetters 赋值到 computed 上
+  forEachValue(wrappedGetters, (fn, key) => {
+    // use computed to leverage its lazy-caching mechanism
+    // direct inline function use will lead to closure preserving oldVm.
+    // using partial to return function with only arguments preserved in closure environment.
+    /**
+     * partial 函数
+     * 执行函数 返回一个新函数
+        export function partial (fn, arg) {
+          return function () {
+            return fn(arg)
+          }
+        }
+     */
+    computed[key] = partial(fn, store)
+    // getter 赋值 keys
+    Object.defineProperty(store.getters, key, {
+      get: () => store._vm[key],
+      // 可以枚举
+      enumerable: true // for local getters
+    })
+  })
+
+接下来是vuex api
+（13）commit
+提交 mutation
+commit (_type, _payload, _options) {
+  // check object-style commit
+  // 统一成对象风格
+  const {
+    type,
+    payload,
+    options
+  } = unifyObjectStyle(_type, _payload, _options)
+
+  const mutation = { type, payload }
+  // 取出处理后的用户定义 mutation
+  const entry = this._mutations[type]
+  // 省略 非生产环境的警告代码 ...
+  this._withCommit(() => {
+    // 遍历执行
+    entry.forEach(function commitIterator (handler) {
+      handler(payload)
+    })
+  })
+  // 订阅 mutation 执行
+  this._subscribers.forEach(sub => sub(mutation, this.state))
+  // 省略 非生产环境的警告代码 ...
+}
+commit 支持多种方式。比如：
+store.commit('increment', {
+  count: 10
+})
+// 对象提交方式
+store.commit({
+  type: 'increment',
+  count: 10
+
+（14）dispatch
+分发 action
+dispatch (_type, _payload) {
+  // check object-style dispatch
+  // 获取到type和payload参数
+  const {
+    type,
+    payload
+  } = unifyObjectStyle(_type, _payload)
+
+  // 声明 action 变量 等于 type和payload参数
+  const action = { type, payload }
+  // 入口，也就是 _actions 集合
+  const entry = this._actions[type]
+  // 省略 非生产环境的警告代码 ...
+}
+
+（15）replaceState
+替换 store 的根状态，仅用状态合并或时光旅行调试。
+replaceState (state) {
+  this._withCommit(() => {
+    this._vm._data.$$state = state
+  })
+}
+
+（16）watch
+响应式地侦听 fn 的返回值，当值改变时调用回调函数。
+/**
+ * 观测某个值
+ * @param {Function} getter 函数
+ * @param {Function} cb 回调
+ * @param {Object} options 参数对象
+ */
+watch (getter, cb, options) {
+  if (process.env.NODE_ENV !== 'production') {
+    assert(typeof getter === 'function', `store.watch only accepts a function.`)
+  }
+  return this._watcherVM.$watch(() => getter(this.state, this.getters), cb, options)
+}
+
+（17）subscribe
+订阅 store 的 mutation。
+subscribe (fn) {
+  return genericSubscribe(fn, this._subscribers)
+}
+// 收集订阅者
+function genericSubscribe (fn, subs) {
+  if (subs.indexOf(fn) < 0) {
+    subs.push(fn)
+  }
+  return () => {
+    const i = subs.indexOf(fn)
+    if (i > -1) {
+      subs.splice(i, 1)
+    }
+  }
+}
+
+（18）subscribeAction
+订阅 store 的 action。
+subscribeAction (fn) {
+  const subs = typeof fn === 'function' ? { before: fn } : fn
+  return genericSubscribe(subs, this._actionSubscribers)
+}
+
+（19）registerModule
+注册一个动态模块。
+/**
+ * 动态注册模块
+ * @param {Array|String} path 路径
+ * @param {Object} rawModule 原始未加工的模块
+ * @param {Object} options 参数选项
+ */
+registerModule (path, rawModule, options = {}) {
+  // 如果 path 是字符串，转成数组
+  if (typeof path === 'string') path = [path]
+  // 省略 非生产环境 报错代码
+  // 手动调用 模块注册的方法
+  this._modules.register(path, rawModule)
+  // 安装模块
+  installModule(this, this.state, path, this._modules.get(path), options.preserveState)
+  // reset store to update getters...
+  // 设置 resetStoreVM
+  resetStoreVM(this, this.state)
+}
+unregisterModule
+卸载一个动态模块。
+
+（20）hotUpdate
+热替换新的 action 和 mutation。
+// 热加载
+hotUpdate (newOptions) {
+  // 调用的是 ModuleCollection 的 update 方法，最终调用对应的是每个 Module 的 update
+  this._modules.update(newOptions)
+  // 重置 Store
+  resetStore(this, true)
+}
+
+组件绑定的辅助函数
+（21）mapState
+为组件创建计算属性以返回 Vuex store 中的状态。
+export const mapState = normalizeNamespace((namespace, states) => {
+  const res = {}
+  // 非生产环境 判断参数 states  必须是数组或者是对象
+  if (process.env.NODE_ENV !== 'production' && !isValidMap(states)) {
+    console.error('[vuex] mapState: mapper parameter must be either an Array or an Object')
+  }
+  normalizeMap(states).forEach(({ key, val }) => {
+    res[key] = function mappedState () {
+      let state = this.$store.state
+      let getters = this.$store.getters
+      // 传了参数 namespace
+      if (namespace) {
+        // 用 namespace 从 store 中找一个模块。
+        const module = getModuleByNamespace(this.$store, 'mapState', namespace)
+        if (!module) {
+          return
+        }
+        state = module.context.state
+        getters = module.context.getters
+      }
+      // mapState({loginInfo: 'loginInfo'}) mapState(['loginInfo'])
+      // mapState({loginInfo: (state, getters)=> {}})
+      return typeof val === 'function'
+        ? val.call(this, state, getters)
+        : state[val]
+    }
+    // 标记为 vuex 方便在 devtools 显示
+    // mark vuex getter for devtools
+    res[key].vuex = true
+  })
+  return res
+})
+normalizeNamespace 标准化统一命名空间
+normalizeMap 标准化统一 map，最终返回的是数组
+
+（22）mapGetters
+为组件创建计算属性以返回 getter 的返回值。
+export const mapGetters = normalizeNamespace((namespace, getters) => {
+  const res = {}
+  // 省略代码：非生产环境 判断参数 getters 必须是数组或者是对象
+  normalizeMap(getters).forEach(({ key, val }) => {
+    // The namespace has been mutated by normalizeNamespace
+    val = namespace + val
+    res[key] = function mappedGetter () {
+      if (namespace && !getModuleByNamespace(this.$store, 'mapGetters', namespace)) {
+        return
+      }
+      // 省略代码：匹配不到 getter
+      return this.$store.getters[val]
+    }
+    // mark vuex getter for devtools
+    res[key].vuex = true
+  })
+  return res
+})
+举例：
+computed: {
+  ...mapGetters('cart', {
+    products: 'cartProducts',
+    total: 'cartTotalPrice'
+  })
+},
+最终转换成：
+computed: {
+  products: this.$store.getters['cart/cartProducts'],
+  total: this.$store.getters['cart/cartTotalPrice'],
+}
+
+（23）mapActions
+创建组件方法分发 action。
+export const mapActions = normalizeNamespace((namespace, actions) => {
+  const res = {}
+  // 省略代码： 非生产环境 判断参数 actions  必须是数组或者是对象
+  normalizeMap(actions).forEach(({ key, val }) => {
+    res[key] = function mappedAction (...args) {
+      // get dispatch function from store
+      let dispatch = this.$store.dispatch
+      if (namespace) {
+        const module = getModuleByNamespace(this.$store, 'mapActions', namespace)
+        if (!module) {
+          return
+        }
+        dispatch = module.context.dispatch
+      }
+      return typeof val === 'function'
+        ? val.apply(this, [dispatch].concat(args))
+        : dispatch.apply(this.$store, [val].concat(args))
+    }
+  })
+  return res
+})
+
+（24）mapMutations
+创建组件方法提交 mutation。 mapMutations 和 mapActions 类似，只是 dispatch 换成了 commit。
+let commit = this.$store.commit
+commit = module.context.commit
+return typeof val === 'function'
+        ? val.apply(this, [commit].concat(args))
+        : commit.apply(this.$store, [val].concat(args))
 
 
 
 
 
+36.vue-router源码解析
+1）install 方法做了这麽几件事：
+声明一个全局变量 _Vue，用于保存传入的 Vue 然后将其暴露出去，供源码中其他地方使用，这样可以在不将 Vue 打包进源码的前提下随心使用 Vue。
+Vue.mixin 全局混入钩子函数（beforeCreate ,destroyed）。
+export function initMixin (Vue: GlobalAPI) {
+ //mixin 方法，接收一个 Object 类型 mixin 参数
+  Vue.mixin = function (mixin: Object) {
+    //调用 mergeOptions 将传入的 mixin 对象 合并到 Vue 的 options 上
+    this.options = mergeOptions(this.options, mixin)
+    return this
+  }
+}
+Vue.mixin 中会调用 mergeOptions 这个方法将传入的 mixin 对象通过与 Vue 原有的 options 选项合并成一个新的 option， 然后重新赋给 Vue 的 options 。由于在 Vue 中每个组件的构造函数都会在 extend 阶段合并 Vue.options 到自己的 options 中，这样也就相当于每个组件都定义了 mixin 中定义的选项。所以这也就是通过 Vue.mixin 全局混入的钩子函数会在每一个组件实例初始化的时候被触发调用一次的原因了。
+
+2）class VueRouter
+import VueRouter from 'vue-router' 导入的 vue-router 入口文件其实导出的东西就是 VueRouter 这个类。index.js 文件中首先是定义了 vue-router 核心 VueRouter 类，然后是定义了一个注册路由钩子函数的方法和一个创建 href路由跳转路径的方法，下来是将 install 方法挂载给 VueRouter 类的静态 install 方法，最后是一个判断当前运行的浏览器环境的 window 对象上如果挂载了 Vue ,则执行自动安装 vue-router 插件，也就是说只要 import VueRouter from 'vue-router'一执行，上面这些事就会被完成。分析完入口文件被加载时所做的事情后，我们来分析 VueRouter 的实例初始化过程
+
+createMatcher
+createMatcher 其实内部就 调用了一个 createRouteMap 方法，这个方法是干嘛的呢，从名字我们就可以猜个差不多，是用来创建路由映射表的一个函数，那辗转又去 createRouteMap 里面吧。
+createRouteMap
+createRouteMap 方法的功能就是将我们在项目中传入的路由配置（即 new VueRouter({routes,...})中的 routes ）转换成路由映射表,该方法会返回一个对象，对象中包含三个属性，pathList 保存所有的 path； pathMap 保存每个 path 到 RouteRecord 的映射关系；nameMap 保存每个 name 到 RouteRecord 的关系。
+
+3）class History {
+    ...
+  constructor (router: Router, base: ?string) {
+    //将router实例挂载到history实例上
+    this.router = router
+    //规范化base,如果未配置则给默认值:'/'
+    this.base = normalizeBase(base)
+
+    // start with a route object that stands for "nowhere"
+    //START: 初始化一个原始current对象（初始化current),项目最开始启动时的current就是这里的START
+    /**
+     * fullPath: "/"
+     * hash: ""
+     * matched: []
+     * meta: {}
+     * name: null
+     * params: {}
+     * path: "/"
+     * query: {}
+     */
+    this.current = START
+   
+    this.pending = null
+    this.ready = false
+    this.readyCbs = []
+    this.readyErrorCbs = []
+    this.errorCbs = []
+  }
+}
+History 基类的构造函数先将 router (new VueRouter) 实例挂载到 history 实例上，然后对 base 进行规范化（如果未配置则给默认值:'/'），下来初始化一个原始 current 对象（初始化current),这里的 current 初始值 是通过 START 产生的，START 其实是 createRoute 方法用 path = '/'创建的一个 route 对象，也被称为原始 route 对象，这样 current 就拿到了项目初始化（项目启动）时最原始的 route 路由对象，最后初始化了一些内置属性。
+
+4）transitionTo
+
+5) RouteLink
+RouteLink 组件首先是可以接收多个 props 选项，其中 to 是必传选型，其余都是可选，默认 tag 标签为 a ，默认触发跳转的事件为 click。该组件渲染也依赖于 render 函数，render 函数中首先拿到 router （$router）实例 和 当前激活态 route 对象（$route）,然后调用 router.resolve() 进行路由解析后取出 location、route、href。（location 表示规范化后的目标 location, route表示通过 match 匹配然后调用 createRoute 生成的最终目标 route，href 表示通过调用 createHref 计算出来的最终要跳转的 href ）
+<router-view>是一个渲染函数，它的渲染是用了Vue的 render 函数，它接收两个参数，第一个是Vue实例，第二个是一个context，通过对象解析的方式可以拿到 props、children、parent、data，供创建 <router-view> 使用。
+const component = cache[name] = matched.components[name]
+
+6）导航守卫
+导航 表示路由正在发生变化，vue-router 提供的导航守卫主要用来通过跳转或者取消的方式守卫导航。导航守卫分为三种：全局守卫、单个路由守卫和组件内的守卫。
+全局守卫：
+全局前置守卫 beforeEach (to, from, next)
+全局解析守卫 beforeResolve (to, from, next)
+全局后置钩子 afterEach (to, from)
+单个路由守卫：
+路由前置守卫 beforeEnter (to, from, next)
+组件内的守卫：
+渲染组件的对应路由被confirm前 beforeRouterEnter (to, from, next) next可以是函数，因为该守卫不能获取组件实例，新组件还没被创建
+路由改变，该组件被复用时调用 (to, from, next)
+导航离开该组件对应路由时调用 beforeRouteLeave
+
+router.beforeEach((to, from, next) => {
+  // ...
+})
+每个守卫方法接收三个参数：
+to: Route: 即将要进入的目标 路由对象
+from: Route: 当前导航正要离开的路由
+next: Function: 一定要调用该方法来 resolve 这个钩子。执行效果依赖 next 方法的调用参数。
+next(): 进行管道中的下一个钩子。如果全部钩子执行完了，则导航的状态就是 confirmed (确认的)。
+next(false): 中断当前的导航。如果浏览器的 URL 改变了 (可能是用户手动或者浏览器后退按钮)，那么 URL 地址会重置到 from 路由对应的地址。
+next('/') 或者 next({ path: '/' }): 跳转到一个不同的地址。
 
 
 

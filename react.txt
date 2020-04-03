@@ -6,3 +6,7 @@ create-react-app my-react-app --scripts-version=react-scripts-ts (使用typescri
 2.安装ant-design,react-router-dom:
 npm install antd --save
 npm install --save react-router-dom
+
+3.
+
+
