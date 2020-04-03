@@ -112,3 +112,6 @@ npm install babel-eslint --save
 端到端测试：
     Cypress
     Nightwatch
+
+12.lerna
+代码库管理软件
