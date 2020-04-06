@@ -1,12 +1,214 @@
 1.安装create-react-app
 npm install -g create-react-app
 create-react-app my-react-app
+(
+    创建项目后只生成了node_modules, package.json, package_lock.json或 yarn.lock。
+    原因是最近 create-react-app 更新了新版本
+)
 create-react-app my-react-app --scripts-version=react-scripts-ts (使用typescript)
+cd my-react-app
+Npm start
+卸载：npm uninstall -g create-react-app
+
+以确保 npx 使用最新版本创建项目
+npm install -g npx
+
+npx create-react-app my-react-app
+cd my-react-app
+npm start
+
+
 
 2.安装ant-design,react-router-dom:
 npm install antd --save
 npm install --save react-router-dom
 
-3.
+
+
+3. 数据
+class Home extends React.Component {
+    constructor() {
+        super()
+        this.state = {
+            name: '张三',
+            title: 123,
+            style: {
+                color: 'red'
+            },
+            list: ['1', '2', '3', '4']
+        }
+    }
+    render() {
+        // 循环列表
+        this.listItems = this.state.list.map((v, index) => {
+        return <div key={index}>{v}</div>
+        })
+        return (
+            <div>
+                <div className={this.state.style.color} title={this.state.title}>
+                {this.state.name}
+                </div>
+                你好,我是home
+                {this.listItems}
+            </div>
+        )
+    }
+}
+
+
+4、事件
+run(name, e) {
+    alert(name)
+}
+<div onClick={(e) => this.run(this.state.name, e)} />
+或
+<button onClick={this.deleteRow.bind(this, this.state.name)}>Delete Row</button>
+
+inputChange(e) {
+        console.log(e.target.value)
+}
+<input onChange={this.inputChange}></input>
+双向数据绑定
+inputChange(e) {
+    this.setState({
+        inputValue: e.target.value
+    })
+}
+<input vlaue={this.state.inputValue} onChange={this.inputChange.bind(this)}></input>
+<div style={{'color': 'red'}}>{this.state.inputValue}</div>
+
+
+
+5、父子组建传值
+父传子：
+run(name, e) {
+        alert(name)
+}
+<Child msg={this.state.name} run={this.run}></Child>
+constructor(props) {
+        super(props)
+        this.state = {
+            name: '李四'
+        }
+}
+render() {
+        return (
+            <div onClick={e => this.props.run(this.state.name, e)}>
+                i am child
+                {this.props.msg}
+            </div>
+        )
+}
+子传父：
+<Child ref='child'></Child>
+console.log(this.refs.child.state.name)
+
+propTypes:
+DefaultProps:
+在子组建：
+import PropTypes from 'prop-types'
+Child.defaultProps = {
+    msg: 'message' // 当父组建没有这个值时使用message
+}
+Child.propTypes = {
+    msg: PropTypes.string
+}
+
+
+6.axios
+Npm install axis --save
+import axios from 'axios'
+export function getData() {
+    return axios.get('https://lab.isaaclin.cn/nCoV/api/overall')
+}
+
+componentDidMount() {
+    this.getData()
+}
+
+async getData() {
+    let res = await getData()
+    console.log('getData', res)
+    this.setState({
+        data: JSON.stringify(res.data)
+    })
+}
+
+fetch-jsonp：发送jsonp
+npm install fetch-jsonp  --save
+import fetchJsonp from 'fetch-jsonp'
+fetchJsonp('/users.jsonp')
+.then(function(response) {
+      return response.json()
+}).then(function(json) {
+      console.log('parsed json', json)
+}).catch(function(ex) {
+      console.log('parsing failed', ex)
+})
+
+
+7.生命周期
+constructor()
+componentWillMount 在渲染前调用,在客户端也在服务端。
+render()
+componentDidMount : 在第一次渲染后调用，只在客户端
+componentWillReceiveProps 在组件接收到一个新的 prop (更新后)时被调用。
+shouldComponentUpdate 返回一个布尔值。在组件接收到新的props或者state时被调用。
+componentWillUpdate在组件接收到新的props或者state但还没有render时被调用。
+render()
+componentDidUpdate 在组件完成更新后立即调用。
+componentWillUnmount在组件从 DOM 中移除之前立刻被调用。
+
+
+8、react-router
+npm install react-router-dom -—save
+import { Route, Switch, withRouter, BrowserRouter, HashRouter } from 'react-router-dom';
+BrowserRouter是history模式
+HashRouter是hash模式
+// Switch, withRouter
+import App from './App';
+import Home from './components/Home';
+import News from './components/News';
+
+class Router extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+    }
+  }
+  render() {
+    return (
+      <HashRouter>
+      <Switch>
+        <Route exact path="/" component={App} ></Route>
+        <Route exact path="/home" exact component={Home} />
+        <Route exact path="/news" exact component={News} />
+      </Switch>
+      </HashRouter>
+    )
+  }
+}
+export default Router
+(exact表示严格匹配)
+App.js中：
+<Link to={{pathname:'/home', search: '?id=' + 123}} >home</Link>
+
+Home.js
+let search = this.props.location.search
+
+
+由于参数都需要自己解析或生成：
+推荐使用url模块
+npm install url --save
+import url from 'url';
+url.parse(this.props.location.search,true)
+
+嵌套路由
+
+
+
+
+
+
 
 

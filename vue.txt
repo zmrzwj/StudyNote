@@ -654,6 +654,42 @@ if (opts.computed) initComputed(vm, opts.computed)//初始化computed
 // immediate: true watch执行(watch执行不一定在computed后)
 所以Props，methods,data和computed的初始化都是在beforeCreated和created之间完成的
 
+生命周期：
+1）new Vue()
+初始化实例属性
+实例化的属性既有Vue.js内部需要用到的属性（如vm._watcher），也有提供给外部使用的属性（例如vm.$parent）
+以$开发的属性是提供给用户使用的外部属性，以_开头的属性是提供给内部使用的内部属性
+Vue.js通过initLifecycle函数向实例中挂载属性，该函数接收Vue.js实例作为参数
+2)初始化事件
+初始化事件是指将父组件在模板中使用的v-on注册的事件添加到子组件的事件系统
+在模板编译阶段，我们会将整个模板编译成渲染函数
+Vue.js通过initEvents函数执行初始化事件相关的逻辑
+3) beforeCreate至created
+进行初始化事件，进行数据的观测
+Props，methods,data和computed的初始化
+4) created钩子函数和beforeMount间的生命周期
+判断对象是否有el选项。如果有的话就继续向下编译，如果没有el选项，则停止编译，也就意味着停止了生命周期，直到在该vue实例上调用vm.$mount(el)
+如果vue实例对象中有template参数选项，则将其作为模板编译成render函数
+如果没有template选项，则将外部HTML作为模板编译，template中的模板优先级要高于outer HTML。
+（选项中没有template属性，将提取el属性所 指定的DOM节点的outerHTML内容作为模板内容）
+render函数选项 > template选项 > outer HTML.
+template: new Vue({
+    el: '#app',
+    template: "<h1>{{message +'这是在template中的'}}</h1>", //在vue配置项中修改的
+})
+render函数: new Vue({
+    el: '#app',
+    render: function(createElement) {
+        return createElement('h1', 'this is createElement')
+    }
+})
+5）beforeMount与mounted
+vue实例对象添加$el成员，并且替换掉挂在的DOM元素
+6）beforeUpdate钩子函数和updated钩子函数间的生命周期
+当vue发现data中的数据发生了改变，会触发对应组件的重新渲染，先后调用beforeUpdate和updated钩子函数。
+7）beforeDestroy和destroyed钩子函数间的生命周期
+beforeDestroy钩子函数在实例销毁之前调用。在这一步，实例仍然完全可用。
+destroyed钩子函数在Vue 实例销毁后调用。
 
 
 35.vuex
