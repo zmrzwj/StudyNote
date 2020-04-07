@@ -146,6 +146,12 @@ fetchJsonp('/users.jsonp')
       console.log('parsing failed', ex)
 })
 
+Umi-request:
+统一封装请求：
+https://github.com/ant-design/ant-design-pro/blob/master/src/utils/request.ts
+
+
+
 
 7.生命周期
 constructor()
@@ -203,7 +209,99 @@ npm install url --save
 import url from 'url';
 url.parse(this.props.location.search,true)
 
-嵌套路由
+
+js路由跳转
+import { createHashHistory } from 'history'
+goHome = () => {
+        let route = createHashHistory()
+        route.push('/news')
+    }
+import { Redirect } from 'react-router';
+
+路由模块化：
+创建router.js
+let router = [
+    {
+        path: '/', //首页默认加载的页面
+        componentName: Home,
+        exact: true //是否为严格模式
+    },
+    {
+        path: '/productdetail/:id',//后面是传递的参数id
+        componentName: ProductDetail
+    },
+    {
+        path: '/user',
+        componentName: User,
+        routes: [  /** 嵌套路由  User下面又有两个子页面*/
+            {
+                path: '/user/',
+                componentName: Main,
+                exact: false
+            },
+            {
+                path: '/user/info',
+                componentName: Info
+            }
+        ]
+    }
+];
+export default router;
+
+在App.js入口文件引入router.js
+render() {
+    return (
+      <Router>
+        <div className="App">
+          {
+            router.map(({path, componentName, exact = true, routes = []}, key) => {
+                return <Route 
+                          exact={exact}
+                          key={key} 
+                          path={path} 
+                          render={props => (
+                            // 主要是为了传递嵌套路由到子组件 
+                            // 类似于 <User {...props} routes={routes} />
+                            <componentName {...props} routes={routes} />
+                          )}
+                        />
+            })
+          }
+        </div>
+      </Router>
+    );
+  }
+在User.js文件根据routers获取嵌套路由
+render() {
+        let {match, routes} = this.props;
+        return (
+            <div>
+                <div className="content">
+                    <div className="left">
+                    
+                        <Link to={`${match.url}`}>个人中心</Link>
+                        <br/>
+                        <Link to={`${match.url}/info`}>用户信息</Link>
+                    </div>
+                    <div className="right">
+                    {
+                       routes.map(({path, componentName, exact = true},key) => {
+                            return <Route 
+                                        exact={exact}
+                                        key={key} 
+                                        path={path} 
+                                        component={componentName}
+                                        />
+                        })
+                    }
+                        
+                    </div>
+                
+                </div>
+                
+            </div>
+        );
+
 
 
 
