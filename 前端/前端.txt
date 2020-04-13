@@ -117,3 +117,19 @@ npm install babel-eslint --save
     Nightwatch
 
 
+12. MutationObserver
+Mutation Observer API 用来监视 DOM 变动。DOM 的任何变动，比如节点的增减、属性的变动、文本内容的变动，这个 API 都可以得到通知。
+Mutation Observer 则是异步触发，DOM 的变动并不会马上触发，而是要等到当前所有 DOM 操作都结束才触发。
+var observer = new MutationObserver(function (mutations, observer) {
+  mutations.forEach(function(mutation) {
+    console.log(mutation);
+  });
+});
+var article = document.querySelector('article');
+var  options = {
+  'childList': true,
+  'attributes':true
+};
+observer.observe(article, options);
+
+
