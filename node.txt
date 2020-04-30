@@ -3,14 +3,6 @@ package-lock.json的作用：
 
 
 一、自己写脚手架
-1、npm link
-在本地开发npm模块的时候，我们可以使用npm link命令，将npm 模块链接到对应的运行项目中去，方便地对模块进行调试和测试
-cd到模块目录，npm link，进行全局link。
-将在全局文件夹{prefix}/lib/node_modules/<package>中创建一个符号链接，该 链接链接到 npm link 执行命令的包。
-解除link
-解除项目和模块link，项目目录下，npm unlink 模块名
-
-操作步骤：
 # zwj-cli
     自己写脚手架
 
@@ -31,9 +23,156 @@ cd到模块目录，npm link，进行全局link。
 
 ### 3、编码
 **初始化**
+    创建工程：zwj-cli
+    进入然后npm init
+**目录结构**
+```
+>zwj-cli
+    |--bin
+       |--zwj-cli
+    |--lib
+       |--list.js
+       |--init.js
+    |--package.json
+    |--README.md
+在bin目录下新建 zwj-cli (没有后缀),代码如下
+#!/usr/bin/env node
+process.env.NODE_PATH = __dirname + '/../node_modules/'
 
-    npm init
+const program = require('commander')
 
+program
+  .version(require('../package.json').version)
+  .usage('<command> [options]')
+program
+  .command('list')
+  .description('查看所有的模版')
+  .alias('l')
+  .action(() => {
+    require('../lib/list')()
+  })
+program
+  .command('init')
+  .description('生成一个新项目')
+  .alias('i')
+  .action(() => {
+    require('../lib/init')()
+  })
+program
+  .parse(process.argv)
+
+if(!program.args.length){
+  program.help()
+}
+
+lib目录下 init.js，代码如下
+const ora = require('ora')
+const inquirer = require('inquirer')
+const chalk = require('chalk')
+const request = require('request')
+const download = require('download-git-repo')
+
+module.exports = () => {
+  request({
+    url: 'https://api.github.com/users/template-organization/repos',
+    headers: {
+      'User-Agent': 'edu-test-cli'
+    }
+  }, (err, res, body) =>{
+    if (err) {
+      console.log(chalk.red('查询模版列表失败'))
+      console.log(chalk.red(err))
+      process.exit();
+    }
+
+    const requestBody = JSON.parse(body)
+    if (Array.isArray(requestBody)) {
+      let tplNames = [];
+      requestBody.forEach(repo => {
+        tplNames.push(repo.name);
+      })
+
+      let promptList = [
+        {
+          type: 'list',
+          message: '请选择模版',
+          name: 'tplName',
+          choices: tplNames
+        },
+        {
+          type: 'input',
+          message: '请输入项目名字',
+          name: 'projectName',
+          validate (val) {
+            if (val !== '') {
+              return true
+            }
+            return '项目名称不能为空'
+          }
+        }
+      ]
+      inquirer.prompt(promptList).then(answers => {
+
+        let ind = requestBody.find(function (ele) {
+          return answers.tplName == ele.name;
+        });
+        let gitUrl = `${ind.full_name}#${ind.default_branch}`,
+          defaultUrl = './',
+          projectUrl = `${defaultUrl}/${answers.projectName}`,
+          spinner = ora('\n 开始生成项目，请等待...');
+          spinner.start();
+        download(gitUrl, projectUrl, (error)=>{
+          spinner.stop();
+          if (error) {
+            console.log('模版下载失败……')
+            console.log(error)
+            process.exit()
+          }
+          console.log(chalk.green(`\n √ ${answers.projectName} 项目生成完毕!`))
+          console.log(`\n cd ${answers.projectName} && npm install \n`)
+        })
+      })
+    } else {
+      console.error(requestBody.message)
+    }
+  })
+}
+lib目录下 list.js，代码如下
+const request = require('request');
+const chalk = require('chalk')
+const ora = require('ora')
+module.exports = () => {
+  let spinner = ora('\n ' + chalk.yellow('正在查询模版列表，请等待...'));
+  spinner.start();
+  request({
+    url: 'https://api.github.com/users/template-organization/repos',
+    headers: {
+      'User-Agent': 'edu-test-cli'
+    }
+  }, (err, res, body) => {
+    spinner.stop();
+    if (err) {
+      console.log(chalk.red('查询模版列表失败'))
+      console.log(chalk.red(err))
+      process.exit();
+    }
+    const requestBody = JSON.parse(body)
+    if (Array.isArray(requestBody)) {
+      console.log()
+      console.log(chalk.green('可用的模版列表：'))
+      console.log()
+      requestBody.forEach(repo => {
+        console.log(
+        '  ' + chalk.yellow('★') +
+        '  ' + chalk.blue(repo.name) +
+        ' - ' + repo.description)
+      })
+    } else {
+      console.error(requestBody.message)
+    }
+  })
+}
+```
 **下载依赖**
 
     npm i chalk commander download-git-repo inquirer ora request --save
@@ -93,4 +232,34 @@ cd到模块目录，npm link，进行全局link。
     使用api.github可以查询这个账号下的全部仓库：
     如要查询zmrzwj账号下全部仓库：
     https://api.github.com/users/zmrzwj/repos
+
+### 开发、测试、发布
+```
+开发时，可使用以下命令查看效果
+node bin/zwj-cli list   查看所有可用的模版
+node bin/zwj0cli init   把模版下载下来，作为初始项目进行开发
+测试时，如何使用全局的 edu list/init 的命令呢？
+npm link    // 只能自己本地使用。
+开发、测试完成，发布
+npm publish  // 将包发布到npm上，所有人都可以安装使用。
+
+例子：
+$ npm publish
++ zwj-cli@1.1.0
+
+安装
+npm install -g zwj-cli
+
+查看模版列表
+$ zwj-cli list
+```
+
+
+
+
+
+
+
+
+
 

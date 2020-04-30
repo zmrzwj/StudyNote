@@ -351,7 +351,9 @@ timer.schedule(new TimerTask() {
 }, 200000 , 1000);
 
 
+
 24.-ea可打开断言机制
+
 
 
 25.java -Xms 初始堆大小 -Xmx 最大堆大小
@@ -359,6 +361,38 @@ timer.schedule(new TimerTask() {
 young代的初始值和最小值
 -XX:MaxNewSize
 young区空间的最大值
+
+
+
+
+
+26.idea
+函数添加注释
+“File”-->“Settings”-->“Live Templates”打开如下对话框，点击右边绿色的加号，创建一个自定义的Template Group
+取名‘MyGroup’
+选中‘MyGroup’，点击Live Template：
+/**
+ * $description$
+ * @author zhangweijin
+ * date $DATE$ $TIME$
+ $params$
+ * return $return$
+**/
+编辑"edit variables”：
+date("yyyy-MM-dd")
+time("HH:mm")
+groovyScript("def result=''; def params=\"${_1}\".replaceAll('[\\\\[|\\\\]|\\\\s]', '').split(',').toList(); for(i = 0; i < params.size(); i++) {result+='* @param ' + params[i] + ((i < params.size() - 1) ? '\\n ' : '')}; return result", methodParameters())
+methodReturnType()
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -382,6 +416,9 @@ young区空间的最大值
 6）Redis中hash一致性实现及与hash其他区别
 7）Java多线程、线程池开发、管理Lock与Synchroined区别
 8）Spring IOC/AOP 原理；加载过程的。。。
+
+
+
 
 
 

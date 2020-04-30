@@ -1,0 +1,96 @@
+1.videojs
+开源免费，支持RTMP协议和HLS协议
+播放器是基于flash的，需要浏览器开启flash支持，但是一般情况下如果需要flash，浏览器都会弹窗询问，但是不晓得为啥这个播放器不会弹窗，所以需要手动启动浏览器的flash支持。chrome的话是点击url栏左边的感叹号进行设置，其他浏览器不太清楚。
+播放RTMP协议
+video.js 5.x以下版本，Flash技术是Video.js核心存储库的一部分,无需引入。
+video.js 6.x以上版本，Flash被剥离，需要单独引入videojs-flash.js，否则无法播放
+<link href="public/video-js.css" rel="stylesheet">
+    <script src="public/video.js"></script>
+    //rtmp协议基于flash，需要引入videojs-flash.js
+<script src="public/videojs-flash.js"></script>
+
+播放HLS协议
+video.js6.0版本需要引入videojs-http-streaming.js
+video.js7.0以上版本无需引入
+<link href="public/video-js.css" rel="stylesheet">
+    <script src="public/video.js"></script>
+
+
+
+2.CyberPlayer 是百度官方推出的用于开发网页播放器的软件开发工具包,其主要特点如下：
+
+支持Flash与HTML5两种模式
+支持广泛的流式视频格式，支持FLV/MP4等格式的渐进式和流式下载播放，支持基于RTMP/RTMPT等流式协议的视频流播放，支持播放使用Apple公司HTTP Live Streaming协议传输的流式视频（M3U8），并可自适应切换码率。
+支持加密视频播放,播放内核实现了对AES128加密的HLS视频进行解密和播放，便于企业用户对视频内容进行加密保护。
+支持多码率视频
+
+是在videoJS的基础上开发的，针对直播做了很多优化。
+需要云平台注册获取ak.
+
+
+3.flv.js
+https://github.com/zmrzwj/flv.js
+支持HTTP-FLV，HLS,H5原生
+
+HTTP-FLV与RTMP
+两个协议实际上传输数据是一样的，数据都是flv文件的tag。http_flv是一个无限大的http流的文件，相比rtmp就只能直播，而rtmp还可以推流和更多的操作。
+但是http有个好处，就是是以80http通信的，穿透性强，而且rtmp是非开放协议。
+
+
+
+4.H5直播入门（理论篇）
+https://juejin.im/post/5aaa34475188253640012847
+
+
+
+5.rtsp播放思路
+1) ffmpeg   把rstp转rtmp，推流
+Nginx    流服务器带nginx-rtmp-module
+videojs，flv.js在web端播放
+
+2) vlc插件播放rstp
+<object type='application/x-vlc-plugin' pluginspage="http://www.videolan.org/" id='vlc' events='false' width="720" height="410">
+    <param name='mrl' value='rtsp://admin:12345@192.168.10.235:554/h264/ch1/main/av_stream' />
+    <param name='volume' value='50' />
+    <param name='autoplay' value='true' />
+    <param name='loop' value='false' />
+    <param name='fullscreen' value='false' />
+    <param name='controls' value='false' />
+</object>
+
+3）h5stream
+https://linkingvision.com/download/h5stream/
+注册服务
+　　　　windows：
+　　　　　　执行安装目录windows批处理  regservice.bat 
+	（Windows下安装运行库：vs2017 redistributable）
+	（https://download.visualstudio.microsoft.com/download/pr/11100230/15ccb3f02745c7b206ad10373cbca89b/VC_redist.x64.exe）
+　　　　Linux：　
+	cp h5ss.service /usr/lib/systemd/system/
+	systemctl enable h5ss.service
+	systemctl start h5ss.service
+
+安装目录中，conf/h5ss.conf是默认配置文件，基于json，配置有两部分：系统配置和媒体源
+我们需要修改：
+src: [
+{
+    ***
+    strUrl: 'rasp://xxx' 
+}
+]
+
+启动程序，运行安装根目录下  h5ss.bat/h5ss.sh 
+
+打开浏览器，输入localhost:8080
+
+关于页面
+　　　　关于页面的编写可参考安装目录下的 www/index.html 
+
+
+
+
+
+
+
+
+

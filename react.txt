@@ -1,12 +1,425 @@
 1.安装create-react-app
 npm install -g create-react-app
 create-react-app my-react-app
+(
+    创建项目后只生成了node_modules, package.json, package_lock.json或 yarn.lock。
+    原因是最近 create-react-app 更新了新版本
+)
 create-react-app my-react-app --scripts-version=react-scripts-ts (使用typescript)
+cd my-react-app
+Npm start
+卸载：npm uninstall -g create-react-app
+
+以确保 npx 使用最新版本创建项目
+npm install -g npx
+
+npx create-react-app my-react-app
+cd my-react-app
+npm start
+
+
 
 2.安装ant-design,react-router-dom:
 npm install antd --save
 npm install --save react-router-dom
 
-3.
+
+
+3. 数据
+class Home extends React.Component {
+    constructor() {
+        super()
+        this.state = {
+            name: '张三',
+            title: 123,
+            style: {
+                color: 'red'
+            },
+            list: ['1', '2', '3', '4']
+        }
+    }
+    render() {
+        // 循环列表
+        this.listItems = this.state.list.map((v, index) => {
+        return <div key={index}>{v}</div>
+        })
+        return (
+            <div>
+                <div className={this.state.style.color} title={this.state.title}>
+                {this.state.name}
+                </div>
+                你好,我是home
+                {this.listItems}
+            </div>
+        )
+    }
+}
+
+
+4、事件
+run(name, e) {
+    alert(name)
+}
+<div onClick={(e) => this.run(this.state.name, e)} />
+或
+<button onClick={this.deleteRow.bind(this, this.state.name)}>Delete Row</button>
+
+inputChange(e) {
+        console.log(e.target.value)
+}
+<input onChange={this.inputChange}></input>
+双向数据绑定
+inputChange(e) {
+    this.setState({
+        inputValue: e.target.value
+    })
+}
+<input vlaue={this.state.inputValue} onChange={this.inputChange.bind(this)}></input>
+<div style={{'color': 'red'}}>{this.state.inputValue}</div>
+
+
+
+5、父子组建传值
+父传子：
+run(name, e) {
+        alert(name)
+}
+<Child msg={this.state.name} run={this.run}></Child>
+constructor(props) {
+        super(props)
+        this.state = {
+            name: '李四'
+        }
+}
+render() {
+        return (
+            <div onClick={e => this.props.run(this.state.name, e)}>
+                i am child
+                {this.props.msg}
+            </div>
+        )
+}
+子传父：
+<Child ref='child'></Child>
+console.log(this.refs.child.state.name)
+
+propTypes:
+DefaultProps:
+在子组建：
+import PropTypes from 'prop-types'
+Child.defaultProps = {
+    msg: 'message' // 当父组建没有这个值时使用message
+}
+Child.propTypes = {
+    msg: PropTypes.string
+}
+
+
+6.axios
+Npm install axis --save
+import axios from 'axios'
+export function getData() {
+    return axios.get('https://lab.isaaclin.cn/nCoV/api/overall')
+}
+
+componentDidMount() {
+    this.getData()
+}
+
+async getData() {
+    let res = await getData()
+    console.log('getData', res)
+    this.setState({
+        data: JSON.stringify(res.data)
+    })
+}
+
+fetch-jsonp：发送jsonp
+npm install fetch-jsonp  --save
+import fetchJsonp from 'fetch-jsonp'
+fetchJsonp('/users.jsonp')
+.then(function(response) {
+      return response.json()
+}).then(function(json) {
+      console.log('parsed json', json)
+}).catch(function(ex) {
+      console.log('parsing failed', ex)
+})
+
+Umi-request:
+统一封装请求：
+https://github.com/ant-design/ant-design-pro/blob/master/src/utils/request.ts
+
+
+
+
+7.生命周期
+constructor()
+componentWillMount 在渲染前调用,在客户端也在服务端。
+render()
+componentDidMount : 在第一次渲染后调用，只在客户端
+componentWillReceiveProps 在组件接收到一个新的 prop (更新后)时被调用。
+shouldComponentUpdate 返回一个布尔值。在组件接收到新的props或者state时被调用。
+componentWillUpdate在组件接收到新的props或者state但还没有render时被调用。
+render()
+componentDidUpdate 在组件完成更新后立即调用。
+componentWillUnmount在组件从 DOM 中移除之前立刻被调用。
+
+
+8、react-router
+npm install react-router-dom -—save
+import { Route, Switch, withRouter, BrowserRouter, HashRouter } from 'react-router-dom';
+BrowserRouter是history模式
+HashRouter是hash模式
+// Switch, withRouter
+import App from './App';
+import Home from './components/Home';
+import News from './components/News';
+
+class Router extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+    }
+  }
+  render() {
+    return (
+      <HashRouter>
+      <Switch>
+        <Route exact path="/" component={App} ></Route>
+        <Route exact path="/home" exact component={Home} />
+        <Route exact path="/news" exact component={News} />
+      </Switch>
+      </HashRouter>
+    )
+  }
+}
+export default Router
+(exact表示严格匹配)
+App.js中：
+<Link to={{pathname:'/home', search: '?id=' + 123}} >home</Link>
+
+Home.js
+let search = this.props.location.search
+
+
+由于参数都需要自己解析或生成：
+推荐使用url模块
+npm install url --save
+import url from 'url';
+url.parse(this.props.location.search,true)
+
+
+js路由跳转
+import { createHashHistory } from 'history'
+goHome = () => {
+        let route = createHashHistory()
+        route.push('/news')
+    }
+import { Redirect } from 'react-router';
+
+路由模块化：
+创建router.js
+let router = [
+    {
+        path: '/', //首页默认加载的页面
+        componentName: Home,
+        exact: true //是否为严格模式
+    },
+    {
+        path: '/productdetail/:id',//后面是传递的参数id
+        componentName: ProductDetail
+    },
+    {
+        path: '/user',
+        componentName: User,
+        routes: [  /** 嵌套路由  User下面又有两个子页面*/
+            {
+                path: '/user/',
+                componentName: Main,
+                exact: false
+            },
+            {
+                path: '/user/info',
+                componentName: Info
+            }
+        ]
+    }
+];
+export default router;
+
+在App.js入口文件引入router.js
+render() {
+    return (
+      <Router>
+        <div className="App">
+          {
+            router.map(({path, componentName, exact = true, routes = []}, key) => {
+                return <Route 
+                          exact={exact}
+                          key={key} 
+                          path={path} 
+                          render={props => (
+                            // 主要是为了传递嵌套路由到子组件 
+                            // 类似于 <User {...props} routes={routes} />
+                            <componentName {...props} routes={routes} />
+                          )}
+                        />
+            })
+          }
+        </div>
+      </Router>
+    );
+  }
+在User.js文件根据routers获取嵌套路由
+render() {
+        let {match, routes} = this.props;
+        return (
+            <div>
+                <div className="content">
+                    <div className="left">
+                    
+                        <Link to={`${match.url}`}>个人中心</Link>
+                        <br/>
+                        <Link to={`${match.url}/info`}>用户信息</Link>
+                    </div>
+                    <div className="right">
+                    {
+                       routes.map(({path, componentName, exact = true},key) => {
+                            return <Route 
+                                        exact={exact}
+                                        key={key} 
+                                        path={path} 
+                                        component={componentName}
+                                        />
+                        })
+                    }
+                        
+                    </div>
+                
+                </div>
+                
+            </div>
+        );
+
+
+
+
+9.ant design
+npm install antd --save
+修改 src/App.css，在文件顶部引入 antd/dist/antd.css
+
+按需引入css
+yarn add babel-plugin-import --dev
+用：import { Button } from 'antd';来引入组件，但是这个时候插件会帮你转换成 antd/lib/xxx 的写法
+
+
+
+10.查看webpack配置
+通过create-react-app来创建的react项目的webpack是封装后的，在项目中是隐藏的，如何修改其配置呢？
+1）eject
+在使用create-react-app创建项目之后，在package.json中有一个命令：
+ "scripts": {
+    "eject": "react-scripts eject"
+  }
+执行yarn eject命令后会在主目录下生成一个config文件夹,内容就是相关的配置文档。
+    在执行完yarn eject之后，会将项目中所有的配置项反编译出来，就可以认开发者任意修改配置项，但是这个过程是不可逆的，一旦执行，就不能恢复，再也不能通过升级其中的react-scripts包来升级create-react-app的特性。
+
+2）react-app-rewired
+yarn add react-app-rewired --dev
+修改package.json:
+/* package.json 的配置需要做如下修改*/
+"scripts": {
+-   "start": "react-scripts start",
++   "start": "react-app-rewired start",
+-   "build": "react-scripts build",
++   "build": "react-app-rewired build",
+-   "test": "react-scripts test --env=jsdom",
++   "test": "react-app-rewired test --env=jsdom",
+}
+然后在项目的根目录下创建一个 config-overrides.js 用于修改默认配置:
+const {injectBabelPlugin} = require('react-app-rewired');
+module.exports = function override(config, env) {
+  config = injectBabelPlugin(['import', {libraryName: 'antd', style: 'css'}], config);
+  return config;
+};
+
+
+
+11.redux
+Npm install redux
+Npm install react-redux
+
+store
+Store 就是保存数据的地方，你可以把它看成一个容器。整个应用只能有一个 Store。
+Redux 提供createStore这个函数，用来生成 Store
+import { createStore } from 'redux';
+const store = createStore(fn);
+Store对象包含所有数据。如果想得到某个时点的数据，就要对 Store 生成快照。这种时点的数据集合，就叫做 State。当前时刻的 State，可以通过store.getState()拿到
+
+action
+Action 是一个对象。其中的type属性是必须的，表示 Action 的名称。其他属性可以自由设置.
+改变 State 的唯一办法，就是使用 Action。它会运送数据到 Store。
+View 要发送多少种消息，就会有多少种 Action。如果都手写，会很麻烦。可以定义一个函数来生成 Action，这个函数就叫 Action Creator。
+const ADD_TODO = '添加 TODO';
+function addTodo(text) {
+  return {
+    type: ADD_TODO,
+    text
+  }
+}
+
+const action = addTodo('Learn Redux');
+上面代码中，addTodo函数就是一个 Action Creator。
+
+store.dispatch()是 View 发出 Action 的唯一方法。
+import { createStore } from 'redux';
+const store = createStore(fn);
+store.dispatch({
+  type: 'ADD_TODO',
+  payload: 'Learn Redux'
+});
+Store 允许使用store.subscribe方法设置监听函数，一旦 State 发生变化，就自动执行这个函数。
+store.subscribe(() =>
+  console.log(store.getState())
+);
+
+Reducer
+Store 收到 Action 以后，必须给出一个新的 State，这样 View 才会发生变化。这种 State 的计算过程就叫做 Reducer。
+const reducer = function (state, action) {
+  // ...
+  return new_state;
+};
+Reducer 函数不用像上面这样手动调用，store.dispatch方法会触发 Reducer 的自动执行。为此，Store 需要知道 Reducer 函数，做法就是在生成 Store 的时候，将 Reducer 传入createStore方法。
+import { createStore } from 'redux';
+const store = createStore(reducer);
+
+我们可以把 Reducer 函数拆分。不同的函数负责处理不同属性，最终把它们合并成一个大的 Reducer 即可。
+Redux 提供了一个combineReducers方法，用于 Reducer 的拆分。你只要定义各个子 Reducer 函数，然后用这个方法，将它们合成一个大的 Reducer。
+import { combineReducers } from 'redux';
+const chatReducer = combineReducers({
+  chatLog,
+  statusMessage,
+  userName
+})
+export default todoApp;
+
+react-redux
+Provider
+Provider包裹在根组建最外层，所有子组件就默认都可以拿到state.它的原理是React组件的context属性。
+store放在了上下文对象context上面。然后，子组件就可以从context拿到store。
+connect()方法：
+用于从 UI 组件生成容器组件。connect的意思，就是将这两种组件连起来。
+import { connect } from 'react-redux'
+const VisibleTodoList = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(TodoList)
+
+
+
+
+
+12.react hooks
 
 
