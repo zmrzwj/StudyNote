@@ -445,12 +445,12 @@ Spring Boot默认情况下使用ConcurrentMapCacheManager作为缓存技术。
 
 38.spring boot定时任务
 //表示每个星期1中午5点 "0 0 5 ? * 1"
-@Component
+@Service
 public class ScheduledService{
     @Scheduled(cron = "0 0 5 ? * 1")
     public void cronService(){}
 }
-
+开启定时任务注解@EnableScheduling
 @SpringBootApplication
 @EnableScheduling
 public class EhomeApplication extends SpringBootServletInitializer{}
@@ -838,6 +838,49 @@ http://192.168.11.206:10000/
 使用请看：https://cloud.tencent.com/developer/article/1336556
 
 
+
+
+
+49.异步service
+@Service
+public class AsynSerivce {
+    
+    @Async
+    public void hello() {
+        try {
+            Thread.sleep(3);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("处理数据中...");
+    }
+}
+
+@RestController
+public class AsynController {
+
+    @Autowired
+    AsynSerivce asynSerivce;
+
+    @GetMapping("/hello")
+    public String hello() {
+        asynSerivce.hello();
+        return "success";
+    }
+}
+当我们访问时，发现我们睡眠的3秒没有起作用，而是直接就执行了这个方法，不会被阻塞在这里异步处理hello请求
+
+
+
+
+
+
+50.@Component, @Repository, @Service的区别
+在Spring2.0之前的版本中，@Repository注解可以标记在任何的类上，用来表明该类是用来执行与数据库相关的操作（即dao对象），并支持自动处理数据库操作产生的异常
+在Spring2.5版本中，引入了更多的Spring类注解：@Component,@Service,@Controller。@Component是一个通用的Spring容器管理的单例bean组件。
+而@Repository, @Service, @Controller就是针对不同的使用场景所采取的特定功能化的注解组件。
+当你的一个类被@Component所注解，那么就意味着同样可以用@Repository, @Service, @Controller来替代它，同时这些注解会具备有更多的功能，而且功能各异。
+最后，如果你不知道要在项目的业务层采用@Service还是@Component注解。那么，@Service是一个更好的选择。
 
 
 
