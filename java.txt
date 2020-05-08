@@ -388,7 +388,53 @@ methodReturnType()
 
 
 
+27.enum类
+public enum ResultCode {
+	SUCCESS(1, "成功"),
+    ERROR(500,"程序内部错误"),
+    EXIST_LIBRARY(501,"仓库下面存在库区");
+	
+	private Integer code;
+    private String message;
+	
+	ResultCode(Integer code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+	
+	/**
+     * 获取code
+     * @return Integer
+     * date: 2018/10/18 16:50
+     */
+    public Integer code() {
+        return this.code;
+    }
 
+    /**
+     * 获取message
+     * @return String
+     * date: 2018/10/18 16:50
+     */
+    public String message() {
+        return this.message;
+    }
+	
+	/**
+     * 根据name获取message
+     * @param name name
+     * @return String
+     * date: 2018/10/18 16:52
+     */
+    public static String getMessage(String name) {
+        for (ResultCode item : ResultCode.values()) {
+            if (item.name().equals(name)) {
+                return item.message;
+            }
+        }
+        return name;
+    }
+}
 
 
 

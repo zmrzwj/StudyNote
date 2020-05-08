@@ -885,3 +885,108 @@ public class AsynController {
 
 
 
+
+
+51.@Configuration
+@Configuration用于定义配置类，可替换xml配置文件，被注解的类内部包含有一个或多个被@Bean注解的方法，这些方法将会被AnnotationConfigApplicationContext或AnnotationConfigWebApplicationContext类进行扫描，并用于构建bean定义，初始化Spring容器。
+注意：
+@Configuration注解的配置类有如下要求：
+@Configuration不可以是final类型；
+@Configuration不可以是匿名类；
+嵌套的configuration必须是静态类。
+
+
+
+
+52.HandlerMethod
+HandlerMethod是springMVC中用@Controller声明的一个bean及对应的处理方法.
+if(!(object instanceof HandlerMethod)){// 如果不是是SpringMVC Controller请求，直接通过
+            return true;
+        }
+
+
+
+53.isAnnotationPresent, getAnnotation方法, 
+指定类型的注释存在于此元素上
+A.isAnnotationPresent(B.class)；意思就是：注释B是否在此A上。如果在则返回true；不在则返回false。
+getAnnotation获取class
+
+
+54.自定义注解
+import java.lang.annotation.*;
+
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Token {
+    String value() default "";
+}
+自定义注解类编写的一些规则:
+1. Annotation型定义为@interface, 所有的Annotation会自动继承java.lang.Annotation这一接口,并且不能再去继承别的类或是接口.
+2. 参数成员只能用public或默认(default)这两个访问权修饰
+3. 参数成员只能用基本类型byte,short,char,int,long,float,double,boolean八种基本数据类型和String、Enum、Class、annotations等数据类型,以及这一些类型的数组.
+4. 要获取类方法和字段的注解信息，必须通过Java的反射技术来获取 Annotation对象,因为你除此之外没有别的获取注解对象的方法
+5. 注解也可以没有定义成员, 不过这样注解就没啥用了
+
+@Documented 注解
+    功能：指明修饰的注解，可以被例如javadoc此类的工具文档化，只负责标记，没有成员取值。
+	
+@Retention 注解
+功能：指明修饰的注解的生存周期，即会保留到哪个阶段。
+RetentionPolicy的取值包含以下三种：
+SOURCE：源码级别保留，编译后即丢弃。
+CLASS:编译级别保留，编译后的class文件中存在，在jvm运行时丢弃，这是默认值。
+RUNTIME： 运行级别保留，编译后的class文件中存在，在jvm运行时保留，可以被反射调用。
+
+@Target 注解
+功能：指明了修饰的这个注解的使用范围，即被描述的注解可以用在哪里。
+ElementType的取值包含以下几种：
+TYPE:类，接口或者枚举
+FIELD:域，包含枚举常量
+METHOD:方法
+PARAMETER:参数
+CONSTRUCTOR:构造方法
+LOCAL_VARIABLE:局部变量
+ANNOTATION_TYPE:注解类型
+PACKAGE:包
+
+使用
+@Token(value="123")或@Token("123")
+使用value以外的属性名时，可以不指定属性名称，但其它都必须使用value1="123"形式赋值。
+
+
+
+55.获取application配置文件参数的两种方式
+application.properties
+#参数
+zwj.name = zwj
+使用@Value方式（常用）
+  import org.springframework.beans.factory.annotation.Value;  
+  @Value("${test.msg}")  
+  private String msg; 
+  
+  
+ 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
