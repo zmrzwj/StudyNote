@@ -124,7 +124,7 @@ systemctl enable mongodb.service
 bin/mongo
 添加管理员用户和密码
 db.createUser({user:"admin",pwd:"Admin@01",roles:[{role:"userAdminAnyDatabase",db:"admin"}]})
-db.auth('admin','Admin@01')
+db.auth('admin','Admin@01')（带密码登录）
 创建数据库和普通用户（实际代码中连接数据库必须单独创建用户并赋予相应权限！！！）：
 use xizang
 db.createUser({

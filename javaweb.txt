@@ -909,7 +909,11 @@ if(!(object instanceof HandlerMethod)){// 如果不是是SpringMVC Controller请
 53.isAnnotationPresent, getAnnotation方法, 
 指定类型的注释存在于此元素上
 A.isAnnotationPresent(B.class)；意思就是：注释B是否在此A上。如果在则返回true；不在则返回false。
-getAnnotation获取class
+getAnnotation 如果存在于此元素，则返回该元素注释指定的注释类型，否则返回为null。
+java.lang.reflect.Method.getAnnotation(Class <T> annotationClass)方法如果存在这样的注释，则返回指定类型的元素的注释，否则为null。
+
+
+
 
 
 54.自定义注解
@@ -967,19 +971,273 @@ zwj.name = zwj
   
   
  
+ 
+56.多项目（如：金证的）
+新建个目录把它们都放里面
+idea open这个目录；
+然后：file->project structure->Modules-> + ->import module->(选中放到这个目录的项目，每个项目都要这么操作一遍)
+（项目相互引用是通过pom.xml里面
+		<!-- entity实体 -->
+        <dependency>
+            <groupId>szkingdom.zhcs.kdum_xzyj</groupId>
+            <artifactId>xzyj-entity</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+）
+
+
+
+57.DO:对应数据库表结构
+VO：一般用于前端展示使用
+DTO：用于数据传递。（接口入参和接口返回值都可以）
+以ssm框架为例：
+controller层：
+public List<UserVO> getUsers(UserDTO userDto);
+Service层：
+List<UserDTO> getUsers(UserDTO userDto);
+DAO层：
+List<UserDTO> getUsers(UserDO userDo);
+ 
+ 
+ 
+
+58.外部jar包集成
+ <dependency>
+            <groupId>com.jnrsmcu.sdk.netdevice</groupId>
+            <artifactId>netdevice</artifactId>
+            <version>2.2.2</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/RSNetDevice-2.2.2.jar</systemPath>
+        </dependency>
+ <!-- war包添加外部jar包 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <webResources>
+                        <resource>
+                            <directory>src/main/resources/lib</directory>
+                            <targetPath>WEB-INF/lib/</targetPath>
+                            <includes>
+                                <include>**/*.jar</include>
+                            </includes>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
   
   
   
   
   
   
+ 59.@autowired注解原理
+ getFields(),获取当前Class所表示类中所有的public的字段
+ public Field[] getDeclaredFields():获取当前Class所表示类中所有的字段,不包括继承的字段.
+ Method getMethod(String name, Class<?>... parameterTypes)  
+返回一个 Method 对象，它反映此 Class 对象所表示的类或接口的指定公共成员方法
+class.getMethods()
+该方法是获取本类以及父类或者父接口中所有的公共方法
+ 
+自动装配过程：
+1、根据Class对象，通过反射获取所有的Field和```Method````对象
+2、通过反射获取Field和Method上的注解，并判断是否有@Autowired和@Value注解（使用到了spring的ReflectionUtils，）
+3、将注解了@Autowired和@Value的Field和Method封装成AutowiredFieldElement和AutowiredMethodElement对象，等待下一步的自动装配。
+循环处理父类需要自动装配的元素
+4、将需要自动装配的元素封装成InjectionMetadata对象，最后合并到Bean定义的externallyManagedConfigMembers属性中
+5、用AutowiredFieldElement或AutowiredMethodElement的inject方法，唤起后续步骤
+6、通过调用容器的getBean()方法找到需要注入的源数据Bean
+7、通过反射将找到的源数据Bean注入到目标Bean中
+
+
+
+
+ 
+ 
+ 
+ 
+ 
+60.redis集成
+<!--redis-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <version>2.2.5.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+        </dependency>
+SpringBoot2.0默认采用Lettuce客户端来连接Redis服务端的
+默认是不使用连接池的，只有配置 redis.lettuce.pool下的属性的时候才可以使用到redis连接池
+#redis
+# Redis数据库索引（默认为0）
+spring.redis.database=0
+# Redis服务器地址
+spring.redis.host=192.168.11.206
+#Redis服务器连接端口
+spring.redis.port=6379
+#Redis服务器连接密码（默认为空）
+spring.redis.password=qwertyui
+#连接池最大连接数（使用负值表示没有限制）
+spring.redis.lettuce.pool.max-active=8
+#连接池最大阻塞等待时间（使用负值表示没有限制）
+spring.redis.lettuce.pool.max-wait=10000
+#连接池中的最大空闲连接
+spring.redis.lettuce.pool.min-idle=3
+#连接超时时间（毫秒）
+spring.redis.timeout=30000
+
+创建RedisUtil类：
+@Component
+public class RedisUtil {
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    public String get(String key) {
+        String value = (String) stringRedisTemplate.opsForValue().get(key);
+        return value;
+    }
+
+    public void add(String key, String value) {
+        stringRedisTemplate.opsForValue().set(key, value);
+    }
+
+    public Object getObj(String key) {
+        return key == null ? null : redisTemplate.opsForValue().get(key);
+    }
+
+    public boolean addObj(String key, Object value) {
+        try {
+            redisTemplate.opsForValue().set(key, value);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+}
+为了使用redisTemplate，需要添加配置：
+@Configuration
+public class RedisConfig {
+    @Bean
+    @SuppressWarnings("all")
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();
+        template.setConnectionFactory(factory);
+        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
+        ObjectMapper om = new ObjectMapper();
+        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        jackson2JsonRedisSerializer.setObjectMapper(om);
+        StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
+
+        // key采用String的序列化方式
+        template.setKeySerializer(stringRedisSerializer);
+        // hash的key也采用String的序列化方式
+        template.setHashKeySerializer(stringRedisSerializer);
+        // value序列化方式采用jackson
+        template.setValueSerializer(jackson2JsonRedisSerializer);
+        // hash的value序列化方式采用jackson
+        template.setHashValueSerializer(jackson2JsonRedisSerializer);
+        template.afterPropertiesSet();
+
+        return template;
+    }
+}
+写一个测试的实体类：
+public class RedisBean  {
+    String name;
+    Integer age;
+    public RedisBean() {} // 这是必须的
+    public RedisBean(String name, Integer age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+注：为什么需要空构造函数，redis的这些序列化方式,使用的是无参构造函数进行创建对象set方法进行赋值,
+方法中存在有参的构造函数,默认存在的无参构造函数是不存在的(继承自object),必须显示的去重写.
+
   
   
   
+ 
+ 
+61.MongoDB集成
+<!--mongodb-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>  
+#mogodb
+spring.data.mongodb.database=xizang
+spring.data.mongodb.host=192.168.11.206
+spring.data.mongodb.password=sccddw
+spring.data.mongodb.username=sccddw
+spring.data.mongodb.port=27017
+创建RedisUtil类：
+@Component
+public class MongoUtil {
+    @Autowired
+    MongoTemplate mongoTemplate;
+
+    public boolean saveObj(Object obj) {
+        try {
+            mongoTemplate.save(obj);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Object getObjById (String id) {
+        Query query = new Query(Criteria.where("_id").is(id));
+        return mongoTemplate.findOne(query, MongoBean.class);
+    }
+
+    public List<MongoBean> findAll () {
+        List<MongoBean> list = null;
+        try {
+            return mongoTemplate.findAll(MongoBean.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return list;
+        }
+    }
+}
+
+新建测试类：
+@Data
+public class MongoBean {
+    private String id;
+    private String name;
+    private String info;
+    private Date createTime;
+
+    public MongoBean(String id, String name, String info, Date createTime) {
+        this.id = id;
+        this.name = name;
+        this.info = info;
+        this.createTime = createTime;
+    }
+
+    @Override
+    public String toString() {
+        return "id=" + id + ",name=" + name + ",info=" + info + ",createTime" + createTime;
+    }
+}
+注：对象的private属性添加几个getter（、setter）才可以在controller返回给前端。 
+
+
+
   
-  
-  
-  
+ 62.es集成
+ 
   
   
   
