@@ -1,20 +1,52 @@
-安装es
+1、安装es
 vim config/elasticsearch.yml
 cluster.name: elasticsearch
-node.name: node-1
+node.name: server-6.cluster #默认情况下节点名称是操作系统的主机名，在Linux下使用hostname -f可查看主机名
 network.host: 0.0.0.0 #让所有ip访问
 http.port: 9200
-cluster.initial_master_nodes: ["node-1"]
+（以下为集群配置）
+cluster.initial_master_nodes: ["server-6.cluster"] # 可以选举的主节点
+discovery.seed_hosts: ["192.168.7.41:9300","192.168.7.42:9300","192.168.7.43:9300"]
+#在开发环境中，服务发现主机名不需要设置，Elasticsearch默认会从本机的9300-9305端口尝试去连接其它节点，
+这提供了自动集群的体验，不需要任何配置。但在正式环境中，每个节点理论上都是不同的机器，
+这时候需要配置discovery.seed_hosts，discovery.seed_hosts可以是ip、ip:端口和域名。
+如果配置是ip，Elasticsearch默认会使用transport.profiles.default.port配置项的端口，
+该端口默认为9300；如果配置是域名，且该域名下绑定了多个ip，ES会尝试去连接多个ip。
+gateway.recover_after_nodes: 2
+ network.tcp.keep_alive: true
+ network.tcp.no_delay: true
+ transport.tcp.compress: true
+ #集群内同时启动的数据任务个数，默认是2个
+ cluster.routing.allocation.cluster_concurrent_rebalance: 16
+ #添加或删除节点及负载均衡时并发恢复的线程个数，默认4个
+ cluster.routing.allocation.node_concurrent_recoveries: 16
+ #初始化数据恢复时，并发恢复线程的个数，默认4个
+ cluster.routing.allocation.node_initial_primaries_recoveries: 16
+
+#如果要设置密码
+http.cors.enabled: true
+http.cors.allow-origin: "*"
+http.cors.allow-headers: Authorization
+xpack.security.enabled: true
+xpack.security.transport.ssl.enabled: true
+
+bin#elasticsearch-setup-passwords interactive(需要为4个用户分别设置密码，elastic, kibana, logstash_system,beats_system)
+修改密码命令如下:
+curl -H "Content-Type:application/json" -XPOST -u elastic 'http://127.0.0.1:9200/_xpack/security/user/elastic/_password' -d '{ "password" : "123456" }'
 
 
-
-es5以上不允许root用户启动
+2、es5以上不允许root用户启动
+为es单独添加用户：
 #useradd es
 #passwd es
+将对应的文件夹权限赋给该用户
+chown -R es elasticsearch/
+切换至es用户
+# su elasticsearch
+进入启动目录启动 /usr/local/elasticsearch/bin  使用后台启动方式：./elasticsearch -d
 -------------------------------------------------------------------------------------------------------------
 开机启动设置
-#su es
-$vim /etc/init.d/elasticsearch
+#vim /etc/init.d/elasticsearch
 #!/bin/sh
 #chkconfig: 2345 80 05
 #description: elasticsearch
@@ -56,8 +88,11 @@ esac
 exit $?
 
 --------------------------------------------------------------------------------------------------------------
-$chmod +x elasticsearch
-$chkconfig --add elasticsearch
+#chmod 777 /etc/init.d/elasticsearch
+#chmod +x /etc/init.d/elasticsearch
+#chkconfig --add elasticsearch (chkconfig elasticsearch off #关闭服务)
+#chkconfig --list
+#service elasticsearch start(启动elasticsearch)
 
 切换到root:
 service elasticsearch start（启动时间较长3分钟左右）
@@ -93,7 +128,9 @@ vim conf/kibana.yml
 server.port: 5601
 server.host: "192.168.11.206"
 elasticsearch.hosts: ["http://192.168.11.206:9200"]
-
+启动：bin/kibana &
+关闭：ps -ef|grep kibana是查不到进程的，主要原因大概是因为kibana是node写的。
+可以使用ps -ef|grep node 查看到进程
 
 
 
@@ -101,30 +138,77 @@ elasticsearch.hosts: ["http://192.168.11.206:9200"]
 1. Elasticsearch与关系型数据库的关系
 Elasticsearch集群可以包含多个索引(indices)（数据库），每一个索引可以包含多个类型(types)（表），每一个类型包含多个文档(documents)（行），然后每个文档包含多个字段(Fields)（列）
 
-2.maven依赖查询
-<!-- https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch -->
-        <dependency>
-            <groupId>org.elasticsearch</groupId>
-            <artifactId>elasticsearch</artifactId>
-            <version>6.4.3</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.elasticsearch.client</groupId>
-            <artifactId>transport</artifactId>
-            <version>6.4.3</version>
-        </dependency>
+2.创建索引
+在kibana的Dev Tools运行
+PUT /es_test （会创建一个es_test的索引）
+DELETE es_test （删除索引）
+或用命令
+PUT http://127.0.0.1:9200/es_test
+创建mappings（es7以后已经去掉了type）
+put /es_test
+{
+    "settings": {
+        "index": {
+            "analysis.analyzer.default.type": "ik_max_word",
+            "number_of_shards":3,
+		    "number_of_replicas":2
+        }
+    },
+    "mappings": {
+        "properties": {
+            "site_id": {
+                "type": "long",
+                "index": True // index，可用于设置字段是否被索引，默认为true，false即为不可搜索
+            },
+            "content": {
+                "type": "keyword",
+				"null_value": "NULL"  // 需要对Null值实现搜索时使用。只有keyword类型才支持设定null_value
+            }
+        }
+   }
+}  
+#映射一旦创建完成, 就不允许修改,只能在创建index的时候手动配置mapping, 或者新增field mapping, 但是不能update field mapping.
+查看mapping
+GET /es_test/_mapping
+向已有mapping中添加字段及其映射信息:
+PUT website/_mapping
+{
+    "properties": {
+        "new_field": {
+            "type": "text",
+            "index": false
+        }
+    }
+}
+添加文档：
+PUT /es_test/_doc/1
+{
+  "id": "1234567",
+  "name": "mt",
+  "price": 122
+}
+查询数据：
+GET /es_test/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
 		
 
 3.ElasticSearch (服务默认端口 9300 Web 管理平台端口 9200)
 用java时使用9300端口
 
 
+
 4.index和type需要为小写
+
 
 
 5.InetSocketTransportAddress 换成 TransportAddress
 InetSocketTransportAddress这个类在新的版本中去掉了，之前的老版本就有.
+
+
 
 6.查询所有索引
 curl -XGET -H "Content-Type: application/json" 'http://localhost:9200/_count?pretty' -d '
@@ -135,15 +219,16 @@ curl -XGET -H "Content-Type: application/json" 'http://localhost:9200/_count?pre
 }
 ' 
 
+
      
 7.删除索引
 curl -XDELETE http://localhost:9200/test_bulk
 可以逗号分开删除多个test_bulk，test_bulk2
 
 
+
 8.批量插入数据
 Settings settings = Settings.builder().put("cluster.name", "elasticsearch").build();
-
         try {
             TransportClient client = new PreBuiltTransportClient(settings)
                     .addTransportAddress(new TransportAddress(InetAddress.getByName("127.0.0.1"), 9300));
@@ -177,10 +262,8 @@ Settings settings = Settings.builder().put("cluster.name", "elasticsearch").buil
                         System.out.println("提交了：" + count);
                     }
                 }
-
                 System.out.println( count );
             }
-
             bulkRequestBuilder.execute().actionGet();
             System.out.println("插入完毕");
             br.close();
@@ -191,9 +274,23 @@ Settings settings = Settings.builder().put("cluster.name", "elasticsearch").buil
 
 
 
+9.es数据类型
+ text：默认会进行分词，支持模糊查询（5.x之后版本string类型已废弃，请大家使用text）。
+ keyword：不进行分词；keyword类型默认开启doc_values来加速聚合排序操作，占用了大量磁盘io 如非必须可以禁用doc_values。
+ number：如果只有过滤场景 用不到range查询的话，使用keyword性能更佳，另外数字类型的doc_values比字符串更容易压缩。
+ array：es不需要显示定义数组类型，只需要在插入数据时用'[]'表示即可，'[]'中的元素类型需保持一致。
+ range：对数据的范围进行索引；目前支持 number range、date range 、ip range。
+ boolean: 只接受true、false 也可以是字符串类型的“true”、“false”
+ date：支持毫秒、根据指定的format解析对应的日期格式，内部以long类型存储。
+ geo_point：存储经纬度数据对。
+ ip：将ip数据存储在这种数据类型中，方便后期对ip字段的模糊与范围查询。
+ nested：嵌套类型，一种特殊的object类型，存储object数组，可检索内部子项。
+ object：嵌套类型，不支持数组。
 
 
  
+ 
+ 10.
 
 
 

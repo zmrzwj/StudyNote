@@ -385,6 +385,11 @@ public class TokenConfig implements WebMvcConfigurer {
 }
 注意：这个路径不考虑server.servlet.context-path=/xxx添加的前缀。
 
+@ControllerAdvice
+统一异常处理
+需要配合@ExceptionHandler使用，当将异常抛到controller时,可以对异常进行统一处理
+
+
 
 
 36.纯Java项目使用HikariCP
@@ -1236,12 +1241,77 @@ public class MongoBean {
 
 
   
- 62.es集成
- 
+62.es集成
+ES支持两种协议  
+       HTTP协议，支持的客户端有Jest client和Rest client
+       Native Elasticsearch binary协议，也就是Transport client和Node client
+Jest client和Rest client区别
+      Jest client非官方支持，在ES5.0之前官方提供的客户端只有Transport client、Node client。在5.0之后官方发布Rest client，并大力推荐.
+REST Client
+官方推荐使用，所以我们采用这个方式，这个分为两个Low Level REST Client和High Level REST Client，Low Level REST Client是早期出的API比较简陋了，
+还需要自己去拼写Query DSL，High Level REST Client使用起来更好用，更符合面向对象的感觉.
+
+<!--rest-->
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-client</artifactId>
+            <version>7.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-high-level-client</artifactId>
+            <version>7.6.2</version>
+        </dependency>
+		<dependency>
+            <groupId>org.elasticsearch</groupId> (这个需要不然单元测试那会报某些类没有)
+            <artifactId>elasticsearch</artifactId>
+            <version>7.6.2</version>
+        </dependency>
+application.properties
+spring.elasticsearch.rest.uris=http://127.0.0.1:9200
+@Resource
+private RestClient client;
+或
+@Resource
+private RestHighLevelClient restHighLevelClient;（推荐）
+
+<!--jest-->
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>6.5.4</version>
+        </dependency>
+        <dependency>
+            <groupId>io.searchbox</groupId>
+            <artifactId>jest</artifactId>
+            <version>5.3.3</version>
+        </dependency>
+application.properties
+spring.elasticsearch.jest.uris=http://127.0.0.1:9200
+@Resource
+private JestClient jestClient;
+RestHighLevelClient API:
+https://www.elastic.co/guide/en/elasticsearch/client/java-rest/current/java-rest-high-document-index.html
+
+
+
+
+
+
+63.单元测试无法使用Autowired的解决办法
+1）单元测试使用junit4
+<dependency>
+    <groupId>junit</groupId>
+    <artifactId>junit</artifactId>
+    <version>4.12</version>
+    <scope>test</scope>
+</dependency>
+2）测试类添加
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@Test为import org.junit.Test;
   
-  
-  
-  
+
   
   
   
