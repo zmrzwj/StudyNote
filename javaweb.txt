@@ -62,6 +62,7 @@
   				<profiles/>
   				<activeProfiles/>
 			</settings>
+			
 5.下载离线maven
 http://maven.apache.org/download.cgi
 Mac 下载-bin.tar.gz解压到zwj/applictions
@@ -74,6 +75,7 @@ Mac 下载-bin.tar.gz解压到zwj/applictions
         	<name>Nexus aliyun</name>
         	<url>http://maven.aliyun.com/nexus/content/groups/public</url>
     	</mirror>
+
 
 6.IDEA设置tomcat
 	run->Edit Configurations
@@ -973,8 +975,11 @@ zwj.name = zwj
   import org.springframework.beans.factory.annotation.Value;  
   @Value("${test.msg}")  
   private String msg; 
-  
-  
+使用ConfigurationProperties
+@Component
+@ConfigurationProperties(prefix = "person")
+ 
+ @Value不支持复杂类型
  
  
 56.多项目（如：金证的）
@@ -1296,8 +1301,6 @@ https://www.elastic.co/guide/en/elasticsearch/client/java-rest/current/java-rest
 
 
 
-
-
 63.单元测试无法使用Autowired的解决办法
 1）单元测试使用junit4
 <dependency>
@@ -1314,7 +1317,220 @@ https://www.elastic.co/guide/en/elasticsearch/client/java-rest/current/java-rest
 
   
   
+64.socketIO集成：
+SocketIOConfig：
+@org.springframework.context.annotation.Configuration
+public class SocketIOConfig {
+    @Value("${socketIo.host}")
+    private String host;
+
+    @Value("${socketIo.port}")
+    private Integer port;
+
+    @Value("${socketIo.context}")
+    private String context;
+
+    @Value("${socketIo.pingTimeout}")
+    private int pingTimeout;
+
+    @Bean
+    public SocketIOServer socketIOServer() {
+        Configuration configuration = new Configuration();
+        configuration.setHostname(host);
+        configuration.setPort(port);
+        configuration.setContext(context);
+        configuration.setPingTimeout(pingTimeout);
+
+        return new SocketIOServer(configuration);
+    }
+}
+SocketIOService：
+public interface SocketIOService {
+    /**
+     * 启动服务
+     */
+    void start();
+
+    /**
+     * 停止服务
+     */
+    void stop();
+}
+SocketIOServiceImpl：
+@Service(value = "SocketIOService")
+public class SocketIOServiceImpl implements SocketIOService {
+	/**
+     * 存放已连接的客户端
+     */
+    private static Map<String, SocketIOClient> clientMap = new ConcurrentHashMap<>();
+
+    /**
+     * 自定义事件`push_data_event`,用于服务端与客户端通信
+     */
+    private static final String PUSH_DATA_EVENT = "push_data_event";
+	// client.sendEvent(PUSH_DATA_EVENT, msgContent); (发送事件)
+	
+	@Autowired
+    private SocketIOServer socketIOServer;
+
+    @Resource
+    private ConnectEventListenner connectEventListenner;
+
+    @Override
+    public void start() {
+        // 监听客户端连接
+        socketIOServer.addConnectListener(client -> {
+            log.info("************ 客户端： " + getIpByClient(client) + " 已连接 ************");
+            // 自定义事件`connected` -> 与客户端通信  （也可以使用内置事件，如：Socket.EVENT_CONNECT）
+            client.sendEvent("connected", "你成功连接上了哦...");
+            Map params = getParamsByClient(client);
+            log.info(params.toString());
+        });
+        // 监听客户端断开连接
+        socketIOServer.addDisconnectListener(client -> {
+            String clientIp = getIpByClient(client);
+            log.info(clientIp + " *********************** " + "客户端已断开连接");
+            Map params = getParamsByClient(client);
+            log.info(params.toString());
+        });
+        // 自定义事件`client_info_event` -> 监听客户端消息
+        socketIOServer.addEventListener(PUSH_DATA_EVENT, String.class, (client, data, ackSender) -> {
+            // 客户端推送`client_info_event`事件时，onData接受数据，这里是string类型的json数据，还可以为Byte[],object其他类型
+            log.info(PUSH_DATA_EVENT + " *********************** " + "事件触发");
+            log.info(data);
+            String clientIp = getIpByClient(client);
+            log.debug(clientIp + " ************ 客户端：" + data);
+        });
+        // 启动服务
+        socketIOServer.start();
+    }
+
+    @Override
+    public void stop() {
+        if (socketIOServer != null) {
+            socketIOServer.stop();
+            socketIOServer = null;
+        }
+    }
+
+    /**
+     * 获取客户端url中的userId参数（这里根据个人需求和客户端对应修改即可）
+     *
+     * @param client: 客户端
+     * @return: java.lang.String
+     */
+    private Map getParamsByClient(SocketIOClient client) {
+        // 获取客户端url参数（这里的userId是唯一标识）
+        Map<String, List<String>> params = client.getHandshakeData().getUrlParams();
+        if (!CollectionUtils.isEmpty(params)) {
+            return params;
+        }
+        return null;
+    }
+
+    /**
+     * 获取连接的客户端ip地址
+     *
+     * @param client: 客户端
+     * @return: java.lang.String
+     */
+    private String getIpByClient(SocketIOClient client) {
+        String sa = client.getRemoteAddress().toString();
+        String clientIp = sa.substring(1, sa.indexOf(":"));
+        return clientIp;
+    }
+}  
   
-  
-  
+使用CommandLineRunner让socket随springboot启动：
+@Component
+@Slf4j
+public class socketCommandLineRunner implements CommandLineRunner {
+    @Autowired
+    private SocketIOServiceImpl socketIOService;
+
+    @Override
+    public void run(String... args) throws Exception {
+        /**
+         * 当CommandLineRunner中出现不可预期的异常时，会影响主线程，所以这里单独启动一个线程执行
+         */
+        new Thread(){
+            @Override
+            public void run(){
+                try {
+                    log.info("开始启动");
+                    socketIOService.start();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+    }
+}
+
+
+
+
+65.添加阿里maven仓库
+idea： file->settings->Maven->user settings file(勾选override)
+修改.setting.xml:
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                          https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <mirrors>
+        <mirror>
+            <id>alimaven</id>
+            <name>aliyun maven</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+            <mirrorOf>central</mirrorOf>
+        </mirror>
+    </mirrors>
+</settings>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   

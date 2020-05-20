@@ -439,9 +439,15 @@ public enum ResultCode {
 
 
 
+28.java连接Modbus
+java的解决框架有j2mod、jamod、modbus4j等
 
 
 
+
+29.modbus
+modbus4j
+https://github.com/infiniteautomation/modbus4j
 
 
 
