@@ -968,8 +968,7 @@ PACKAGE:包
 
 
 55.获取application配置文件参数的两种方式
-application.properties
-#参数
+application.properties：
 zwj.name = zwj
 使用@Value方式（常用）
   import org.springframework.beans.factory.annotation.Value;  
@@ -980,6 +979,9 @@ zwj.name = zwj
 @ConfigurationProperties(prefix = "person")
  
  @Value不支持复杂类型
+ 配置文件的占位符：
+ application.properties：
+ zwj.age = ${random.int}
  
  
 56.多项目（如：金证的）
@@ -1565,10 +1567,42 @@ spring.servlet.multipart.max-request-size=5000MB
 
 
 
+67.profiles多环境切换
+新建文件
+application-206.properties
+在application.properties添加：
+spring.profiles.active=206
+yml文档块写法：
+server
+	port: 8080
+spring:
+	profiles:
+		active: dev
+---
+server
+	port: 8081
+spring
+	profiles: dev
+命令行方式：
+java -jar --spring-profiles.active=dev;
 
 
 
+68.springboot配置文件加载顺序
+-file:./config
+-file:./
+-classpath:/config/
+-classpath:/
+各个配置文件是互补的
+命令行指定：
+java -jar xxx--spring.config.location=G:/application-dev.properties
 
+springboot debug模式：
+application.properties:
+debug=true
+控制台会打印启用的自动配置类
+springboot2的application.properties 官方配置 说明文件：
+https://docs.spring.io/spring-boot/docs/2.3.0.RELEASE/reference/html/appendix-application-properties.html#common-application-properties
 
 
 
