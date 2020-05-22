@@ -38,6 +38,246 @@ entries通过glob获取，形式为：
 
 
 
+1.安装
+npm i webpack webpack-cli -D
+npm i webpack-cli -g
+
+2.webpack ./src/index.js -o ./build/index.js --mode-development
+
+3.webpack 5个核心
+    entry: './src/index.js', // 入口
+    output: {
+        filename: "built.js",
+        path: resolve(__dirname, 'build')
+    },
+    module: {
+        rules: [
+            {
+                test: /\.css$/,
+                use: [
+                    'style-loader',
+                    'css-loader'
+                ]
+            }
+        ]
+    },
+    plugins: [],
+    mode: 'development'
+
+
+4.html-webpack-plugin
+npm i html-webpack-plugin -D
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+plugins: [
+        // html-webpack-plugin默认会创建一个空html文件
+        // 自动引入打包输出的所有资源（js/css）
+        new HtmlWebpackPlugin({
+            template: './src/index.html'
+        })
+]
+压缩：
+minify: {
+                collapseWhitespace: true,
+                removeComments: true
+            }
+
+
+5.打包图片
+npm i url-loader file-loader -D
+{
+   test: /\.(jpg|png|gif)$/,
+   loader: 'url-loader',
+   options: {
+      // 图片小于8k被处理为base64
+      limit: 8*1024
+    }
+}
+html-withimg-loader处理<img>的图片
+{
+                test: /\.(jpg|png|gif)$/,
+                loader: 'url-loader',
+                options: {
+                    // 图片小于8k被处理为base64
+                    limit: 8*1024,
+                    esModule: false // 关闭url-loader的es6　模块，使用commonjs
+                    name: '[hash:10].[ext]' // 取hash前10位
+                }
+            },
+            {
+                test: /\.html$/,
+                use: [
+                    'html-withimg-loader'
+                ]
+            }
+
+5.devServer
+// 只在内存中打包
+// 启动devServer: webpack-dev-server(npm i webpack-dev-server -D)，运行：npx webpack-dev-server
+    devServer: {
+        contentBase: resolve(__dirname, 'build'),
+        compress: true,
+        port: 3000,
+        open: true
+    }
+
+
+6.其它资源打包
+{
+                // 其它资源
+                exclude: /.(html|js|css|less|jpg|png|jpg|gif)/,
+                loader: 'file-loader',
+                options: {
+                    name: '[hash:10].[ext]'
+                }
+            }
+
+
+7.单独打包css
+npm i mini-css-extract-plugin -d
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+rules: [
+            {
+                test: /\.css$/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader'
+                ]
+            }
+]
+plugins: [
+        new MiniCssExtractPlugin({
+            filename: 'css/index.css'
+        })
+    ]
+Css兼容性处理：
+npm i postcss-loader postcss-preset-env -D
+// 设置环境变量
+process.env.NODE_ENV = 'development'
+{
+                test: /\.css$/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader',
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            ident: 'postcss',
+                            plugins:() => {
+                                require('postcss-preset-env')
+                            }
+                        }
+                    }
+                ]
+            }
+
+package.json:
+"browserslist": {
+    "develpoment": [
+      ">1%"
+    ],
+    "production": [
+      ">1%"
+    ]
+  }
+压缩css:
+npm i optimize-css-assets-webpack-plugin -D
+
+plugins: [
+        new OptimizeCssAssetsWebpackPlugin()
+    ]
+
+
+
+8.eslint代码检查
+eslint  eslint-loader eslint-config-airbnb-base eslint-plugin-import
+npm i eslint-loader eslint-config-airbnb-base eslint-plugin-import -D
+{
+                test: /\.js$/,
+                loader: 'eslint-loader',
+		enforce: 'pre',            // 强制loader先执行
+                exclude: /node_modules/,
+                options: {
+                    fix: true // 自动修复
+                }
+            }
+package.json:
+"eslintConfig": {
+    "extends": "airbnb-base"
+  }
+// eslint-disable-next-line 可以忽略检查
+方案1:js兼容，babel-loader
+npm i babel-loader @babel/preset-env @babel/core -D
+{
+                test: /\.js$/,
+                loader: 'babel-loader',
+                exclude: /node_modules/,
+                options: {
+                    presets: ['@babel/preset-env'] // @babel/preset-env只能处理简单的语法
+                }
+            }
+方案2:全部js兼容处理：@babel/polyfill
+npm install --save @babel/polyfill
+在index.js中:
+import '@babel/polyfill'
+// 问题：将所有兼容代码全部引入，体积太大了
+方案3:Core-js按需加载（推荐）（用方案3，就不要用方案2了）
+	{
+                test: /\.js$/,
+                loader: 'babel-loader',
+                exclude: /node_modules/,
+                options: {
+                    presets: [
+                        [
+                            '@babel/preset-env',
+                            {
+                                useBuiltIns: 'usage',
+                                corejs: {
+                                    version: 3
+                                },
+                                targets: {
+                                    chrome: '60',
+                                    ie: '9'
+                                }
+                            }
+                        ]
+                    ]
+                }
+            }
+
+
+
+9.HMR热更新
+HMR在style-loader有默认实现
+js: 默认不能使用HMR,需要添加代码，只能处理非入口文件
+devServer: {
+        hot: true
+    }
+
+
+10，sourceMap
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

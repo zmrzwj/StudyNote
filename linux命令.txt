@@ -260,6 +260,7 @@ crontab -e
 4)service crond start
 
 注意：source /etc/profile 不能少，否则crontab自动执行时无法保留数据。mysqldump要绝对路径，原因是cron的环境变量中没有mysqldump。crontab配置文件在/etc/crontab。
+Sh必须要有可以执行的权限：chmod u+x xxx.sh
 
 
 26.mkdir -p
