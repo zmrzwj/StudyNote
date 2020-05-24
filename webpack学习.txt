@@ -255,10 +255,50 @@ devServer: {
 
 
 10，sourceMap
+sourceMap就是一个文件，里面储存着位置信息。
+仔细点说，这个文件里保存的，是转换后代码的位置，和对应的转换前的位置。
+提供构建后代码，通过映射可以追踪源代码错误
+source-map: 外部
+Inline-source-map: 内联
+eval-source-map：外部 原始源代码
+cheap-source-map：外部 转换过的代码（仅限行）
+cheap-module-source-map 外部 原始源代码（仅限行）
+速度快：eval > inline > cheap
+调试更友好：source-map > cheap-module-source-map > cheap-source-map
+综上：eval-source-map最好
+
+hidden-source-map只隐藏源代码
+nosources-source-map 全部隐藏
+
+vue-cli脚手架搭建的工程，开发环境使用的是eval-source-map，生产环境用的是source-map
+
+11.oneOf
+// 以下loader只会匹配一个，提高构建速度，不用每个loader都去过一边
+rules: [
+    oneOf: []
+]
 
 
+12.缓存
+babel缓存:
+    cacheDirectory: true
+    第二次会读取之前的缓存
+hash值：
+    每次webpack构建会生产一个唯一hash值
+trunkhash:
+    根据chunk生成的hash值。
+    chunkhash根据不同的入口文件(Entry)进行依赖文件解析、构建对应的chunk，生成对应的哈希值。在生产环境里把一些公共库和程序入口文件区分开，单独打包构建，接着我们采用chunkhash的方式生成哈希值，那么只要我们不改动公共库的代码，就可以保证其哈希值不会受影响。
+    同一个模块，就算将js和css分离，其哈希值也是相同的，修改一处，js和css哈希值都会变
+Contenthash:
+   根据文件内容生产hash值
+   output: {
+        filename: "js/index.[contenthash:10].js",
+        path: resolve(__dirname, 'build')
+    },
 
-
+    new MiniCssExtractPlugin({
+        filename: 'index.[contenthash:10].css'
+    }),
 
 
 
