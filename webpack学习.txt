@@ -303,6 +303,46 @@ Contenthash:
 
 
 
+13.tree shaking
+去除不引用的代码
+js前提：必须使用es6模块化,开启production，会自动使用tree shaking
+
+"sideEffects": false 所有代码没有副作用
+"sideEffects": ["*.css", "*.less"] // 不去除css, less
+
+
+
+14.code split 代码分割
+使用webpack配置：
+plugins: [],
+optimization: {
+        splitChunks: {
+            chunks: 'all'
+        }
+}
+使用import:
+import(/* webpackChunkName: 'print' */'./print').then(res => {
+    console.log(res)
+}).catch(() => {
+
+})
+
+
+
+15.懒加载
+在使用的地方
+import(/* webpackChunkName: 'print', webpackPrefetch: true */'./print').then(res => {
+    console.log(res)
+}).catch(() => {
+
+})
+webpackPrefetch: true 预加载，会在使用之前，提前加载，等待其它资源加载完毕，浏览器空闲了，再偷偷加载。预加载慎用
+
+
+
+16.PWA
+npm i workbox-webpack-plugin -D
+
 
 
 
