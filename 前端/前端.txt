@@ -137,3 +137,12 @@ var  options = {
 observer.observe(article, options);
 
 
+
+
+14.微前端
+shadow dom 隔离css
+shadow-dom 和 主dom的样式互不影响。
+iframe 隔离第三分app
+
+
+
