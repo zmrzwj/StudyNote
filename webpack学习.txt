@@ -112,7 +112,8 @@ html-withimg-loader处理<img>的图片
 
 5.devServer
 // 只在内存中打包
-// 启动devServer: webpack-dev-server(npm i webpack-dev-server -D)，运行：npx webpack-dev-server
+// 安装devServer: webpack-dev-server(npm i webpack-dev-server -D)
+//运行：npx webpack-dev-server
     devServer: {
         contentBase: resolve(__dirname, 'build'),
         compress: true,
@@ -342,6 +343,96 @@ webpackPrefetch: true 预加载，会在使用之前，提前加载，等待其�
 
 16.PWA
 npm i workbox-webpack-plugin -D
+const WorkBoxPlugin = require('workbox-webpack-plugin')
+plugins添加配置：
+new WorkBoxPlugin.GenerateSW({
+            clientsClaim: true, // 新的 Service Worker 被激活后使其立即获得页面控制权
+            skipWaiting: true // 强制等待中的 Service Worker 被激活
+        })
+
+在主入口文件index.js，注册serviceworker
+// 注册serviceworker
+// 处理兼容问题
+if('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(() => {
+                console.log('sw注册成功！')
+            })
+    })
+}
+注意：Service Worker脚本除了域名为 localhost时能运行在http协议下以外，只能运行https协议下。
+
+使用服务器测试：
+npm i serve -g
+serve -s build
+访问页面，把网络调为offline
+
+PWA原理：
+PWA 借助 Service Worker 缓存网站的静态资源，甚至是网络请求，使网站在离线时也能访问。并且我们能够为网站指定一个图标添加在手机桌面，实现点击桌面图标即可访问网站。
+Web App Manifest 是一个 JSON 文件，它用来定义网站添加到桌面的图标以及从桌面图标进入网站时的一系列行为，如：启动样式，全屏主题等。
+<link rel=manifest href=/manifest.json>
+
+
+
+
+
+17.多线程打包
+npm i thread-loader -D
+{
+    test: /\.js$/,
+    exclude: /node_modules/,
+    use: [
+        {
+           loader: 'thread-loader',
+           options: {
+                workers: 2
+           }
+        },
+        {
+           loader: 'babel-loader',
+           options: {}
+        }
+}
+
+
+
+18. externals
+plugins:[],
+externals: { // 不打包什么文件
+        jquery: 'jQuery' // 这个包名要写对
+    }
+使用script方式直接引入时使用这种方式
+
+
+19.dll
+创建webpack.dll.js
+const { resolve } = require('path')
+const webpack = require('webpack')
+plugins: [
+        // 使用dll，对某些库进行单独打包
+        // 打包生产一个manifest.json --> 提供和jquery映射
+        new webpack.DllPlugin({
+            name: '[name]_[hash]',
+            path: resolve(__dirname, 'dll/manifest.json')
+        })
+    ]
+
+webpack --config webpack.dll.js
+会在dll目录下生成manifest.json文件，相应的库也会打包为单独的文件
+
+webpack.DllReferencePlugin:
+// 告诉哪些包不参与打印
+        new webpack.DllReferencePlugin({
+            manifest: resolve(__dirname, 'dll/manifest.json')
+        }),
+        // 将某个文件打包输出，并在html中自动引入改资源
+        new AddAssetHtmlWebpackPlugin({
+            filepath: resolve(__dirname, 'dll/js/jquery.js')
+        })
+打包后jquery会独立出来，并切html中会引入jquery
+
+
 
 
 
