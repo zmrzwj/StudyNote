@@ -15,6 +15,13 @@ $ tar xzvf /path/to/<FILE>.tar.gz
 通过运行hello-world 映像验证是否正确安装了Docker 。
 $ sudo docker run hello-world
 
+修改源
+# vi /etc/docker/daemon.json
+{
+"registry-mirrors": ["http://hub-mirror.c.163.com"]
+}
+systemctl restart docker.service
+
 
 2.docker --version
 
@@ -25,6 +32,14 @@ docker image ls
 列出容器:
 docker container ls --all
 
+docker images // 查看下载的镜像
+
 5.hadoop,spark docker镜像
 docker pull sequenceiq/hadoop-docker：2.4.1
 docker pull sequenceiq/spark:1.6.0
+
+6.启动容器和关闭容器
+docker start 容器ID
+docker stop 容器ID
+
+7.端口映射

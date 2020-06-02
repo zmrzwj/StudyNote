@@ -550,6 +550,12 @@ v-on修饰符
 v-bind修饰符
 .sync 是一个语法糖,作用(双向绑定的另一种方式) 
 直接在子组件使用this.$emit('update:word', newValue)更新word的值
+父组件：
+<text-document
+  v-bind:title="doc.title"
+  v-on:update:title="doc.title = $event"
+></text-document>
+简写就是：<text-document v-bind:title.sync="doc.title"></text-document>
 
 
 
