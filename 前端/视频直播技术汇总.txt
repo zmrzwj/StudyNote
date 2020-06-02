@@ -75,7 +75,7 @@ https://linkingvision.com/download/h5stream/
 src: [
 {
     ***
-    strUrl: 'rasp://xxx' 
+    strUrl: 'rstp://xxx' 
 }
 ]
 

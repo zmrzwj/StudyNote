@@ -137,3 +137,22 @@ var  options = {
 observer.observe(article, options);
 
 
+
+
+14.微前端
+shadow dom 隔离css
+shadow-dom 和 主dom的样式互不影响。
+iframe 隔离第三分app
+
+Css modules
+
+应用通信：
+URL
+浏览器事件总线CustomEvent
+通过主通信，使子应用通信
+
+
+
+15.Service Worker
+javaScript 是单线程的，随着web业务的复杂化，开发者逐渐在js中做了许多耗费资源的运算过程，这使得单线程的弊端更加凹显。web worker正是基于此被创造出来，它是脱离在主线程之外的，我们可以将复杂耗费时间的事情交给web worker来做。但是web worker作为一个独立的线程，他的功能应当不仅于此。sw便是在web worker的基础上增加了离线缓存的能力。
+

@@ -164,6 +164,10 @@ show slave status;
 Slave_IO_Running=Yes
 Slave_SQL_Running=Yes
 
+关闭从复制：
+stop slave;
+Reset slave;
+
 	
 
 
