@@ -1620,7 +1620,37 @@ https://docs.spring.io/spring-boot/docs/2.3.0.RELEASE/reference/html/appendix-ap
 
 
 
-70.
+70.myBatis集成
+创建mapper
+1）使用注解
+@Mapper
+public interface SDSensorTypeMapper extends BaseMapper<SDSensorType> {
+    @Select("select * from sd_sensor_type;")
+    List<SDSensorType> findAll();
+}
+@MapperScan("com.sccddw.iot.mapper")指定mapper包批量扫描，就不用每个类加@Mapper
+@）使用新xml
+# mybatis-plus
+#全局配置文件
+mybatis-plus.config-locations=classpath:mybatis/mybatis-config.xml
+#mybatis-plus.type-aliases-package=com.sccddw.test.entity.vo,com.sccddw.test.entity.db,com.sccddw.test.entity.bean
+# 指定sql映射文件的位置
+mybatis-plus.mapper-locations=classpath:mybatis/mapper/*.xml
+mybatis-plus.global-config.db-config.id-type=auto
+创建：mybatis-config.xml
+单个：DrsrsAllocateDepotOrderDetailMapper.xml
+
+
+
+
+
+
+
+72.@tableid
+
+
+
+71.schema,
 
 
 
