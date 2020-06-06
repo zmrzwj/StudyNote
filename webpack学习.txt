@@ -436,8 +436,27 @@ webpack.DllReferencePlugin:
 
 
 
+20.webpack配置详解
+中文文档
+https://www.webpackjs.com/concepts/
+1）entry
 
 
+
+
+
+
+
+
+
+
+21.vue-cli3 webpack配置
+https://cli.vuejs.org/zh/config/#%E5%85%A8%E5%B1%80-cli-%E9%85%8D%E7%BD%AE
+https://cli.vuejs.org/zh/guide/webpack.html#%E7%AE%80%E5%8D%95%E7%9A%84%E9%85%8D%E7%BD%AE%E6%96%B9%E5%BC%8F
+拿到webpack配置：
+vue inspect > output.js // 拿到解析好的 webpack 配置
+vue inspect --mode development >> webpack.config.development.js
+vue inspect --mode production >> webpack.config.production.js
 
 
 

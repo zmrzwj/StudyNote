@@ -1279,6 +1279,15 @@ next('/') 或者 next({ path: '/' }): 跳转到一个不同的地址。
 
 
 
+37.babel.config.js 如何配置
+主要两个东西：
+presets //预设
+plugins // 插件，需要下载然后再在这配置
+详细参考文档：
+https://www.babeljs.cn/docs/7.2.0/configuration
+https://www.babeljs.cn/docs/7.2.0/presets
+https://babel.docschina.org/docs/en/plugins // 汇总plugin
+
 
 
 
