@@ -440,10 +440,89 @@ webpack.DllReferencePlugin:
 中文文档
 https://www.webpackjs.com/concepts/
 1）entry
+module.exports = {
+    entry: ['./src/index.js', './src/index.html']
+}
+// entry入口点
+//entry:'./src/index.js' 打包形成一个chunk，输出一个bundle文件，单入口
+//entry: {index: './src/index.js', index2: './src/index2.js'},多入口,
+//entry: ['./src/index.js', './src/index2.js'] 只会形成一个chunk输出一个文件，多入口{}和[]可以同时使用
 
+2）output 
+ // 文件名
+ filename: "js/index.[contenthash:10].js",
+ // 输出文件目录
+ path: resolve(__dirname, 'dll'),
+ // 所有公共资源引入公共路径前缀
+ publicPath: "/"
+ chunkFilename: "js/[name]_chunk.js" // 非入口chunk的名称
+ // libraryTarget: "window", // 变量名添加到window上
+ library: '[name]_[hash]', // 整个库向外暴露的变量名
+ libraryTarget: "global" // 变量名添加到node上
 
+3)module
+const { resolve } = require('path')
+rules: [
+  // loader配置
+  {
+    test: /\.css$/,
+    use: [] // 多个loader
+    loader: 'xxx-loader', // 单个loader
+    // 排除其它资源
+    exclude: /.(html|js|css|less|jpg|png|jpg|gif)/,
+    include: reslove(__dirname, 'src'), // 只检查src下的js文件
+    enforce: pre,// post // 优先执行
+    options: {}
+  }
+]
 
+4）resolve
+// 解析模块的规则
+    resolve: {
+        // 解析模块路径别名, 优点简写路径，确定没有代码提示
+        alias: {
+            $css: resolve(__dirname, 'src/css') // import '$css/index.css'
+        },
+        // 配置省略文件路径的后缀，帮助省略后缀名
+        extensions: ['.js', '.jsx', '.css'], // import '$css/index'相当于import '$css/index.css'
+        // 告诉webpack解析模块去哪里找, 默认会一层一层往外找
+        modules: [resolve(__dirname, '../../node_modules'), 'node_modules']
+    }
 
+5）devServer
+    devServer: {
+        // 运行代码的目录
+        contentBase: resolve(__dirname, 'build'),
+        // 监视contentBase目录下的所有文件，一旦文件变化就reload
+        watchContentBase: true,
+        // 开启压缩
+        compress: true,
+        port: 3000,
+        // 自动打开浏览器
+        open: true,
+        // 开启HMR
+        hot: true,
+        // 不要显示启动服务日志
+        clientLogLevel: 'none',
+        // 除了一些基本启动信息以外，其它内容不显示
+        quiet: true,
+        // 出错，不要全屏提示
+        overlay: false,
+        // 服务器代理
+        proxy: {
+            '/api': {
+                target: 'http://192.168.11.216',
+                // 路径重写，将/api/xxx --> /xxx(去掉/api)
+                pathRewrite: {
+                    '^/api': ''
+                }
+            }
+        }
+    }
+
+6)optimization
+在生产环境使用
+mode: 'production'
 
 
 
@@ -457,6 +536,7 @@ https://cli.vuejs.org/zh/guide/webpack.html#%E7%AE%80%E5%8D%95%E7%9A%84%E9%85%8D
 vue inspect > output.js // 拿到解析好的 webpack 配置
 vue inspect --mode development >> webpack.config.development.js
 vue inspect --mode production >> webpack.config.production.js
+
 
 
 
