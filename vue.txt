@@ -1276,6 +1276,136 @@ next('/') 或者 next({ path: '/' }): 跳转到一个不同的地址。
 
 
 
+37.插件编写
+import ToastComponent from './Toast.vue'
+const Toast = {}
+Toast.install = function (Vue) {
+  const ToastPlugin = Vue.extend(ToastComponent)
+  const instance = new ToastPlugin()
+  // 将这个实例挂载在我创建的div上
+  // 并将此div加入全局挂载点内部
+  instance.$mount((document.createElement('div')))
+  document.body.appendChild(instance.$el)
+  // 通过Vue的原型注册一个方法
+  // 让所有实例共享这个方法
+  Vue.prototype.$toast = (msg, duration = 2000) => {
+    instance.message = msg
+    instance.show = true
+    setTimeout(() => {
+      instance.show = false
+    }, duration)
+  }
+}
+export default Toast
+Toast.vue:
+<template>
+		<transition name="fade">
+				<div class="toast" v-show="show">
+						{{message}}
+				</div>
+		</transition>
+</template>
+<script>
+export default {
+  data () {
+    return {
+      message: '',
+      show: false
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+		.toast {
+				......
+		}
+		.fade-enter-active, .fade-leave-active {
+				transition: 0.5s ease-out;
+		}
+		.fade-enter {
+				opacity: 0;
+				transform: scale(1.2);
+		}
+		.fade-leave-to {
+				opacity: 0;
+				transform: scale(0.8);
+		}
+</style>
+使用：
+import Toast from './plugins/Toast'
+Vue.use(Toast)
+
+
+
+
+38.vue.extend()
+vue.extend()方法其实是vue的一个构造器,目的是创建一个Vue的子类.
+所以他不能直接在new Vue中这样使用,最终还是要通过Vue.components注册才可以使用的。
+var apple = Vue.extend({
+    ....
+ })
+Vue.component('apple',apple) 
+var Profile = Vue.extend({
+  template: '<p>{{firstName}} {{lastName}} aka {{alias}}</p>',
+  data: function () {
+    return {
+      firstName: 'Walter',
+      lastName: 'White',
+      alias: 'Heisenberg'
+    }
+  }
+})
+// 创建 Profile 实例，并挂载到一个元素上。
+new Profile().$mount('#mount-point')
+传入属性需要使用propsData.
+new Profile({
+    propsData: {
+	    firstName: '123'
+	}
+})
+
+
+
+39.vue.set()
+由于 Vue 会在初始化实例时对 property 执行 getter/setter 转化，
+所以 property 必须在 data 对象上存在才能让 Vue 将它转换为响应式的.
+可以使用 Vue.set(object, propertyName, value) 方法向嵌套对象添加响应式 property。
+Vue.set( target, key, value )
+target：要更改的数据源(可以是对象或者数组)
+key：要更改的具体数据
+value ：重新赋的值
+
+您还可以使用 vm.$set 实例方法，这也是全局 Vue.set 方法的别名：
+例：this.$set(this.someObject,'b',2)
+data:{
+		items:['a', 'b', 'c']
+	},
+methods:{
+		btn(){
+			this.$set(this.items, 1, 'e')
+			console.log(this.items)
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

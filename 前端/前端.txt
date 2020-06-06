@@ -134,6 +134,15 @@ var  options = {
   'childList': true,
   'attributes':true
 };
+可选参数 options的属性如下：
+childLIst 观察目标节点的子节点的新增和删除。
+attributes 观察目标节点的属性节点(新增或删除了某个属性,以及某个属性的属性值发生了变化)。
+characterData 如果目标节点为characterData节点(一种抽象接口,具体可以为文本节点,注释节点,以及处理指令节点)时,也要观察该节点的文本内容是否发生变化
+subtree 观察目标节点的所有后代节点(观察目标节点所包含的整棵DOM树上的上述三种节点变化)
+attributeOldValue 在attributes属性已经设为true的前提下, 将发生变化的属性节点之前的属性值记录下来(记录到下面MutationRecord对象的oldValue属性中)
+characterDataOldValue 在characterData属性已经设为true的前提下,将发生变化characterData节点之前的文本内容记录下来(记录到下面MutationRecord对象的oldValue属性中)
+attributeFilter 一个属性名数组(不需要指定命名空间),只有该数组中包含的属性名发生变化时才会被观察到,其他名称的属性发生变化后会被忽略想要设置那些删选参数的话，
+
 observer.observe(article, options);
 
 
@@ -154,5 +163,61 @@ URL
 
 
 15.Service Worker
-javaScript 是单线程的，随着web业务的复杂化，开发者逐渐在js中做了许多耗费资源的运算过程，这使得单线程的弊端更加凹显。web worker正是基于此被创造出来，它是脱离在主线程之外的，我们可以将复杂耗费时间的事情交给web worker来做。但是web worker作为一个独立的线程，他的功能应当不仅于此。sw便是在web worker的基础上增加了离线缓存的能力。
+javaScript 是单线程的，随着web业务的复杂化，开发者逐渐在js中做了许多耗费资源的运算过程，
+这使得单线程的弊端更加凹显。web worker正是基于此被创造出来，它是脱离在主线程之外的，我们可以将复杂耗费时间的事情交给web worker来做。
+但是web worker作为一个独立的线程，他的功能应当不仅于此。sw便是在web worker的基础上增加了离线缓存的能力。
+
+
+
+
+
+16.设计模式和起应用
+适配器模式（Adapter）
+定义
+又名包装器，适配器模式将一个类的接口，转换为客户期望的另一个接口，适配器让原本接口不兼容的类可以合作无间。
+var googleMap = {
+    show:function(){
+        console.log('开始渲染谷歌地图')
+    }
+};
+var baiduMap = {
+    display:function(){
+        console.log('开始渲染百度地图')
+    }
+};
+var baidumapAdapter = {
+    show : function(){
+        return baiduMap.display(); // 一个适配器类使show方法一致
+    }
+};
+renderMap(googleMap);
+renderMap(baiduMapAdapter);
+
+策略模式（Strategy）
+策略模式定义了算法组，分别封装起来，让他们之间可以互相替换，此模式让算法的变化独立于使用算法的客户。
+一个按不同等级计算年终奖的例子
+// 策略组
+var strategies = {
+    "S": function(salary){
+        return salary * 4;
+    },
+    "A": function(salary){
+        return salary * 3;
+    },
+    "B":function(salary){
+        return salary * 2
+    }
+};
+// 内容组
+var calculateBonus = function(level,salary){
+    return strategies[level](salary);
+}
+// 执行
+console.log(calculateBonus('S',20000)); // 输出：80000
+
+
+
+
+
+
 
