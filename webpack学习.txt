@@ -523,6 +523,47 @@ rules: [
 6)optimization
 在生产环境使用
 mode: 'production'
+optimization: {
+        splitChunks: {
+            chunks: 'all',
+            minSize: 30 * 1024,
+            maxSize: 0, // 最大没有限制
+            minChunks: 1, // 要提取chunk最少被引用一次
+            maxAsyncRequests: 5, // 按需加载并行加载文件最大数量
+            maxInitialRequests: 3, // 入口js文件最大并行请求数量
+            automaticNameDelimiter: '~', // 名称链接符
+            name: true, // 可以使用命名规则
+            cacheGroups: {
+                // 分割chunk组
+                // node_modules文件会被打包到vendors组的chunk中，vendors~xxx.js
+                // 满足上面的公共规则，如：大小超过30kb,至少被引用一次
+                vendors: {
+                    test: /[\\/]node_modules[\\/]/,
+                    // 优先级
+                    priority: -10
+                },
+                default: {
+                    minChunks: 2,
+                    // 优先级
+                    priority: -20,
+                    // 如果当前要打包的模块，和之前已尽被提取的模块是同一个，就会复用，而不是重新打包模块
+                    reuseExistingChunk: true
+                }
+            }
+        },
+        // 将当前模块的记录其它模块的hash单独打包为一个runtime
+        // 解决：修改a文件导致b文件的contenthash变化
+        runtimeChunk: {
+            name: entrypoint => `runtime-${entrypoint.name}`
+        },
+        minimizer: [
+            new TerserWebpackPlugin({
+                cache: true,
+                parallel: true,
+                sourceMap: true
+            })
+        ]
+    }
 
 
 
@@ -537,11 +578,14 @@ vue inspect > output.js // 拿到解析好的 webpack 配置
 vue inspect --mode development >> webpack.config.development.js
 vue inspect --mode production >> webpack.config.production.js
 
+productionSourceMap: false, 打包时取消SourceMap
 
 
 
 
 
+22.webpack 5
+https://github.com/webpack/changelog-v5 // 对比webpack4的更改
 
 
 
