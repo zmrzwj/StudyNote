@@ -216,7 +216,8 @@ var calculateBonus = function(level,salary){
 console.log(calculateBonus('S',20000)); // 输出：80000
 
 
-
+17.窗口化
+使数据只有前、当前、后三屏数据。
 
 
 

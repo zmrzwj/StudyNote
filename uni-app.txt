@@ -1,0 +1,99 @@
+1.https://uniapp.dcloud.io/
+工具hbuilderx
+https://www.dcloud.io/hbuilderx.html
+下载app开发版
+
+2.tabBar
+
+3.组建
+https://uniapp.dcloud.io/component/README
+
+4、生命周期
+https://uniapp.dcloud.io/collocation/frame/lifecycle
+应用生命周期：
+  onLaunch	当uni-app 初始化完成时触发（全局只触发一次）
+  onShow	当 uni-app 启动，或从后台进入前台显示
+  onHide	当 uni-app 从前台进入后台
+  onError	当 uni-app 报错时触发
+  onUniNViewMessage	对 nvue 页面发送的数据进行监听，可参考 nvue 向 vue 通讯
+页面生命周期：
+  ...
+
+组件生命周期：
+  ...
+
+
+5、路由跳转
+uni.switchTab(OBJECT) // tabbar的跳转
+跳转到 tabBar 页面，并关闭其他所有非 tabBar 页面。
+
+uni.navigateTo(OBJECT) // 不关闭之前页面,只能保存几层
+保留当前页面，跳转到应用内的某个页面，使用uni.navigateBack可以返回到原页面。
+
+uni.redirectTo(OBJECT)
+关闭当前页面，跳转到应用内的某个页面。
+
+
+
+6.单位upx
+
+
+
+7.扩展组件（uni-ui
+https://uniapp.dcloud.io/component/README?id=uniui
+
+
+8.vuex
+新建store目录
+创建index.js
+import Vue from 'vue'
+import Vuex from 'vuex'
+
+Vue.use(Vuex)
+export default new Vuex.Store({
+	state: {
+		num: 3
+	},
+	getters: {
+		getNum (state) {
+			return state.num
+		}
+	},
+	mutations: {
+		add (state, data) {
+			state.num = state.num + 1
+		}
+	},
+	actions: {}
+}) 
+
+
+
+9.微信小程序openid获取
+uni.getProvider({
+				service: "oauth",
+				success: res => {
+					const provider = res.provider[0];
+					
+					uni.login({
+						provider,
+						success: loginRes => {
+							// console.log(loginRes);
+							const code = loginRes.code;
+							const appid = "wx7c6a6dcce8085da8";
+							const secret = "dc88b2edbc7dd0fb3f230e50d1bfb330";
+							const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=${code}&grant_type=authorization_code`;
+							uni.request({
+								url,
+								success: dataRes => {
+									console.log('dataRes', dataRes)
+								}
+							})           
+						}
+					})
+					
+				}
+			})
+
+
+
