@@ -111,13 +111,13 @@ Email Address []:admin@cddw.com
 
 配置nginx.conf
 server{
-	listen       443;
+	listen       443 ssl;
 	server_name  www.cddw.com;
-	ssl on;
+	# ssl on; //此配置已过时
 	ssl_certificate ./cert/a.crt;//阿里的后缀为.pem,请做相应修改
         ssl_certificate_key ./cert/a.key;
         ssl_session_timeout 5m;
-        ssl_protocols SSLv2 SSLv3 TLSv1;
+        ssl_protocols SSLv2 SSLv3 TLSv1; // 对于小程序请配置为：TLSv1 TLSv1.1 TLSv1.2 TLSv1.3
 	ssl_ciphers  HIGH:!aNULL:!MD5;     //密码加密方式
         ssl_prefer_server_ciphers   on;    //依赖SSLv3和TLSv1协议的服务器密码将优先于客户端密码
 }

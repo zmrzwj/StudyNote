@@ -1643,6 +1643,16 @@ mybatis-plus.global-config.db-config.id-type=auto
 
 
 
+71.shiro集成
+<!--shiro-->
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-spring</artifactId>
+            <version>1.5.3</version>
+        </dependency>
+
+
+
 
 
 
