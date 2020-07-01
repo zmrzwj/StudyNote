@@ -97,3 +97,13 @@ uni.getProvider({
 
 
 
+9.页面参数
+Uni.navigateTo({
+  Url: '/news?id=' + '123'
+})
+onLoad(option) {
+ console.log(option.id);
+}
+
+
+
