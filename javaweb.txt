@@ -1657,10 +1657,38 @@ mybatis-plus.global-config.db-config.id-type=auto
 
 
 72.@tableid
+mybatis主键注解
 
 
 
-71.schema,
+71.oauth2
+四种模式：
+授权码模式（authorization code）
+    网上看到通过微信登录，QQ登录等字眼。通过请求获取授权code，response_type:code（授权码模式下springOAuth2规定为code）;
+redirect_uri:授权成功后的回调地址，登录成功后会去到redirect_uri并带上code.然后拿code去鉴权服务拿token。
+    对于认证中心：需要注册用户，需要注册应用。
+简化模式（implicit）
+
+密码模式（resource owner password credentials）
+    主要是适用于客户端来获取用户信息的场景。
+	与授权码模式不同，不需要认证服务颁发的授权码，只需要用户名和密码以及我们设置的客户端信息就可以了。
+	
+客户端模式（client credentials）(主要用于api认证，跟用户无关)
+提供给第三方一个client_id 和 client_secret,相当于公用的用户名密码,第三方拿着这俩东西去换取令牌,拿着令牌去取数据就可以了. 
+基本只需要提供两个接口 ,  一个是获取令牌 , 一个是获取数据
+GET /token?grant_type=client_credentials & client_id = {客户端身份ID} &  相当于用户名client_secret = {客户端秘钥}  & 相当于密码
+我们后端拿着这个用户名密码进行比对 , 比对成功 ,返回access_token
+2. 第三方拿着access_token 获取数据
+GET /user?access_token = {令牌} &uid = {用户ID}
+后端验证access_token 存在 , 并且没有过期 , 就验证通过 , 返回数据。
+
+
+
+
+
+
+
+
 
 
 
