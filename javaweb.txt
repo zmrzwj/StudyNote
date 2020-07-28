@@ -1650,7 +1650,8 @@ mybatis-plus.global-config.db-config.id-type=auto
             <artifactId>shiro-spring</artifactId>
             <version>1.5.3</version>
         </dependency>
-
+shiro功能：
+    认证、授权、加密、会话管理
 
 
 

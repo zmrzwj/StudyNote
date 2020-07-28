@@ -1,0 +1,80 @@
+1.安装
+https://www.oracle.com/database/technologies/oracle-database-software-downloads.html
+
+
+2.创建用户
+默认会有用户：system
+密码在安装的时候会需要设置。
+使用system登录。
+cdb模式下用户名需要带上c##或C##
+create user c##SC_DPSH IDENTIFIED by sccddw123456;
+然后可以修改用户名：
+查看用户：SELECT user#,name FROM user$;
+ UPDATE USER$ SET NAME='SC_DPSH' WHERE user#=104; // 这样就可以把C##去掉了
+ COMMIT;
+ // 刷新
+ ALTER SYSTEM CHECKPOINT;
+ ALTER SYSTEM FLUSH SHARED_POOL;
+ 
+ 授权：
+ grant dba to SC_DPSH;
+ GRANT ALL PRIVILEGES to SC_DPSH;
+
+
+
+3.创建表空间
+create tablespace ODSVIEW  logging datafile 'F:\oracle\ODSVIEW\ODSVIEW.dbf' 
+autoextend on next 200m maxsize unlimited extent management local BLOCKSIZE 16k;
+
+删除表空间
+drop tablespace ODSVIEW including contents and datafiles;
+
+表空间块大小 16384 与配置的块大小不匹配：
+	创建表空间报ora29339错误，解决办法：设置16k缓存参数大小
+	alter system set db_16k_cache_size=16m;
+	
+windows无法设置块大小为32k
+
+
+
+4.创建目录
+create directory SC_DPSH_dir as 'F:\oracle\ODSVIEW';
+给用户授权
+grant read,write on directory SC_DPSH_dir to SC_DPSH;
+
+
+
+5.导入数据
+impdp SC_DPSH/sccddw123456 directory=SC_DPSH_dir dumpfile=MP_READ_CURVE_JG21_30.dump table_exists_action=replace
+
+
+
+6.去到PDB模式
+alter pluggable database all open;
+alter session set container=ORCLPDB;
+在pdb模式下可以创建不带C##的用户：
+select con_id,dbid,NAME,OPEN_MODE from v$pdbs;
+alter pluggable database orclpdb open;
+alter session set container=ORCLPDB;
+select sys_context ('USERENV', 'CON_NAME') from dual;
+create user SC_DPSH IDENTIFIED by sccddw123456;
+grant dba to SC_DPSH;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
