@@ -23,8 +23,7 @@ create user c##SC_DPSH IDENTIFIED by sccddw123456;
 
 
 3.创建表空间
-create tablespace ODSVIEW  logging datafile 'F:\oracle\ODSVIEW\ODSVIEW.dbf' 
-autoextend on next 200m maxsize unlimited extent management local BLOCKSIZE 16k;
+create tablespace ODSVIEW  logging datafile 'F:\oracle\ODSVIEW\ODSVIEW.dbf' size 200m autoextend on next 200m maxsize unlimited extent management local BLOCKSIZE 16k;
 
 删除表空间
 drop tablespace ODSVIEW including contents and datafiles;
@@ -34,6 +33,12 @@ drop tablespace ODSVIEW including contents and datafiles;
 	alter system set db_16k_cache_size=16m;
 	
 windows无法设置块大小为32k
+
+由于BLOCKSIZE的限制，数据文件大小有上限，所以需要添加数据文件：
+ALTER TABLESPACE ODSVIEW ADD DATAFILE 'F:\oracle\ODSVIEW\ODSVIEW01.dbf' SIZE 200M AUTOEXTEND ON NEXT 200M MAXSIZE unlimited BLOCKSIZE 16k;
+
+绑定表空间在刚才创建的用户上
+alter user SC_DPSH default tablespace ODSVIEW;
 
 
 
@@ -61,12 +66,19 @@ create user SC_DPSH IDENTIFIED by sccddw123456;
 grant dba to SC_DPSH;
 
 
+7.查询
+oracle查看所有的表空间:
+select name from v$tablespace;
+查询表空间下所以表：
+Select Table_Name, Tablespace_Name From Dba_Tables Where Tablespace_Name = 'ODSVIEW';
+查询表中字段：
+SELECT * FROM ALL_TAB_COLUMNS WHERE TABLE_NAME = 'MP_READ_CURVE_JG2_29'
+查询第一条数据：
+select * from SC_DPSH.MP_READ_CURVE_JG2_29 where rownum < 2;
 
 
 
-
-
-
+8.如果splplus可以连接，navicat无法连接，请重启oracle服务
 
 
 
