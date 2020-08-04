@@ -221,6 +221,26 @@ Python将内存根据对象的存活时间划分为不同的集合，每个集�
 
 
 
+17.miniconda
+https://docs.conda.io/en/latest/miniconda.html
+
+在pycharm创建项目时，下面的project interpreter可以选择Conda环境。
+可能报错：An HTTP error occurred when trying to retrieve this URL...If your current network has https://www.anaconda.com blocked
+解决：
+添加清华源：
+conda config --add channels http://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/msys2/
+conda config --add channels http://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+conda config --add channels http://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+conda config --set show_channel_urls yes
+在C:\Users\用户名 目录下修改配置文件 .condarc，将 -defaults 这一行删掉即可。
+
+
+
+
+18.Anaconda
+https://docs.anaconda.com/anaconda/install/windows/
+
+
 
 
 
