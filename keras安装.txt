@@ -22,3 +22,6 @@ pycharm virtualenv环境配置：
 default settings->project interpreter
 选择Add Local...
 选择刚安装的virtualenv里的python(在/bin或里/scripts)
+
+
+tensorflow2.0已经包含了keras，不要再安装。
