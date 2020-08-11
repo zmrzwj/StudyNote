@@ -44,14 +44,22 @@ settings下Repository的Protected Branches，选择分支，调整相应权限�
 Git clone master是不会把其它分支clone下来的
 
 查看远程分支：
-git branch -r
+git branch -r 查看远程分支
 git branch 是查看本地分支
+git branch xxx 创建分支
+git checkout xxx 切换分支
+git checkout -b [name] 创建新分支并立即切换到新分支 
 
 git remote命令列出所有远程主机
 origin
 
-git remote -v 可以参看远程主机的网址
-origin  git@github.com:jquery/jquery.git (push)
+git remote -v 可以参看远程主机的网址和名称
+git remote add origin  git@github.com:jquery/jquery.git (push) 添加远程仓库
+git remote set-url --add origin <url> 添加多个地址到origin库，这样可以使一次性push到多个地址里面
+
+git push
+　　如果当前分支只有一个远程分支，那么主机名都可以省略
+git push origin test:test              // 提交本地test分支作为远程的test分支
 
 创建本地分支zwj
 Git branch zwj

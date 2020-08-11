@@ -82,6 +82,25 @@ select * from SC_DPSH.MP_READ_CURVE_JG2_29 where rownum < 2;
 
 
 
+9.sql 循环
+declare 
+	i number;
+	t VARCHAR2(30);
+	sql_s VARCHAR2(200);
+begin
+	i := 8;	
+	t := '';
+	sql_s := '';
+  while i < 10 loop
+		t := concat('MP_READ_CURVE_JG2_', i);
+		sql_s := 'UPDATE ' || t || ' set ' || t || '.T_FACTOR = ( SELECT T_CONS_FACTOR.T_FACTOR FROM T_CONS_FACTOR WHERE T_CONS_FACTOR.CONS_NO = ' || t || '.CONS_NO)';
+		EXECUTE IMMEDIATE sql_s;
+    i := i + 1;
+  end loop;	
+end;
+
+
+
 
 
 
