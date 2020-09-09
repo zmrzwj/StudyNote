@@ -1623,13 +1623,33 @@ https://docs.spring.io/spring-boot/docs/2.3.0.RELEASE/reference/html/appendix-ap
 70.myBatis集成
 创建mapper
 1）使用注解
+@SpringBootApplication上添加@MapperScan("com.sccddw.iot.mapper")指定mapper包批量扫描，就不用每个类加@Mapper
+创建mapper目录
+创建xxxMpper接口文件：
 @Mapper
 public interface SDSensorTypeMapper extends BaseMapper<SDSensorType> {
     @Select("select * from sd_sensor_type;")
     List<SDSensorType> findAll();
 }
-@MapperScan("com.sccddw.iot.mapper")指定mapper包批量扫描，就不用每个类加@Mapper
-@）使用新xml
+创建service目录
+创建IxxxService
+public interface IxxxService {
+    List<SDSensorType> findAll();
+}
+在service目录中创建impl目录
+新建DmServiceImpl
+@Service
+public class xxxServiceImpl implements IxxxService {
+    @Autowired
+    xxxMapper xxxMapper;
+
+    public List<Dm> findAll () {
+        return xxxMapper.findAll();
+    }
+}
+
+
+2）使用新xml
 # mybatis-plus
 #全局配置文件
 mybatis-plus.config-locations=classpath:mybatis/mybatis-config.xml
@@ -1637,8 +1657,11 @@ mybatis-plus.config-locations=classpath:mybatis/mybatis-config.xml
 # 指定sql映射文件的位置
 mybatis-plus.mapper-locations=classpath:mybatis/mapper/*.xml
 mybatis-plus.global-config.db-config.id-type=auto
+在resources中创建mybatis目录
 创建：mybatis-config.xml
+在mybatis目录下创建mapper目录：
 单个：DrsrsAllocateDepotOrderDetailMapper.xml
+
 
 
 
