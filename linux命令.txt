@@ -452,6 +452,11 @@ getsebool -a | grep samba
 
 
 
-
+33.防火墙关闭但远程也无法访问端口
+需要先开放端口，再关闭
+firewall-cmd --zone=public --add-port=80/tcp --permanent  
+firewall-cmd --reload
+systemctl stop firewalld # 关闭防火墙
+systemctl disable firewalld # 禁用
 
 
