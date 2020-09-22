@@ -1,0 +1,66 @@
+1、安装
+http://rocketmq.apache.org/release_notes/release-notes-4.5.1/
+
+rocketmq-console：是springboot项目下载下来用idea打包就行
+https://github.com/apache/rocketmq-externals/tree/master/rocketmq-console
+
+2.启动
+解压rocketmq-all-4.5.1-bin-release.zip，然后进入
+因为broker默认使用内存较大，需要改小些。
+修改runbroker.sh
+第一个JAVA_OPT改成JAVA_OPT="${JAVA_OPT} -server -Xms256m -Xmx256m -Xmn128m"
+修改runserver.sh
+JAVA_OPT="${JAVA_OPT} -server -Xms128m -Xmx256m -Xmn256m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
+
+
+启动
+cd /home/rocketmq
+nohup sh bin/mqnamesrv &
+查看日志命令，是否启动成功：
+tail -f ~/logs/rocketmqlogs/namesrv.log
+
+启动broker
+nohup sh bin/mqbroker -n localhost:9876 &
+查看日志，是否启动成功：
+tail -f ~/logs/rocketmqlogs/broker.log
+
+或使用jps查看，存在如下几个就成功。
+1924 NamesrvStartup
+2069 Jps
+1950 BrokerStartup
+
+
+3.测试启动是否可用
+验证生产消息正常
+export NAMESRV_ADDR=localhost:9876
+sh bin/tools.sh org.apache.rocketmq.example.quickstart.Producer
+能看到类似如下输出：
+SendResult [sendStatus=SEND_OK, msgId=C0A82BC5F36C511D50C05B4
+
+验证消费消息正常
+sh bin/tools.sh org.apache.rocketmq.example.quickstart.Consumer
+能看到类似如下输出：
+ConsumeMessageThread_4 Receive New Messages: [MessageExt [queueId=3, st...
+
+4.rocketmq-console配置
+进入rocketmq-console修改配置文件
+#修改为自己的namesrv地址信息
+rocketmq.config.namesrvAddr=192.168.11.164:9876
+#配置为true，启动broker需要配置对应的ip地址
+rocketmq.config.isVIPChannel=true
+
+打包：
+mvn clean package -Dmaven.test.skip=true
+
+拷贝到服务器上运行：
+java -jar rocketmq-console-ng-2.0.0.jar
+
+
+
+
+
+
+
+
+
+
