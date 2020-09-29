@@ -656,6 +656,23 @@ show variables like '%per_table%'; #检查下上述开关是否打开,为on就�
 
 
 
+28.mysql批量插入
+最佳大小是max_allowed_packet的一半，max_allowed_packet会限制server接受的数据包大小。
+[mysqld]
+max_allowed_packet = 20M
+max_allowed_packet的协议限制为1GB，这个值必须是1024的倍数；如果不是1024倍数的值，mysql就会自动四舍五入为最接近的1024的倍数。
+
+通过增大innodb_buffer_pool_size配置提升读写性能，内存很珍贵，所以这个方案在内存富裕，而性能瓶颈的时候，可以考虑下。
+因为有额外内存的使用，如果指定 innodb_buffer_pool_size 为 12g 实际占用内存可能是 14g +
+设置多大的 innodb_buffer_pool_size 合适？
+通常将innodb_buffer_pool_size其配置为物理内存的50％到75％。
+ innodb_buffer_pool_instances 的个数设置为 buffer pool size 的 十分之一。
+ 比如 innodb_buffer_pool_size 是 30g ，那 innodb_buffer_pool_instances 就设置为 3；
+  innodb_buffer_pool_instances 的范围是 1 (the default) up to 64 (the maximum)。
+
+
+
+
 
 
 -----------------------------------------mysql配置项--------------------------------------

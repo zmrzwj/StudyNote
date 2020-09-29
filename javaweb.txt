@@ -1626,10 +1626,10 @@ https://docs.spring.io/spring-boot/docs/2.3.0.RELEASE/reference/html/appendix-ap
 @SpringBootApplication上添加@MapperScan("com.sccddw.iot.mapper")指定mapper包批量扫描，就不用每个类加@Mapper
 创建mapper目录
 创建xxxMpper接口文件：
-@Mapper
+@Repository
 public interface SDSensorTypeMapper extends BaseMapper<SDSensorType> {
-    @Select("select * from sd_sensor_type;")
-    List<SDSensorType> findAll();
+    @Select("select * from #{name};")
+    List<SDSensorType> findAll(@Param("name") name);
 }
 创建service目录
 创建IxxxService
@@ -1662,6 +1662,7 @@ mybatis-plus.global-config.db-config.id-type=auto
 在mybatis目录下创建mapper目录：
 单个：DrsrsAllocateDepotOrderDetailMapper.xml
 
+${}将传入的数据直接显示生成在sql中,#{}将数据都当成一个字符串
 
 
 

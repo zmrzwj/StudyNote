@@ -55,6 +55,259 @@ mvn clean package -Dmaven.test.skip=true
 拷贝到服务器上运行：
 java -jar rocketmq-console-ng-2.0.0.jar
 
+firewall-cmd --zone=public --add-port=9876/tcp --permanent
+systemctl stop firewalld
+systemctl disable firewalld
+firewall-cmd --reload
+
+
+5.多master多slave同步集群
+2个master,2个slave
+服务器:192.168.11.182,192.168.11.96
+每个服务器的rocketmq目录里创建用于数据存储的目录:
+mkdir /home/rocketmq/data 
+mkdir /home/rocketmq/data/store 存储路径
+mkdir /home/rocketmq/data/store/commitlog //commitLog 存储路径
+mkdir /home/rocketmq/data/store/consumequeue //消费队列存储路径存储路径
+mkdir /home/rocketmq/data/store/index //消息索引存储路径
+
+日志目录：
+mkdir -p /home/rocketmq/logs
+
+192.168.11.182上修改：
+conf/2m-2s-sync/broker-a.properties：
+brokerClusterName=DefaultCluster
+brokerName=broker-a
+brokerId=0
+deleteWhen=04
+fileReservedTime=48
+brokerRole=SYNC_MASTER
+flushDiskType=ASYNC_FLUSH
+namesrvAddr=192.168.11.182:9876;192.168.11.96:9876
+#store存储路径，master与slave目录要不同
+storePathRootDir=/home/rocketmq/data/store
+#commitLog存储路径
+storePathCommitLog=/home/rocketmq/data/store/commitlog
+brokerIP1=192.168.11.182
+#很重要 slave通信用
+brokerIP2=192.168.11.96
+
+broker-b-s.properties：
+brokerClusterName=DefaultCluster
+brokerName=broker-b
+brokerId=1
+deleteWhen=04
+fileReservedTime=48
+brokerRole=SLAVE
+flushDiskType=ASYNC_FLUSH
+brokerIP1=192.168.11.182
+listenPort=10950
+namesrvAddr=192.168.11.182:9876;192.168.11.96:9876
+storePathRootDir=/home/rocketmq/data/store/slave
+storePathCommitLog=/home/rocketmq/data/store/slave/commitlog
+
+192.168.11.96上修改：
+conf/2m-2s-sync/broker-b.properties：
+brokerClusterName=DefaultCluster
+brokerName=broker-b
+brokerId=0
+deleteWhen=04
+fileReservedTime=48
+brokerRole=SYNC_MASTER
+flushDiskType=ASYNC_FLUSH
+namesrvAddr=192.168.11.182:9876;192.168.11.96:9876
+storePathRootDir=/home/rocketmq/data/store
+storePathCommitLog=/home/rocketmq/data/store/commitlog
+brokerIP1=192.168.11.96
+brokerIP2=192.168.11.182
+
+broker-a-s.properties:
+brokerClusterName=DefaultCluster
+brokerName=broker-a
+brokerId=1
+deleteWhen=04
+fileReservedTime=48
+brokerRole=SLAVE
+flushDiskType=ASYNC_FLUSH
+listenPort=10950
+brokerIP1=192.168.11.96
+namesrvAddr=192.168.11.96:9876;192.168.11.182:9876
+storePathRootDir=/home/rocketmq/data/store/slave
+storePathCommitLog=/home/rocketmq/data/store/slave/commitlog
+
+先启动两台的 namesrv
+cd /home/rocketmq
+nohup sh bin/mqnamesrv > ./logs/namesrvrun.log 2>&1 &
+
+然后启动broker
+182：
+nohup sh bin/mqbroker -c ./conf/2m-2s-sync/broker-a.properties &
+nohup sh bin/mqbroker -c ./conf/2m-2s-sync/broker-b-s.properties &:
+96：
+nohup sh bin/mqbroker -c ./conf/2m-2s-sync/broker-b.properties &
+nohup sh bin/mqbroker -c ./conf/2m-2s-sync/broker-a-s.properties &
+
+
+rocketmq-console配置修改：
+rocketmq.config.namesrvAddr=192.168.11.182:9876;=192.168.11.96:9876
+打包：
+mvn clean package -Dmaven.test.skip=true
+拷贝到服务器上运行：
+java -jar rocketmq-console-ng-2.0.0.jar
+
+访问http://xxx.xxx.xxx.xxx:8080如果能看到brokera，brokerb则成功。
+
+代码访问使用：
+producer.setNamesrvAddr("192.168.11.182:9876;192.168.11.96:9876");
+
+注：最大消费条数修改（神奇的32）
+broker配置文件添加maxTransferCountOnMessageInMemory=100（默认为32），不然consumeMessageBatchMaxSize、pullBatchSize无用。
+
+
+
+6.springboot集成
+MQProducerConfiguration.class:
+import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.client.producer.DefaultMQProducer;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.context.annotation.Bean;
+@SpringBootConfiguration
+public class MQProducerConfiguration {
+    @Value("${rocketmq.producerGroupName}")
+    private String groupName;
+
+    @Value("${rocketmq.nameServerAddr}")
+    private String nameServerAddr;
+
+    @Value("${rocketmq.instanceName}")
+    private String instanceName;
+
+    @Bean
+    public DefaultMQProducer getRocketMQProducer() throws MQClientException {
+        DefaultMQProducer producer = new DefaultMQProducer(groupName);
+        producer.setNamesrvAddr(nameServerAddr);
+        producer.setInstanceName(instanceName);
+        try {
+            producer.start();
+        } catch (MQClientException e) {
+            e.printStackTrace();
+            throw e;
+        }
+        return producer;
+    }
+}
+
+MQConsumerConfiguration:
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
+import org.apache.rocketmq.client.exception.MQClientException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.context.annotation.Bean;
+@SpringBootConfiguration
+public class MQConsumerConfiguration {
+    @Value("${rocketmq.producerGroupName}")
+    private String groupName;
+
+    @Value("${rocketmq.nameServerAddr}")
+    private String nameServerAddr;
+
+    @Value("${rocketmq.topic}")
+    private String topic;
+
+    @Value("${rocketmq.tag}")
+    private String tag;
+
+    @Value("${rocketmq.instanceName}")
+    private String instanceName;
+
+    @Value("${rocketmq.consumeMessageBatchMaxSize}")
+    private int consumeMessageBatchMaxSize;
+
+    @Value("${rocketmq.pullBatchSize}")
+    private int pullBatchSize;
+
+    @Value("${rocketmq.pullInterval}")
+    private int pullInterval;
+
+    @Autowired
+    private MQConsumeMsgListenerProcessor mqConsumeMsgListenerProcessor;
+
+    @Bean
+    public DefaultMQPushConsumer getRocketMQConsumer() throws MQClientException{
+        DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(groupName);
+        consumer.setNamesrvAddr(nameServerAddr);
+        consumer.setConsumeMessageBatchMaxSize(consumeMessageBatchMaxSize);
+        consumer.setPullBatchSize(pullBatchSize);
+        consumer.setPullInterval(pullInterval);
+
+        // 如果非第一次启动，那么按照上次消费的位置继续消费
+//        consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET);
+        consumer.setInstanceName(instanceName);
+        consumer.registerMessageListener(mqConsumeMsgListenerProcessor);
+//        consumer.setConsumeThreadMin(consumeThreadMin);
+//        consumer.setConsumeThreadMax(consumeThreadMax);
+        try {
+            System.out.println("消费者启动--------------");
+            consumer.subscribe(topic, tag);
+            consumer.start();
+        } catch (MQClientException e) {
+            e.printStackTrace();
+            throw  e;
+        }
+        return consumer;
+    }
+}
+
+MQConsumeMsgListenerProcessor:
+import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyContext;
+import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyStatus;
+import org.apache.rocketmq.client.consumer.listener.MessageListenerOrderly;
+import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.common.message.MessageExt;
+import org.springframework.stereotype.Component;
+import java.util.List;
+@Component
+public class MQConsumeMsgListenerProcessor implements MessageListenerOrderly {
+    @Override
+    public ConsumeOrderlyStatus consumeMessage(List<MessageExt> msgs, ConsumeOrderlyContext consumeOrderlyContext) {
+        System.out.println(msgs.size());
+        Message msg = msgs.get(0);
+        String topic = msg.getTopic();
+        String body = msg.toString();
+        // 标签
+        String tags = msg.getTags();
+        String keys = msg.getKeys();
+        System.out.println("-----------------------------");
+//        System.out.println("topic=" + topic + ", tags=" + tags + ",keys=" + keys + ", msg=" + body);
+        return ConsumeOrderlyStatus.SUCCESS;
+    }
+}
+
+配置文件application.properties：
+#rocketmq
+rocketmq.nameServerAddr = 192.168.11.182:9876;192.168.11.96:9876
+rocketmq.producerGroupName = myGroup
+rocketmq.topic  = myTopic
+rocketmq.tag  = myTag
+rocketmq.instanceName  = myInstance
+
+# 设置每次从队列中拉取的消息数为10
+rocketmq.consumeMessageBatchMaxSize  = 100
+# 设置每个队列每次拉取的最大消息数
+rocketmq.pullBatchSize  = 100
+# 每次拉取的间隔，单位为毫秒
+rocketmq.pullInterval  = 10000
+
+
+
+
+
+
+
+
+
 
 
 
