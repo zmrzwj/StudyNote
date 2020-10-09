@@ -452,9 +452,11 @@ https://github.com/infiniteautomation/modbus4j
 
 
 
-
-
-
+30.byte与&0xff
+Integer.toHexString把int转二进制打印，对于byte需要&ff.
+Integer.toHexString的参数是int，如果不进行&0xff，那么当一个byte会转换成int时，由于int是32位，而byte只有8位这时会进行补位。
+那要怎样才能保证byte存储的128，转成int,short的值也应该是128, 128&ff
+byte转int都需要&ff
 
 
 

@@ -4,14 +4,14 @@ http://rocketmq.apache.org/release_notes/release-notes-4.5.1/
 rocketmq-console：是springboot项目下载下来用idea打包就行
 https://github.com/apache/rocketmq-externals/tree/master/rocketmq-console
 
-2.启动
+2.启动与关闭
 解压rocketmq-all-4.5.1-bin-release.zip，然后进入
 因为broker默认使用内存较大，需要改小些。
-修改runbroker.sh
+修改bin/runbroker.sh
 第一个JAVA_OPT改成JAVA_OPT="${JAVA_OPT} -server -Xms256m -Xmx256m -Xmn128m"
-修改runserver.sh
+修改bin/runserver.sh
 JAVA_OPT="${JAVA_OPT} -server -Xms128m -Xmx256m -Xmn256m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
-
+顺便修改：JAVA_HOME=/usr/local/java
 
 启动
 cd /home/rocketmq
@@ -28,6 +28,10 @@ tail -f ~/logs/rocketmqlogs/broker.log
 1924 NamesrvStartup
 2069 Jps
 1950 BrokerStartup
+
+rocketmq服务关闭
+关闭namesrv服务：sh bin/mqshutdown namesrv
+关闭broker服务 ：sh bin/mqshutdown broker
 
 
 3.测试启动是否可用
@@ -302,7 +306,17 @@ rocketmq.pullInterval  = 10000
 
 
 
+7.开机自启动
+#vim rocketmq.sh
+#!/bin/bash
+export JAVA_HOME=/usr/local/java   #必须得加上这个才行
+nohup /bin/sh /home/rocketmq/bin/mqnamesrv  >> /home/rocketmq/logs/mqnamesrc.log 2>&1 &
+nohup /bin/sh  /home/rocketmq/bin/mqbroker -n "127.0.0.1:9876" >> /home/rocketmq/logs/mqbroker.log 2>&1 &
 
+# vim /etc/rc.local
+添加：
+sh /home/rocketmq/rocketmq.sh
+#chmod  +x /etc/rc.d/rc.local
 
 
 
