@@ -89,8 +89,12 @@ git checkout --filename
 //对于已使用git add 缓存代码，未使用git commit
 git reset HEAD
 //已经用 git commit 提交了代码
-git reset --hard HEAD^
+git reset --hard "HEAD^" 删除工作空间的改动代码，撤销commit且撤销add
+git reset --soft "HEAD^" 不删除工作空间的改动代码 ，撤销commit，不撤销git add file
 
+修改commit：
+git commit --amend
+这时候会进入vim编辑器，修改完成你要的注释后保存即可。
 
 
 ---------------------------------------git 安装------------------------------------------------------

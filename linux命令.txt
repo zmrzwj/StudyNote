@@ -401,7 +401,20 @@ unix  3      [ ]         STREAM     CONNECTED     3918255  16814/v2ray
 
 31.设置中国时区可以使用：
 ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+或ln -s /usr/share/zoneinfo/Universal /etc/localtime
+（这需要看localtime、Universal哪个时间正确）
 (使用cp命令是错误的)
+可使用tzselect查看时区
+手动修改时间：
+date -R 查看时区
+date -s "2020-10-16 13:46:40"
+hwclock -w
+以hwclock来更新BIOS的时间，避免重启时间失效。
+
+
+
+
+
 
 32.samba安装
 yum install samba samba-client
@@ -452,11 +465,36 @@ getsebool -a | grep samba
 
 
 
+
 33.防火墙关闭但远程也无法访问端口
 需要先开放端口，再关闭
 firewall-cmd --zone=public --add-port=80/tcp --permanent  
 firewall-cmd --reload
 systemctl stop firewalld # 关闭防火墙
 systemctl disable firewalld # 禁用
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

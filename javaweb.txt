@@ -1648,7 +1648,6 @@ public class xxxServiceImpl implements IxxxService {
     }
 }
 
-
 2）使用新xml
 # mybatis-plus
 #全局配置文件
@@ -1681,12 +1680,9 @@ shiro功能：
 
 
 
-72.@tableid
-mybatis主键注解
 
 
-
-71.oauth2
+72.oauth2
 四种模式：
 授权码模式（authorization code）
     网上看到通过微信登录，QQ登录等字眼。通过请求获取授权code，response_type:code（授权码模式下springOAuth2规定为code）;
@@ -1708,6 +1704,263 @@ GET /user?access_token = {令牌} &uid = {用户ID}
 后端验证access_token 存在 , 并且没有过期 , 就验证通过 , 返回数据。
 
 
+
+
+73.mybatis-plus
+73.1 @tableid
+mybatis主键注解，指名主键字段，不然默认是id.
+73.2 mybatis分页
+配置文件：
+public class MybatisPlusConfig {
+    /**
+     * 分页插件
+     */
+    @Bean
+    public PaginationInterceptor paginationInterceptor() {
+        PaginationInterceptor paginationInterceptor = new PaginationInterceptor();
+        paginationInterceptor.setDialectType("mysql");
+        return paginationInterceptor;
+    }
+
+    /**
+     * 打印 sql
+     */
+//    @Bean
+//    public PerformanceInterceptor performanceInterceptor() {
+//        PerformanceInterceptor performanceInterceptor = new PerformanceInterceptor();
+//        //格式化sql语句
+//        Properties properties = new Properties();
+//        properties.setProperty("format", "true");
+//        performanceInterceptor.setProperties(properties);
+//        return performanceInterceptor;
+//    }
+}
+
+QueryWrapper<Device> queryWrapper = new QueryWrapper<>();
+// false不查询总条数, current从1开始
+Page<Device> page = new Page<>(1, 2, true);
+IPage<Device> iPage = deviceMapper.selectPage(page, queryWrapper);
+自定义查询：
+在Mapper中添加
+@Select("select * from device where device_name like concat('%', #{param}, '%') or device_code = #{param}")
+IPage<Device> pageQueryDeviceByDeviceCodeOrDeviceNameMybatis(Page<?> page, @Param("param") String param);
+使用：
+IPage<Device> iDevicePage = deviceMapper.pageQueryDeviceByDeviceCodeOrDeviceNameMybatis(page, "123");
+
+73.3 多数据源
+<!-- mybatisplus集成 -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>3.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>dynamic-datasource-spring-boot-starter</artifactId>
+            <version>2.5.6</version>
+        </dependency>
+application.properties添加：
+# mysql
+spring.datasource.dynamic.datasource.master.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.dynamic.datasource.master.url=jdbc:mysql://192.168.11.206:3306/hndl5000?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&serverTimezone=GMT%2B8
+spring.datasource.dynamic.datasource.master.username=sccddw
+spring.datasource.dynamic.datasource.master.password=sccddw
+spring.datasource.dynamic.primary=master
+
+spring.datasource.dynamic.datasource.slave.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.dynamic.datasource.slave.url=jdbc:mysql://192.168.11.206:3306/hndl5000?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&serverTimezone=GMT%2B8
+spring.datasource.dynamic.datasource.slave.username=sccddw
+spring.datasource.dynamic.datasource.slave.password=sccddw
+
+在service上使用  @DS("slave")使用指定数据源。
+
+73.4 自动填充
+// insert时填充
+@TableField(fill = FieldFill.INSERT)
+// update时填充
+@TableField(fill = FieldFill.UPDATE)
+/**
+ * mybatis-plus自动填充配置
+ **/
+@Component
+public class MyMetaObjectHandler implements MetaObjectHandler {
+    @Override
+    public void insertFill(MetaObject metaObject) {
+        boolean hasSetter = metaObject.hasSetter("createTime");
+        if (hasSetter) {
+            setInsertFieldValByName("createTime", LocalDateTime.now(), metaObject);
+        }
+    }
+
+    @Override
+    public void updateFill(MetaObject metaObject) {
+        boolean hasSetter = metaObject.hasSetter("updateTime");
+        if (hasSetter) {
+            setUpdateFieldValByName("updateTime", LocalDateTime.now(), metaObject);
+        }
+    }
+}
+
+73.5 乐观锁
+乐观锁：总是假设最好的情况，每次去读数据的时候都认为别人不会修改，所以不会上锁。
+操作逻辑：
+每次查询时，查出带有version的数据记录，更新数据时，判断数据库里对应id的记录的version是否和查出的version相同。
+若相同，则更新数据并把版本号+1；若不同，则说明，该数据发送并发，
+被别的线程使用了，进行递归操作，再次执行递归方法，知道成功更新数据为止。
+所以乐观锁需要反复尝试更新某一个变量，如果又一直更新不成功，循环往复，会给CPU带来很大的压力。
+为了尽可能避免更新失败，可以合理调整重试次数（阿里巴巴开发手册规定重试次数不低于三次）。
+MybatisPlus乐观锁：
+MybatisPlusConfig中添加：
+// 乐观锁插件配置
+    @Bean
+    public OptimisticLockerInterceptor optimisticLockerInterceptor() {
+        return new OptimisticLockerInterceptor();
+    }
+	
+	在表里添加version字段。
+	实体类添加：
+	// 版本
+    @Version
+    private Integer version;
+使用：
+int id = 100;
+int version = 2;
+User u = new User();
+u.setId(id);
+u.setVersion(version);
+userService.updateById(u);
+	
+
+73.6 性能分析插件
+MybatisPlusConfig中添加：
+/**
+     * 打印 sql, 和运行时间
+     */
+    @Bean
+    @Profile({"dev", "test"}) // 在开发环境和测试环境运行，vm参数设置-Dspring.profiles.active=dev
+    public PerformanceInterceptor performanceInterceptor() {
+        PerformanceInterceptor performanceInterceptor = new PerformanceInterceptor();
+        //格式化sql语句
+        Properties properties = new Properties();
+        properties.setProperty("format", "true");
+        performanceInterceptor.setProperties(properties);
+		performanceInterceptor.setMaxTime(5); // sql运行的最大时间，超过这个时间就不运行了。
+        return performanceInterceptor;
+    }
+
+73.7 动态表
+MybatisPlusConfig中添加：
+	/**
+     * 分页插件
+     */
+    @Bean
+    public PaginationInterceptor paginationInterceptor() {
+        PaginationInterceptor paginationInterceptor = new PaginationInterceptor();
+        paginationInterceptor.setDialectType("mysql");
+
+        List<ISqlParser> sqlParsers = new ArrayList<>();
+
+        DynamicTableNameParser dynamicTableNameParser = new DynamicTableNameParser();
+        Map<String, ITableNameHandler> tableNameHandlerMap = new HashMap<>();
+        tableNameHandlerMap.put("sensor_data", new ITableNameHandler() {
+            @Override
+            public String dynamicTableName(MetaObject metaObject, String sql, String tableName) {
+                return myTableName.get();
+            }
+        });
+        dynamicTableNameParser.setTableNameHandlerMap(tableNameHandlerMap);
+        sqlParsers.add(dynamicTableNameParser);
+        paginationInterceptor.setSqlParserList(sqlParsers);
+
+        return paginationInterceptor;
+    }
+使用：
+MybatisPlusConfig.myTableName.set("sensor_e_20201014"); //这里会把sensor_data表替换成sensor_e_20201014表达到动态表名的目的
+sensorDataMapper.selectById(1);
+
+73.8 自定义方法
+创建DeleteAllMethod.class
+public class DeleteAllMethod extends AbstractMethod {
+    @Override
+    public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
+        String sql = "delete from " + tableInfo.getTableName();
+        String method = "deleteAll";
+        SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, modelClass);
+
+        return addDeleteMappedStatement(mapperClass,method, sqlSource);
+    }
+}
+创建MySqlInjector.class
+@Component
+public class MySqlInjector extends DefaultSqlInjector {
+    @Override
+    public List<AbstractMethod> getMethodList(Class<?> mapperClass) {
+        List<AbstractMethod> methodList = super.getMethodList(mapperClass);
+        methodList.add(new DeleteAllMethod());
+        return methodList;
+    }
+}
+mapper中：
+public interface MyMapper<T> extends BaseMapper<T> {
+    int deleteAll();  
+}
+
+选装件
+MySqlInjector.class：
+@Component
+public class MySqlInjector extends DefaultSqlInjector {
+    @Override
+    public List<AbstractMethod> getMethodList(Class<?> mapperClass) {
+        List<AbstractMethod> methodList = super.getMethodList(mapperClass);
+        methodList.add(new DeleteAllMethod());
+
+        methodList.add(new InsertBatchSomeColumn(t -> !t.isLogicDelete() && !t.getColumn().equals("age"))); // 把逻辑删除的字段和age字段都排除在数据里
+        methodList.add(new LogicDeleteByIdWithFill()); // 在逻辑删除时修改些数据
+        methodList.add(new AlwaysUpdateSomeColumnById(t -> !t.getColumn().equals("name"))); // name不进行更新
+
+        return methodList;
+    }
+}
+mapper中：
+public interface MyMapper<T> extends BaseMapper<T> {   // 自定义mapper，在需要使用方法的地方继承此mapper就行
+    int insertBatchSomeColumn(List<T> list);
+    int deleteByIdWithFill(T entity);
+    int alwaysUpdateSomeColumnById(T entity);
+}
+（对于LogicDeleteByIdWithFill
+// 要在逻辑删除时修改此项，需要在字段上加@TableField(fill = FieldFill.UPDATE)
+    @TableField(fill = FieldFill.UPDATE)
+	private String deviceCode = null;
+）
+
+73.9 逻辑删除
+在表添加字段deleted用于标明逻辑删除，默认0-逻辑未删除值，1-逻辑已删除值，也可修改配置文件添加
+#mybatis-plus
+mybatis-plus.global-config.db-config.logic-not-delete-value=0
+mybatis-plus.global-config.db-config.logic-delete-value=1
+
+对于小于3.1.0版本的在MybatisPlusConfig添加，大于3.1.0的可以忽略：
+@Bean
+    public ISqlInjector sqlInjector() {
+        return new LogicSqlInjector();
+    }
+
+对实体添加注解TableLogic：
+ @TableLogic
+ @TableField(select = false) // 查询的时候不显示，因为deleted字段对用户应该透明
+ private Integer deleted;
+使用：
+sensorDataMapper.deleteById(1); // 他就会将这行deleted置为1，但不会在数据库真的删除，对查询数据是一样的。
+（注意：自定义语句要自己添加deleted筛选条件）
+
+73.10 AR模式
+使在对象上可以直接使用数据库增、删、改、查方法
+实体类继承Model：
+public class SensorData extends Model<SensorData>
+使用：
+SensorData sensorData = new SensorData();
+sensorData.setId(BigInteger.valueOf(1));
+sensorData.insertOrUpdate(); // 插入数据有就更新
 
 
 

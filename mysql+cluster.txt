@@ -383,6 +383,7 @@ GBK和GB2312 都是16位的，GBK支持简体中文和繁体中文，而GB2312�
 采用utf8mb4编码的好处是：存储与获取数据的时候，不用再考虑表情字符的编码与解码问题。
 
 4.添加索引
+索引定义：是帮助MySQL高效获取数据的数据结构。
 alter table VIEW_DEV_DNB_FULL ADD INDEX index_CJ_MP_ID(CJ_MP_ID);
 alter table VIEW_DEV_DNB_FULL ADD INDEX index_CJ_MP_ID_ TYPE_CODE(CJ_MP_ID,TYPE_CODE); 组合索引
 索引的类型：
@@ -406,15 +407,50 @@ alter table VIEW_DEV_DNB_FULL ADD INDEX index_CJ_MP_ID_ TYPE_CODE(CJ_MP_ID,TYPE_
   ref:表示上述表的连接匹配条件，即哪些列或常量被用于查找索引列上的值
   rows:表示MySQL根据表统计信息及索引选用情况，估算的找到所需的记录所需要读取的行数
 
+Hash 索引仅仅能满足"=","IN"和"<=>"的等值查询，不能使用范围查询。 
+InnoDB其冲突机制采用链表方式，哈希函数采用除法散列方式
+
+B+TREE索引
+BTREE平衡查找树
+二叉查找树(BST)
+左子树的键值小于根的键值，右子树的键值大于根的键值。 
+平衡二叉树（AVL）
+在符合二叉查找树的条件下,满足任何节点的两个子树的高度最大差为1
+B+Tree是B树的变种，有着比B树更高的查询性能，来看下m阶B+Tree特征：
+1、有m个子树的节点包含有m个元素（B-Tree中是m-1）
+2、根节点和分支节点中不保存数据，只用于索引，所有数据都保存在叶子节点中。
+3、所有分支节点和根节点都同时存在于子节点中，在子节点元素中是最大或者最小的元素。
+4、叶子节点会包含所有的关键字，以及指向数据记录的指针，并且叶子节点本身是根据关键字的大小从小到大顺序链接。
+对于字符串的数据建立b+tree树时，英文字符的ASCII码作为比较准则。
+https://blog.csdn.net/u013967628/article/details/84305511（varchar如何建立索引）
+InnoDB的所有辅助索引都引用主键作为data域。所依辅助索引搜索需要检索两遍索引：首先检索辅助索引获得主键，然后用主键到主索引中检索获得记录。
+InnoDB主索引（同时也是数据文件）的示意图，可以看到叶节点包含了完整的数据记录。这种索引叫做聚集索引。所以InnoDB要求表必须有主键。
+	  如果不存在这种列，则MySQL自动为InnoDB表生成一个隐含字段作为主键，这个字段长度为6个字节，类型为长整形。
+InnoDB的数据文件本身就是索引文件。MyISAM索引文件和数据文件是分离的。
+
+
+聚簇索引：将数据存储与索引放到了一块，索引结构的叶子节点保存了行数据。
+		  聚簇索引具有唯一性，由于聚簇索引是将数据跟索引结构放到一块，因此一个表仅有一个聚簇索引。
+		  聚簇索引默认是主键。
+非聚簇索引：将数据与索引分开存储，索引结构的叶子节点指向了数据对应的位置。
+
+倒排索引：
+倒排索引源于实际应用中需要根据属性的值来查找记录。这种索引表中的每一项都包括一个属性值和具有该属性值的各记录的地址。
+由于不是由记录来确定属性值，而是由属性值来确定记录的位置，因而称为倒排索引(inverted index)。
+带有倒排索引的文件我们称为倒排索引文件，简称倒排文件(inverted file)。
+
 
 5.count(1)
 1并不是表示第一个字段，而是表示一个固定值。 
 其实就可以想成表中有这么一个字段，这个字段就是固定值1，count(1)，就是计算一共有多少个1.
 同理count(20000)也一样。
 
+
+
 6.select list is not in group by clause this is incompatible only_full_group_by
 [mysqld]下
 sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+
 
 
 7.两个mysql之间数据迁移
@@ -430,10 +466,12 @@ ib_logfile1
 执行：chown -R mysql:mysql mysql/
 
 
+
 8.视图
 视图（view）是一种虚拟存在的表，是一个逻辑表，本身并不包含数据。作为一个select语句保存在数据字典中的。
 使用视图的用户完全不需要关心后面对应的表的结构、关联条件和筛选条件，对用户来说已经是过滤好的复合条件的结果集。
 create view v_name as select xxx from xxx where xxx;
+
 
 
 9.query_cache_type
@@ -449,20 +487,27 @@ query_cache_type=1
 注意：MySQL的query cache大部分情况下其实只是鸡肋而已，建议全面禁用。
 
 
+
 10.group by 1055
 only_full_group_by 这个模式是默认开启的导致出错的。
 在[mysqld] 下添加
 sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
 
+
+
 11.mysql join默认为inner join
+
+
 
 12.group by分组后获得每组中时间最大的那条记录
 SELECT t.* FROM (select * from `AIR_DATA` order by `create_time` desc limit 10) t GROUP BY t.device_id;
 GROUP BY没有排序功能,需要添加limit 10让数据进行排序。
 
 
+
 13.FROM DUAL where not exists判断数据是否存在
 insert into USER_DEVICE(user_id,device_id,device_name,device_position) values(?,?,?,?) FROM DUAL where not exists(SELECT count(1) from USER_DEVICE where user_id = ? and device_id = ? );
+
 
 
 14.mysql大小写问题
@@ -470,6 +515,8 @@ insert into USER_DEVICE(user_id,device_id,device_name,device_position) values(?,
 设置字符集：
 utf8_general_ci --不区分大小写
 utf8_bin--区分大小写
+
+
 
 15.mysql定时备份到本地（centos）
 1)创建文件夹存放备份文件
@@ -495,6 +542,8 @@ mysql -uroot -p Ehome < /home/xxx.sql
 mysqldump -uroot -p -h 127.0.0.1 --all-databases < /home/db.sql
 navicat右键点击运行SQL文件
 
+
+
 16.mysqldump参数
 -all-databases  , -A
 导出全部数据库。
@@ -512,6 +561,7 @@ navicat右键点击运行SQL文件
 导出存储过程以及自定义函数。
 --opt
 该选项是速记；等同于指定 --add-drop-tables--add-locking --create-option --disable-keys--extended-insert --lock-tables --quick --set-charset。它可以给出很快的转储操作并产生一个可以很快装入MySQL服务器的转储文件。该选项默认开启，但可以用--skip-opt禁用.
+
 
 
 17.慢查询
@@ -595,7 +645,6 @@ default-character-set = utf8mb4
 [mysqld]   
 character-set-server = utf8mb4 
 
-
 修改数据库字符集：
 ALTER DATABASE EHome CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci; 
 修改表的字符集：
@@ -669,6 +718,55 @@ max_allowed_packet的协议限制为1GB，这个值必须是1024的倍数；如�
  innodb_buffer_pool_instances 的个数设置为 buffer pool size 的 十分之一。
  比如 innodb_buffer_pool_size 是 30g ，那 innodb_buffer_pool_instances 就设置为 3；
   innodb_buffer_pool_instances 的范围是 1 (the default) up to 64 (the maximum)。
+
+
+
+29.mysql锁
+锁类型：
+表级锁（锁定整个表）
+页级锁（锁定一页）
+行级锁（锁定一行）
+共享锁（S锁，MyISAM 叫做读锁）
+排他锁（X锁，MyISAM 叫做写锁）
+悲观锁（抽象性，不真实存在这个锁）
+乐观锁（抽象性，不真实存在这个锁）
+GAP锁
+间隙锁实质上是对索引前后的间隙上锁，或某一条索引记录之前或者之后加锁，不对索引本身上锁。
+根据检索条件向左寻找最靠近检索条件的记录值A，作为左区间，向右寻找最靠近检索条件的记录值B作为右区间，即锁定的间隙为（A，B）。
+间隙锁的目的是为了防止幻读，其主要通过两个方面实现这个目的：
+（1）防止间隙内有新数据被插入。
+（2）防止已存在的数据，更新成间隙内的数
+
+行级锁并不是直接锁记录，而是锁索引。
+数据库的增删改操作默认都会加排他锁，而查询不会加任何锁。
+
+共享锁，无法修改。要想修改就必须等所有共享锁都释放完之后：
+select * from table lock in share mode
+排他锁：对某一资源加排他锁，自身可以进行增删改查，其他人无法进行任何操作
+select * from table for update
+
+意向锁（innodb特有）分意向共享锁和意向排他锁。
+意向共享锁：表示事务获取行共享锁时，必须先得获取该表的意向共享锁；
+意向排他锁：表示事务获取行排他锁时，必须先得获取该表的意向排他锁；
+我们知道，如果要对整个表加锁，需保证该表内目前不存在任何锁。
+因此，如果需要对整个表加锁，那么就可以根据：检查意向锁是否被占用，来知道表内目前是否存在共享锁或排他锁了。而不需要再一行行地去检查每一行是否被加锁。
+
+Update时，where中的过滤条件列，如果用索引，锁行，无法用索引，锁表。update与delete产生的锁现象是一样的。
+insert的时候，可以并发执行，之间并不会相互影响。可以理解为，insert是锁行，而不会锁表。
+
+// 查看隔离级别
+select @@global.tx_isolation, @@session.tx_isolation, @@tx_isolation; 
+// 查看innodb状态(包含最近的死锁日志)
+show engine innodb status;
+// 查看事务锁等待状态情况
+select * from information_schema.innodb_locks;
+select * from information_schema.innodb_lock_waits;
+select * from information_schema.innodb_trx;
+
+
+
+
+
 
 
 
