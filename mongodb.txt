@@ -44,6 +44,9 @@
 
 
 
+
+
+
 1.mongodb安装
 1)下载：https://www.mongodb.com/download-center/community
 下载：mongodb-linux-x86_64-4.0.6.tgz
@@ -95,7 +98,7 @@ journal=true #每次写入会记录一条操作日志
 
 
 设置开机启动：
-vi /etc/systemd/system/mongodb.service
+vim /etc/systemd/system/mongodb.service
 [Unit]
 Description=mongodb 
 After=network.target remote-fs.target nss-lookup.target
@@ -114,6 +117,11 @@ systemctl start mongodb.service
 systemctl stop mongodb.service  
 #开机启动  
 systemctl enable mongodb.service 
+
+
+
+
+
 
 
 
@@ -167,7 +175,7 @@ db.xxx.drop() #xxx为集合名
 db.xxx.insert(document)
 
 查看文档
-db.xxx.find()
+db.xxx.find() # 当数据过多时输入it可以查看更多。
 
 更新文档
 db.xxx.update(
@@ -247,6 +255,8 @@ v  索引的版本号。默认的索引版本取决于mongod创建索引时运�
 weights  索引权重值，数值在 1 到 99,999 之间，表示该索引相对于其他索引字段的得分权重。
 default_language  对于文本索引，该参数决定了停用词及词干和词器的规则的列表。 
 language_override  对于文本索引，该参数指定了包含在文档中的字段名，语言覆盖默认.默认为英语
+db.test.find({"name":"zwj"}).explain()
+
 
 聚合查询
 db.text.aggregate([{$group : {_id : "$by_user", num_tutorial : {$sum : 1}}}])
@@ -295,6 +305,13 @@ mongotop用来跟踪一个MongoDB的实例
 
 
 
+
+
+
+
+
+
+
 3.java api
 java的MongoDB驱动当前一共有4个库,优先推荐mongodb-driver-sync
 mongodb-driver-sync
@@ -312,6 +329,9 @@ maven仓库在：https://mongodb.github.io/mongo-java-driver/
     </dependency>
 </dependencies>
 API文档：http://mongodb.github.io/mongo-java-driver/3.10/driver/getting-started/installation/
+
+
+
 
 
 
@@ -347,16 +367,12 @@ Secondary:Secondary从Primary复制oplog，然后将oplog中的操作应用到�
 一个Replica Set可以最多拥有12个成员，但是只有7个成员可以同时参与投票选举成为Primary，如果成员数量超过12，就需要使用Master-Slave主从复制方式。
 部署一个Replica Set至少需要三个成员，一个Arbiter，一个Secondary和一个Primary或者一个Primary，两个Secondary。
 
-sharding集群包含3个角色：mongos，configsvr，shardsvr
-对于一个集群来说mongos相当于master，负责对外提供服务，shardsvr相当于slave，负责分片存储数据，而configsvr相当于router，负责记录分片元信息。这3种角色中的任何一个角色中的子节点都是一个replication
 
 6）配置文件
 除了配置文件不同其它一样。
 配置文件不同处：
 #副本集名称
 replSet=rep
-#declare this is a shard db of a cluster;
-shardsvr = true
 
 7）配置集群：
 启动数据库：mongod --config /usr/local/mongodb/bin/mongodb.conf
@@ -369,13 +385,15 @@ SECONDARY： 表示从节点
 ARBITER： 表示仲裁节点
 
 >use admin                #切换到admin数据库
->config = {_id:"rep",members:[                #定义副本集配置,_id设置为副本集名称
-{_id:0,host:"172.20.6.10:27017"},
-{_id:1,host:"172.20.6.11:27017"},
-{_id:2,host:"172.20.6.12:27017"},]
+ #定义副本集配置,_id设置为副本集名称
+>config = {_id:"rep",members:[               
+{_id:0,host:"192.168.11.46:27017"},
+{_id:1,host:"192.168.11.94:27017"},
+{_id:2,host:"192.168.11.183:27017"},]
 }
->rs.initiate(config);        #初始化副本集配置
-> rs.status();                #查看副本集状态
+>rs.initiate(config);        # 初始化副本集配置
+> rs.status();               # 查看副本集状态
+> rs.conf()                  # 查看副本集的配置信息
 
 8)测试
 在主节点创建数据库，并创建集合，插入文档
@@ -383,7 +401,7 @@ ARBITER： 表示仲裁节点
 登录另外一台服务器mongo数据库：
 #mongodb默认是从主节点读写数据的，副本节点上不允许读，需要设置副本节点可以读。
 在此服务器执行下面的命令：
-db.getMongo().setSlaveOk();            #设置副本节点可读
+> rs.secondaryOk() (db.getMongo().setSlaveOk(); )           #设置副本节点可读
 >show dbs;                             #可以看到在之前节点创建的数据库
 数据已经同步到secondary上，但是无法在secondary上进行数据的增删改操作。
 
@@ -396,10 +414,126 @@ rs.status() #查看服务器状态，可以看到刚刚被关闭的服务器heal
 
 如果考虑到主服务器的复制压力过大，可以制作仲裁节点，其中的仲裁节点不存储数据，只是负责故障转移的群体投票，这样就少了数据复制的压力。
 删除节点：
-rs.remove("172.20.6.12:27017")            #删除节点
+rs.remove("192.168.11.94:27017")            #删除节点
 添加节点
-rs.add("172.20.6.12:27017")                #添加节点
-rs.addArb("172.20.6.12:27017")               #添加arbiter节点
+rs.add("192.168.11.94:27017")                #添加节点
+rs.addArb("192.168.11.128:27017")               #添加arbiter节点
+
+9)mongodb选举
+成员有优先级，优先级为0的成员不能成为主节点，也不能谋求选举。
+修改节点的优先级可以触发重新选举,这样可以人工指定主节点。
+cfg=rs.conf();
+cfg.members[0].priority=1
+cfg.members[1].priority=1
+cfg.members[2].priority=10
+rs.reconfig(cfg);
+需要注意的是，修改节点优先级需要登录Master节点运行。
+仲裁节点不存储数据，只是用于投票。节点一旦以仲裁者的身份加入集群，他就只能是仲裁者，无法将仲裁者配置为非仲裁者。
+一个集群最多只能使用一个仲裁者，额外的仲裁者拖累选举新Master节点的速度。
+当选规则：
+1）票数最高，且获得大多数n/2 + 1，如果节点不够，则集群节点没有主节点全部在只读状态。
+2）票数一样，数据新的节点获胜，新旧通过操作日志oplog来对比。
+（查看：https://docs.mongodb.com/manual/reference/replica-set-protocol-versions/）
+
+10）分片集群
+sharding集群包含3个角色：mongos，configsvr，shardsvr
+shardsvr用于存储实际的数据块
+configsvr存储了整个 ClusterMetadata即集群元数据
+mongos 即Routers前端路由，客户端由此接入，且让整个集群看上去像单一数据库，前端应用可以透明使用。
+
+先kill -9之前启动的mongodb。
+cp之前解压的mongodb目录，拷贝3份，作为分片1、2，原来的作为配置节点，还有一份做mongos。
+修改配置文件
+分片1：
+端口改为27018
+#副本集名称
+replSet=shard1
+#declare this is a shard db of a cluster;
+shardsvr = true
+分片2：
+端口改为27019
+#副本集名称
+replSet=shard2
+#declare this is a shard db of a cluster;
+shardsvr = true
+配置节点：
+端口改为27020
+#副本集名称
+replSet=config
+#declare this is a shard db of a cluster;
+configsvr = true
+
+分别启动第一套副本集shard1,第二套副本集shard2，配置副本集config
+然后登陆shell:
+#./mongodb_shard1/bin/mongo -port 27018
+>config = {_id:"shard1",members:[               
+{_id:0,host:"192.168.11.46:27018"},
+{_id:1,host:"192.168.11.94:27018"},
+{_id:2,host:"192.168.11.183:27018"},]
+}
+>rs.initiate(config);        # 初始化副本集配置
+> rs.status();               # 查看副本集状态
+rs.addArb("192.168.11.128:27018")               #添加arbiter节点
+
+#./mongodb_shard2/bin/mongo -port 27019
+>config = {_id:"shard2",members:[               
+{_id:0,host:"192.168.11.46:27019"},
+{_id:1,host:"192.168.11.94:27019"},
+{_id:2,host:"192.168.11.183:27019"},]
+}
+>rs.initiate(config);        # 初始化副本集配置
+> rs.status();               # 查看副本集状态
+rs.addArb("192.168.11.128:27019")               #添加arbiter节点
+
+#./mongodb_config/bin/mongo -port 27020
+>config = {_id:"config",members:[               
+{_id:0,host:"192.168.11.46:27020"},
+{_id:1,host:"192.168.11.94:27020"},
+{_id:2,host:"192.168.11.183:27020"},]
+}
+>rs.initiate(config);        # 初始化副本集配置
+> rs.status();               # 查看副本集状态
+// config集群不需要仲裁节点
+
+配置router：
+创建mongos.config
+vim mongodb_mongos/bin/mongos.conf 
+#mongos不存储数据所以只需要设置log目录
+logpath=/usr/local/mongodb_mongos/logs/mongos.log 
+logappend = true
+port = 27017
+fork = true
+maxConns=20000
+bind_ip=0.0.0.0
+configDB = config/192.168.11.46:27020,192.168.11.94:27020,192.168.11.183:27020 #这里的ip是config副本集的ip, config是配置副本集的名字
+
+启动mongos:
+ /usr/local/mongodb_mongos/bin/mongos --config /usr/local/mongodb_mongos/bin/mongos.conf
+连接mongo：
+mongodb_mongos/bin/mongo --port 27017
+切换数据库：
+添加加分片：
+mongos>sh.addShard("shard1/192.168.11.46:27018,192.168.11.94:27018,192.168.11.183:27018");
+mongos>sh.addShard("shard2/192.168.11.46:27019,192.168.11.94:27019,192.168.11.183:27019");
+mongos>sh.status() # 查看状态
+mongos>sh.enableSharding("test_db") # 开启test_db库的分片
+#添加分片规则，根据"id"对user集合进行hash分片，策略有两种：hash策略、范围策略，分片策略每个集合只能有一个
+#分片的集合在片键上都必须建索引，这是MongoDB自动执行的
+mongos>sh.shardCollection("test_db.user",{"id":"hashed"}) 
+ sh.shardCollection("test_db.user",{"id":1}) #id加范围策略
+
+测试：
+mongos>use test_db;
+mongos> for(i=1;i<=5000;i++){db.user.insert({"id":i,"name":"jack"+i})}  # 循环生成5000条数据
+# 在shard1、shard2, use test_db; db.user.count();可以看到两边数据和为5000
+
+如果要测试范围策略，数据较小需要修改chunksize:
+use config; # 切换到config库
+db.settings.save({_id:"chunksize", value: 1}) #修改为1M
+
+springboot连接,直接连接router：
+uri: mongodb://root:uestc%40root@192.168.11.160:27017,192.168.11.12:27017/test_db
+
 
 
 
@@ -407,7 +541,7 @@ rs.addArb("172.20.6.12:27017")               #添加arbiter节点
 
 5.开启授权
 #注意：先在不开启认证的情况下，创建用户，之后关闭服务，然后再开启认证，才生效。
-副本集下必须在master上才能执行如下命令：
+副本集下必须在master上才能执行如下命令，数据会自动同步到slave节点：
 db.createUser({
 	user:'root',
 	pwd:'uestc@root',
@@ -419,20 +553,20 @@ db.createUser({
 })
 
 db.createUser({
-	user:'rep_',
-	pwd:'rep_',
+	user:'zwj',
+	pwd:'sccddw123456',
 	roles:[{
 		'role':'readWrite',
-		'db':'test_rep'
+		'db':'test_db'
 	}]
 })
 
 db.createUser({
-	user:'tt',
-	pwd:'tt',
+	user:'zwj',
+	pwd:'sccddw123456',
 	roles:[{
 		'role':'dbOwner',
-		'db':'test_rep'
+		'db':'test_db'
 	}]
 })
 
@@ -441,8 +575,8 @@ db.createUser({
 
 mongodb需要通过keyfiles来解决实现副本集间的相互信任问题，不然--auth，此时登录主节点会失败（实际登录的是OTHER节点）
 //创建keyfile文件
-openssl rand -base64 741> /usr/local/mongodb/keyfile（取决于你放keyfile的路径）
-注意，每个节点必须要用同一份keyfile，将这个keyfile复制到不同部署节点的主机上。
+openssl rand -base64 741 > /usr/local/mongodb/keyfile（取决于你放keyfile的路径）
+注意，每个节点必须要用同一份keyfile，将这个keyfile复制到不同部署节点的主机上。并且chmod 600 keyfile.权限错误会造成无法启动
 修改配置文件
 #vi mongodb.conf
 //添加
@@ -459,6 +593,19 @@ chmod 400 keyFile(仅所有者可读）
 进入之后，会显示rep:Secondary或PRIMARY，但此时没有授权，无法进行数据库操作
 >db.auth("root","uestc@root")
 >db.getMongo().setSlaveOk();
+
+service mongodb_config restart
+service mongodb_shard1 restart
+service mongodb_shard2 restart
+
+chmod 600 mongodb_config/keyfile 
+chmod 600 mongodb_shard1/keyfile 
+chmod 600 mongodb_shard2/keyfile 
+
+
+
+
+
 
 
 
@@ -506,6 +653,16 @@ List list = mongoTemplate.find(new Query(Criteria.where("name").is("zwj")),User.
 
 
 
+
+
+
+
+
+
+
+
+
+
 7.windows安装
 https://www.mongodb.com/download-center#community
 安装完成后
@@ -549,6 +706,105 @@ net stop mongodb
 
 MongoDB shell：
 > mongo
+
+
+
+
+
+
+
+
+
+
+
+
+
+8.对象映射编程
+创建好对象MongoDevice：
+@Data
+@Document("mongoSensorData") // 集合名为mongoSensorData,要对象名一致，除了首字母不用大写
+// 复合索引,不过建议在命令行建
+//@CompoundIndex(def = "{'userId': 1, 'nickname': -1}")
+public class MongoSensorData implements Serializable {
+    @Id
+    private BigInteger id; // 主键
+    @Indexed
+    private String deviceCode = null;
+    @Field("acquisitionTime") // 当属性与MongoDB字段的名字，不一致时可以使用Field做映射
+    private String acquisitionTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date createTime = new Date();
+}
+在dao目录下创建接口文件：
+SensorDataRepository
+public interface SensorDataRepository extends MongoRepository<MongoSensorData, String> {
+
+	// 分页查询
+    Page<MongoSensorData> findByAcquisitionTimeContains(String acquisitionTime, Pageable pageable);
+
+//    @Query("{'acquisitionTime': { $regex: '^?0'} }") // 自定义sql
+//    List<MongoSensorData> findSensorDataQuery(String acquisitionTime);
+}
+在service创建MongoSensorDataServiceImpl
+@Service
+public class MongoSensorDataServiceImpl {
+    @Autowired
+    SensorDataRepository sensorDataRepository;
+
+    @Autowired
+    MongoTemplate mongoTemplate;
+
+    /**
+     * 保存数据
+    **/
+    public void save(MongoSensorData sensorData) {
+        MongoSensorData s = sensorDataRepository.save(sensorData);
+    }
+
+    public void saveAll(List<MongoSensorData> list) {
+        sensorDataRepository.saveAll(list);
+    }
+
+    public Page<MongoSensorData> pageFindByAcquisitionTime(String acquisitionTime , int current, int pageSize) {
+        return sensorDataRepository.findByAcquisitionTimeContains(acquisitionTime, PageRequest.of(current, pageSize));
+    }
+
+	/**
+     * 多集合联合查询   
+    **/
+    public List<Map> lookupOperation(String acquisitionTime) {
+        LookupOperation lookupOperation = LookupOperation.newLookup().
+                from("mongoDevice"). //关联从表名
+                localField("deviceCode"). //主表关联字段
+                foreignField("deviceCode"). //从表关联的字段
+                as("SensorDataAndDevice"); //查询结果表的别名
+
+        // 匹配id条件
+        MatchOperation matchOperation = new MatchOperation(Criteria.where("acquisitionTime").is(acquisitionTime));
+        SortOperation sortOperation = new SortOperation(Sort.by(Sort.Order.desc("createTime")));
+        Aggregation aggregation = Aggregation.newAggregation(lookupOperation, matchOperation, sortOperation);
+        List<Map> res = mongoTemplate.aggregate(aggregation, "mongoSensorData", Map.class).getMappedResults();
+
+        return res;
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

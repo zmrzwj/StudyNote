@@ -55,18 +55,24 @@ for(int i = 0; i < list.size(); i++){
 }
 
 
+
 7.Java socket
 Socket 和ServerSocket 是一对  他们是java.net下面实现socket通信的类
 SocketChannel 和ServerSocketChannel是一对   他们是java.nio下面实现通信的类 支持异步通信
+
+
 
 8.Netty
 Netty 是一个基于NIO的客户、服务器端编程框架，使用Netty 可以确保你快速和简单的开发出一个网络应用，例如实现了某种协议的客户，服务端应用。Netty相当简化和流线化了网络应用的编程开发过程，例如，TCP和UDP的socket服务开发。
 https://mvnrepository.com/artifact/io.netty/netty-all 查看最新的maven仓库
 
+
+
 9.NIO中都是使用缓冲区buffer
 在基本IO操作中，所有的数据都是以流的形式操作的，而在NIO中，则都是使用缓冲区，所有的读写操作都是使用缓冲区完成的。
 所有缓冲区都是抽象类Buffer的子类。Java NIO中的Buffer主要用于与NIO通道进行交互，数据是从通道读入到缓冲区，从缓冲区写入通道中的。
 缓冲区本质上是一块可以写入数据，然后可以从中读取数据的内存。这块内存被包装成NIO Buffer对象，并提供了一组方法，用来方便的访问该块内存。
+
 
 
 10.volatile 英 [ˈvɒlətaɪl] 
@@ -92,6 +98,7 @@ helper=new Helper
 操作3:将helper引用指向内存空间
 
 
+
 11.@Repository注解的作用及含义
 @Repository注解非常重要，它将类在web应用程序中的位置标识出来了，同时也让spring容器扫描的时候能将这个类找到并归入到可以使用自动注入的类中。
 注解还有@Service和@Controller，本质相同由于功能不同以不同名字区分。
@@ -100,6 +107,7 @@ helper=new Helper
 @Constroller 通常作用在控制层，但是目前该功能与 @Component 相同。
 
 以上注解配合@Autowired实现自动注入实例，就不用自己在写new xxx;
+
 
 
 12.JSSE
@@ -114,6 +122,8 @@ AES	批量加密	256  128
 Diffie-Hellman	重要协议	1024，512
 DSA	认证	1024
 SunJSSE实现使用Java Cryptography Extension（JCE）来实现其所有加密算法
+
+
 
 13.JCA（Java Cryptography Architecture ）不含加密功能的
 JCE，Java Cryptography Extension 含加密功能的
@@ -186,6 +196,7 @@ t.start();
 2、适合于资源的共享。
 
 
+
 15.synchronized关键字
 它包括两种用法：synchronized 方法和 synchronized 块
 声明为 synchronized 的成员函数中至多只有一个处于可执行状态，从而有效避免了类成员变量的访问冲突。
@@ -202,6 +213,7 @@ synchronized块是这样一个代码块，其中的代码必须获得对象 sync
 2.synchronized (this)锁住的是对象，而不是代码。
 
 
+
 16.final
 它指的是“这是不可变的”.
 1.修饰数据
@@ -214,9 +226,11 @@ synchronized块是这样一个代码块，其中的代码必须获得对象 sync
 了解了final关键字的其他用法，我们很容易可以想到使用final关键字修饰类的作用，那就是用final修饰的类是无法被继承的。
 
 
+
 17.AtomicInteger通过一种线程安全的加减操作接口
 static AtomicInteger ai=new AtomicInteger(0);
 ai.incrementAndGet();//增加
+
 
 
 18.java线程池
@@ -286,7 +300,6 @@ submit()可以进行Exception处理;
 
 
 
-
 19.Lock与synchronized有以下区别：
 1）Lock是一个接口，而synchronized是关键字。
 2）synchronized会自动释放锁，而Lock必须手动释放锁。
@@ -294,6 +307,7 @@ submit()可以进行Exception处理;
 4）通过Lock可以知道线程有没有拿到锁，而synchronized不能。
 5）Lock能提高多个线程读操作的效率。
 6）synchronized能锁住类、方法和代码块，而Lock是块范围内的
+
 
 
 20.jstack
@@ -340,6 +354,7 @@ SQL字符串字段一定要额外加"",如：
 String name = "zwj";
 String sql = xxx + "\"" + name + "\"";
 不然会出现Unknown column 'xxx' in 'field list'.
+
 
 
 23.异步定时器
@@ -583,21 +598,32 @@ min()
 average() 等
 
 3) Optional
+通过Optional.of()和Optional.ofNullable()方法来创建包含值的Optional类实例
+of()和ofNullable()方法的区别在于，of()方法不允许传入null值，若传入null值，则在创建对象时就会抛出NullPointerException异常，而ofNullable()从名字上也可以明显的看出，可以传入null值。
+ofNullable()方法使用的较多。
+orElse()和orELseGet()
+orElse()方法与orElseGet()方法的差别根本源自于其接受的参数不同，orElse()方法接受一个类对象并将这个对象作为默认值，而orElseGet()方法接受一个Supplier对象，也就是函数式接口。
+orElse()方法会先计算出createNewUser()函数的值，然后执行判断。
+而orElseGet()方法则会先执行判断，满足条件时才会执行对应的函数并返回值。
+所以对于调用频率非常高的情况时，使用orElseGet()方法就会带来极大的性能提升。
+Optional提供了map()和flatMap()两个方法
+map()方法接受一个以包装的对象作为参数的Lamda表达式，并将执行的结果包装为Optional对象来返回，注意后面一点非常的重要，它为我们实现级联调用map()方法提供了可能。
+如：
+String email = Optional.ofNullable(user).map(u -> u.getEmail()).orElse("default@gmail.com");
+当user为null时，map()方法返回一个包含null的Optional类，并调用orElse()方法返回默认值
+当user.getEmail()为null时，由于map()方法会将Lamda表达式的值包装进Optional类中返回，则调用orElse()方法，仍然返回默认值。
+若user和user.getEmail()都不为空时，map()方法调用后将返回包含对应值的Optional对象，调用orElse()方法解包后，将得到对应的user.getEmail()的值。
+当大量对象属性或方法访问时使用Optional类后的优化结果：
+BigDecimal decimalNumber = Optional.ofNullable(c).map(C::getB).map(B::getA()).map(A::getNumber).orElse(BigDecimal.ZERO);
+对比javascript相当于逻辑短路 ||:
+obj = (((ob || ob2).getName() || "").length) || 0
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
+36. AOP编程
 
 
 
