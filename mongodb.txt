@@ -395,6 +395,10 @@ ARBITER： 表示仲裁节点
 > rs.status();               # 查看副本集状态
 > rs.conf()                  # 查看副本集的配置信息
 
+关闭副本集：
+>use admin
+db.shutdownServer()
+
 8)测试
 在主节点创建数据库，并创建集合，插入文档
 就是use tested, db.ceateCollection("test"),db.test.insert({"xxx":"","ccc":"vvv"})
@@ -539,9 +543,12 @@ uri: mongodb://root:uestc%40root@192.168.11.160:27017,192.168.11.12:27017/test_d
 
 
 
+
+
+
 5.开启授权
 #注意：先在不开启认证的情况下，创建用户，之后关闭服务，然后再开启认证，才生效。
-副本集下必须在master上才能执行如下命令，数据会自动同步到slave节点：
+副本集下必须在master上才能执行如下命令，数据会自动同步到slave节点，每个副本集的master都要创建包括shard1、shard2、config.
 db.createUser({
 	user:'root',
 	pwd:'uestc@root',
@@ -582,6 +589,12 @@ openssl rand -base64 741 > /usr/local/mongodb/keyfile（取决于你放keyfile�
 //添加
 keyFile=/usr/local/mongodb/keyfile
 auth=true
+(注意：chmod 600 keyfile)
+
+mongos.conf
+只需要添加：keyFile=/usr/local/mongodb_mongos/keyfile
+(注意：chmod 600 keyfile)
+
 启动mongodb
 #mongod --config /usr/local/mongodb/bin/mongodb.conf 
 问题：如果出现：waiting until server is ready for connections forked process: 2033 
@@ -601,10 +614,33 @@ service mongodb_shard2 restart
 chmod 600 mongodb_config/keyfile 
 chmod 600 mongodb_shard1/keyfile 
 chmod 600 mongodb_shard2/keyfile 
+（注意：出现无法连接的情况先chmod 600 keyfile）
 
-
-
-
+给mongos添加账号（这个只需要在一个mongos操作就行）:
+登录：
+#mongodb_mongos/bin/mongo
+mongos > use admin
+mongos > db.createUser({
+	user:'root',
+	pwd:'uestc@root',
+	customData:{description:"管理员root"},
+	roles:[{
+		'role':'root',
+		'db':'admin'
+	}]
+})
+添加普通用户
+mongos > use admin
+mongos > db.auth("root", "uestc@root")
+mongos > use test_db
+db.createUser({
+	user:'zwj',
+	pwd:'sccddw123456',
+	roles:[{
+		'role':'dbOwner',
+		'db':'test_db'
+	}]
+})
 
 
 
@@ -619,8 +655,12 @@ Springboot连接mongodb:
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
 application.properties中添加配置:
-spring.data.mongodb.uri=mongodb://user:pwd@ip1:port1,ip2:port2/database
+// spring.data.mongodb.uri=mongodb://user:pwd@ip1:port1,ip2:port2/database
+// 副本集连接
 spring.data.mongodb.uri=mongodb://root:uestc%40root@192.168.11.167:27017,192.168.11.40:27017,192.168.11.45:27017/
+// 分片副本集连接mongos:
+spring.data.mongodb.uri=mongodb://zwj:sccddw123456@192.168.11.160:27017,192.168.11.12:27017/test_db
+
 spring.data.mongodb.database=test_rep
 问题：authentication failed
 1、不要使用root登录。 
@@ -638,7 +678,8 @@ spring.data.mongodb.database=test_rep
 注意：一定要切换到admin数据库去再创建用户,一定要使用spring.data.mongodb.database指定数据库。
 
 entity文件：
-@Document(collection = "test_collection")
+// @Document(collection = "test_collection") 
+@Document("test_collection") 
 public class User {
     private String name;
     private String age;
