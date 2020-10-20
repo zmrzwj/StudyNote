@@ -2027,6 +2027,82 @@ sensorData.insertOrUpdate(); // 插入数据有就更新
 
 
 
+74.@Transactional
+74.1 @Transactional 是声明式事务管理 编程中使用的注解
+74.2 @Transactional 注解的属性信息
+属性名	说明
+name	当在配置文件中有多个 TransactionManager , 可以用该属性指定选择哪个事务管理器。
+propagation	事务的传播行为，默认值为 REQUIRED。
+isolation	事务的隔离度，默认值采用 DEFAULT即数据库的默认隔离级别。
+timeout	事务的超时时间，默认值为-1。如果超过该时间限制但事务还没有完成，则自动回滚事务。
+read-only	指定事务是否为只读事务，默认值为 false；为了忽略那些不需要事务的方法，比如读取数据，可以设置 read-only 为 true，无法执行增删改。
+rollback-for	用于指定能够触发事务回滚的异常类型，如果有多个异常类型需要指定，各类型之间可以通过逗号分隔。
+				Spring默认情况下会对(RuntimeException)及其子类来进行回滚,在遇见Exception及其子类的时候则不会进行回滚操作.
+no-rollback- for	抛出 no-rollback-for 指定的异常类型，不回滚事务。
+
+propagation
+1. TransactionDefinition.PROPAGATION_REQUIRED：
+   如果当前存在事务，则加入该事务；如果当前没有事务，则创建一个新的事务。这是默认值。
+2. TransactionDefinition.PROPAGATION_REQUIRES_NEW：
+   创建一个新的事务，如果当前存在事务，则把当前事务挂起。
+3. TransactionDefinition.PROPAGATION_SUPPORTS：
+   如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行。
+4. TransactionDefinition.PROPAGATION_NOT_SUPPORTED：
+   以非事务方式运行，如果当前存在事务，则把当前事务挂起。
+5. TransactionDefinition.PROPAGATION_NEVER：
+   以非事务方式运行，如果当前存在事务，则抛出异常。
+6. TransactionDefinition.PROPAGATION_MANDATORY：
+   如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常。
+7. TransactionDefinition.PROPAGATION_NESTED：
+   如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；
+   如果当前没有事务，则该取值等价于TransactionDefinition.PROPAGATION_REQUIRED。
+
+74.3 @Transactional 实质是使用了 JDBC 的事务来进行事务控制的
+@Transactional 基于 Spring 的动态代理的机制
+1) 事务开始时，通过AOP机制，生成一个代理connection对象，
+   并将其放入 DataSource 实例的某个与 DataSourceTransactionManager 相关的某处容器中。
+   在接下来的整个事务中，客户代码都应该使用该 connection 连接数据库，
+   执行所有数据库命令。
+   [不使用该 connection 连接数据库执行的数据库命令，在本事务回滚的时候得不到回滚]
+  （物理连接 connection 逻辑上新建一个会话session；
+   DataSource 与 TransactionManager 配置相同的数据源）
+ 
+2) 事务结束时，回滚在第1步骤中得到的代理 connection 对象上执行的数据库命令，
+   然后关闭该代理 connection 对象。
+  （事务结束后，回滚操作不会对已执行完毕的SQL操作命令起作用）
+
+74.4 一般用在serviceImpl层上，也可在controller里用。
+74.5 springboot自动配置事务开启事务，入库类不用任何添加注解.
+
+74.6 失效场景：
+1.@Transactional类内部方法调用不会生效，想类内部方法调用可以正常使用事务，使用AopContext.currentProxy()来获取代理类再调用。
+因为：AOP 代理下，只有目标方法由外部调用，目标方法才由 Spring 生成的代理对象来管理。
+2.@Transaction应用在非public修饰的方法上
+3.注解属性propagation设置错误
+以下三种情况，事务将不会进行回滚
+TransactionDefinition.PROPAGATION_SUPPORTS：
+TransactionDefinition.PROPAGATION_NOT_SUPPORTED
+TransactionDefinition.PROPAGATION_NEVER
+4.注解属性rollbackFor设置错误
+rollbackFor可以指定能够触发事务回滚的异常类型，Spring默认抛出未检出unchecked的异常（继承RunTimeException的异常）或者Error才会回滚事务，
+其他异常不会触发事务，如果事务中抛出其他异常类型，需要指定rollbackFor属性
+5.异常被catch，导致@Transaction失效
+6.数据库存储引擎不支持，比如MyISAM
+
+74.7 多线程
+描述:
+因为线程不属于spring托管，故线程不能够默认使用spring的事务,也不能获取spring注入的bean
+在被spring声明式事务管理的方法内开启多线程，多线程内的方法不被事务控制
+解决:
+如果方法中调用多线程
+方法主题的事务不会传递到线程中
+线程中可以单独调用Service接口，接口的实现方法使用@Transactional，保证线程内部的事务
+多线程实现的方法
+使用异步注解@Async的方法上再加上注解@Transactional，保证新线程调用的方法是有事务管理的
+原理:
+Spring中事务信息存储在ThreadLocal变量中，变量是某个线程上进行的事务所特有的(这些变量对于其他线程中发生的事务来讲是不可见的，无关的)
+单线程的情况下，一个事务会在层级式调用的Spring组件之间传播
+在@Transactional注解的服务方法会产生一个新的线程的情况下，事务是不会从调用者线程传播到新建线程的
 
 
 
@@ -2034,30 +2110,78 @@ sensorData.insertOrUpdate(); // 插入数据有就更新
 
 
 
+75.AOP编程
+		<!--// aop-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+@Aspect 表明是一个切面类
+@Component 将当前类注入到Spring容器内
+@Pointcut 切入点，其中execution用于使用切面的连接点。
+          使用方法：execution(方法修饰符(可选) 返回类型 方法名 参数 异常模式(可选)) ，可以使用通配符匹配字符，*可以匹配任意字符。
+@Before 在方法前执行
+@After 在方法后执行
+@AfterReturning 在方法执行后返回一个结果后执行
+@AfterThrowing 在方法执行过程中抛出异常的时候执行
+@Around 环绕通知，就是可以在执行前后都使用，这个方法参数必须为ProceedingJoinPoint，proceed()方法就是被切面的方法，
+上面四个方法可以使用JoinPoint，JoinPoint包含了类名，被切面的方法名，参数等信息。（可以获取方法的参数和值）	
+@Around 可以修改方法的参数和方法的返回值， 	将修改的值传入到.proceed()方法中，然后如果想要修改返回的值，直接创建新的对象，返回回去即可。
+@Around("point(name)")
+public Object Around(ProceedingJoinPoint pjp) throws Throwable {      
+    Object object = pjp.proceed(new Object[]{"新参数"});
+    User user1 = new User();
+    user1.setUsername("有趣");
+    return user1;  //返回新的返回值，类型与方法原来的返回值相同
+}
+
+Pointcut 指示器
+切点的表达式以 指示器 开始， 指示器 就是一种关键字，用来告诉 Spring AOP 如何匹配连接点，Spring AOP 提供了以下几种指示器
+execution
+within
+this 和 target
+args 和 @args
+@target
+@annotation
+execution
+该指示器用来匹配方法执行连接点，即匹配哪个方法执行，如
+	@Pointcut("execution(public String aaric.springaopdemo.UserDao.findById(Long))")
+上面这个切点会匹配在 UserDao 类中 findById 方法的调用，并且需要该方法是 public 的，返回值类型为 String，只有一个 Long 的参数。
+切点的表达式同时还支持宽字符匹配，如
+	@Pointcut("execution(* aaric.springaopdemo.UserDao.*(..))")
+上面的表达式中，第一个宽字符 * 匹配 任何返回类型，第二个宽字符 * 匹配 任何方法名，最后的参数 (..) 表达式匹配 任意数量任意类型 的参数，也就是说该切点会匹配类中所有方法的调用。
+within
+如果要匹配一个类中所有方法的调用，便可以使用 within 指示器
+	@Pointcut("within(aaric.springaopdemo.UserDao)")
+这样便可以匹配该类中所有方法的调用了。同时，我们还可以匹配某个包下面的所有类的所有方法调用，如下面的例子
+	@Pointcut("within(aaric.springaopdemo..*)")
+@target
+该指示器用于匹配连接点所在的类是否拥有指定类型的注解，如
+	@Pointcut("@target(org.springframework.stereotype.Repository
+target匹配目标对象的类型，即被代理对象的类型，例如A继承了B接口，则使用target（"B"），target（"A"）均可以匹配到A.
+@this
+如果目标对象没有实现任何接口，Spring AOP 会创建基于JDK的动态代理，这时候需要使用 this 指示器.
+@annotation
+该指示器用于匹配连接点的方法是否有某个注解
+	@Pointcut("@annotation(org.springframework.scheduling.annotation.Async)")
+@args
+该函数接收一个注解类的类名，当方法的运行时入参对象标注了指定的注解时，匹配切点。
+args
+该函数接收一个类名，表示目标类方法入参对象是指定类（包含子类）时，切点匹配。
 
 
+AOP应用场景
+场景一： 记录日志
+场景二： 监控方法运行时间 （监控性能）
+场景三： 权限控制
+场景四： 缓存优化 （第一次调用查询数据库，将查询结果放入内存对象， 第二次调用， 直接从内存对象返回，不需要查询数据库 ）
+场景五： 事务管理 （调用方法前开启事务， 调用方法后提交关闭事务 ）
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Spring实现AOP采用cglib和jdk动态代理两种方式，@EnableAspectJAutoProxy(proxyTargetClass=true)可以加开关控制，
+如果不加，目标对象如果有实现接口，则使用jdk动态代理，如果没有就采用cglib（因为我们知道cglib是基于继承的））
+@EnableAspectJAutoProxy：
+表示开启AOP代理自动配置，如果配@EnableAspectJAutoProxy表示使用cglib进行代理对象的生成；
+设置@EnableAspectJAutoProxy(exposeProxy=true)表示通过aop框架暴露该代理对象，aopContext能够访问.
 
   

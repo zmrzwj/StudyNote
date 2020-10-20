@@ -367,7 +367,6 @@ Secondary:Secondary从Primary复制oplog，然后将oplog中的操作应用到�
 一个Replica Set可以最多拥有12个成员，但是只有7个成员可以同时参与投票选举成为Primary，如果成员数量超过12，就需要使用Master-Slave主从复制方式。
 部署一个Replica Set至少需要三个成员，一个Arbiter，一个Secondary和一个Primary或者一个Primary，两个Secondary。
 
-
 6）配置文件
 除了配置文件不同其它一样。
 配置文件不同处：
@@ -396,8 +395,9 @@ ARBITER： 表示仲裁节点
 > rs.conf()                  # 查看副本集的配置信息
 
 关闭副本集：
+>rs.stepdown() //  将当前主库“降级”
 >use admin
-db.shutdownServer()
+>db.shutdownServer() // 这个只能关闭当前实例
 
 8)测试
 在主节点创建数据库，并创建集合，插入文档
@@ -439,28 +439,28 @@ rs.reconfig(cfg);
 2）票数一样，数据新的节点获胜，新旧通过操作日志oplog来对比。
 （查看：https://docs.mongodb.com/manual/reference/replica-set-protocol-versions/）
 
-10）分片集群
+10）分片副本集集群
 sharding集群包含3个角色：mongos，configsvr，shardsvr
 shardsvr用于存储实际的数据块
 configsvr存储了整个 ClusterMetadata即集群元数据
 mongos 即Routers前端路由，客户端由此接入，且让整个集群看上去像单一数据库，前端应用可以透明使用。
 
 先kill -9之前启动的mongodb。
-cp之前解压的mongodb目录，拷贝3份，作为分片1、2，原来的作为配置节点，还有一份做mongos。
+cp之前解压的mongodb目录，拷贝3份，作为shard分片1、2，原来的作为config配置节点，还有一份做mongos(即路由router)。分片副本集的shard1、shard2、config都是副本集。
 修改配置文件
-分片1：
+分片shard1：
 端口改为27018
 #副本集名称
 replSet=shard1
 #declare this is a shard db of a cluster;
 shardsvr = true
-分片2：
+分片shard2：
 端口改为27019
 #副本集名称
 replSet=shard2
 #declare this is a shard db of a cluster;
 shardsvr = true
-配置节点：
+配置节点config：
 端口改为27020
 #副本集名称
 replSet=config
@@ -499,7 +499,7 @@ rs.addArb("192.168.11.128:27019")               #添加arbiter节点
 > rs.status();               # 查看副本集状态
 // config集群不需要仲裁节点
 
-配置router：
+配置router（router可以有多个，配置是一样的router之间没有关系）：
 创建mongos.config
 vim mongodb_mongos/bin/mongos.conf 
 #mongos不存储数据所以只需要设置log目录

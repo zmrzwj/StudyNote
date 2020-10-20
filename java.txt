@@ -623,7 +623,47 @@ obj = (((ob || ob2).getName() || "").length) || 0
 
 
 
-36. AOP编程
+36.反射
+获取类方法：
+Class<?> class1 = object.getClass();
+Method[] ms = class1.getMethods();
+for (int i = 0; i < ms.length; i++) {
+    // 得到方法的返回值类型的类类型
+    Class<?> returnType = ms[i].getReturnType();
+    System.out.print(returnType.getName() + " ");
+    // 得到方法的名称
+    System.out.print(ms[i].getName() + "(");
+    // 获取参数类型
+    Class[] paramTypes = ms[i].getParameterTypes();
+    for (Class class2 : paramTypes) {
+        System.out.print(class2.getName() + ",");
+    }
+    System.out.println(")");
+
+    printFieldMessage(class1);
+}
+获取类属性：
+Class<?> class1 = object.getClass();
+Field[] fs = class1.getDeclaredFields();
+for (Field field : fs) {
+    // 得到成员变量的类型的类类型
+    Class<?> filedType = field.getType();
+    String typeName = filedType.getName();
+    String fieldName = field.getName();
+    System.out.println(typeName + " " + fieldName);
+}
+获取类构造函数：
+Class<?> class1 = object.getClass();
+Constructor[] cs = class1.getDeclaredConstructors();
+for (Constructor constructor : cs) {
+    System.out.print(constructor.getName() + "(");
+    // 获取构造函数的参数列表--->得到的是参数列表的类类型
+    Class[] paramTypes = constructor.getParameterTypes();
+    for (Class class2 : paramTypes) {
+        System.out.print(class2.getName() + ",");
+    }
+    System.out.println(")");
+}
 
 
 
@@ -632,10 +672,9 @@ obj = (((ob || ob2).getName() || "").length) || 0
 
 
 
-
-
-
-
+37.java10 var
+java10引入了局部变量折断 var用于声明局部变量。 
+如var user=new ArrayList<User>();
 
 
 
