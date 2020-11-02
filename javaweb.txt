@@ -130,13 +130,16 @@ scope=provided的情况，则可以认为这个provided是目标容器已经prov
 14.Artifact 是maven中的一个概念，表示某个module要如何打包。
 
 
+
 15scope的分类
 compile
 默认就是compile，什么都不配置也就是意味着compile。compile表示被依赖项目需要参与当前项目的编译，当然后续的测试，运行周期也参与其中，是一个比较强的依赖。打包的时候通常需要包含进去。
 test
 scope为test表示依赖项目仅仅参与测试相关的工作，包括测试代码的编译，执行。比较典型的如junit。
 runntime
-runntime表示被依赖项目无需参与项目的编译，不过后期的测试和运行周期需要其参与。与compile相比，跳过编译而已，说实话在终端的项目（非开源，企业内部系统）中，和compile区别不是很大。比较常见的如JSR×××的实现，对应的API jar是compile的，具体实现是runtime的，compile只需要知道接口就足够了。oracle jdbc驱动架包就是一个很好的例子，一般scope为runntime。另外runntime的依赖通常和optional搭配使用，optional为true。我可以用A实现，也可以用B实现。
+runntime表示被依赖项目无需参与项目的编译，不过后期的测试和运行周期需要其参与。与compile相比，跳过编译而已，说实话在终端的项目（非开源，企业内部系统）中，和compile区别不是很大。
+	    比较常见的如JSR×××的实现，对应的API jar是compile的，具体实现是runtime的，compile只需要知道接口就足够了。
+	    oracle jdbc驱动架包就是一个很好的例子，一般scope为runntime。另外runntime的依赖通常和optional搭配使用，optional为true。我可以用A实现，也可以用B实现。
 provided
 provided意味着打包的时候可以不用包进去，别的设施(Web Container)会提供。事实上该依赖理论上可以参与编译，测试，运行等周期。相当于compile，但是在打包阶段做了exclude的动作。
 system
@@ -145,10 +148,16 @@ system
 
 16.RSS 简单信息聚合
 
+
+
 17.SOAP(simple object access protocol)简单对象访问协议
+
+
 
 18.ORM对象关系映射
 面向对象编程语言
+
+
 
 19.应用服务器有专门用于管理连接池的内建系统，可以改善应用程序中数据库连接的性能。对应管理这些连接的应用服务器，必须在应用服务器类加载器中而不是web应用类加载器中加载JDBC驱动。
 在mysql官网下载mysql JDBC,拿到JAR文件,把它放到tomcat\lib下。修改tomcat\conf\context.xml
@@ -170,6 +179,8 @@ mysql-connector-java-bin.jar与mysql-connector-java.jar
 数据源在tomcat /conf/content/xml与/conf/server.xml的区别
 server.xml不可动态重新加载资源，要修改这个文件，就要重启才能重新加载。context.xml文件，tomcat一旦文件修改(时间戳改变)，就会重新加载这个文件，不需要重启服务器。
 
+
+
 20.ubuntu 安装tomcat9
 下载：apache-tomcat-9.0.11.tar.gz
 解压到/usr/local
@@ -185,6 +196,8 @@ export PATH=${JAVA_HOME}/bin:$PATH
 关闭tomcat
   ./bin/shuntdown.sh
 
+
+
 21.SpringMVC 中 url-patter 与 @RequestMapping 的对应问题
 利用 SpringMVC 响应前端发起的请求时，其完整 url 会按照 DispatcherServlet 指定的 url 格式进行匹配、修剪，去掉<url-pattern>指定的上下文部分，剩余部分 url'，再由注解 @RequestMapping 转到 Controller 特定的方法上，执行具体的处理。
 前端请求的完整 url：
@@ -196,12 +209,15 @@ servlet 指定的 url 格式：
 	public String demoMethodSignature(String myParam) 
 	
 
+
 22.Spring项目
 Controller层：负责具体业务模块流程的控制，即调用Service层的接口来控制业务流程。负责url映射（action）。
 Dao层：负责数据持久化，与数据库进行联络的任务都封装在其中，Dao层的数据源以及相关的数据库连接参数都在Spring配置文件中进行配置。
 Entity层：java对象，与数据库表一一对应，是其对应的实现类。即一个Entity就是对应表中的一条记录。
 Service层：建立在DAO层之上，Controller层之下。调用Dao层的接口，为Controller层提供接口。负责业务模块的逻辑应用设计，首先设计接口，再设计其实现的类。
 View层：表示层，负责前端jsp页面表示。
+
+
 
 23.JDBC连接数据库java.sql.Connection
 <dependency>
@@ -233,13 +249,21 @@ import java.sql.*;
                 System.out.println(rs.getString("count(1)"));
             }
 
+
+
 24.mac IDEA try catch自动添加，option+command+t
+
+
 
 25.preparedStatement与Statement
 preparedStatement是预编译的，对批处理可以大大提高效率，Statement只执行一次性存取。preparedStatement用于执行带参数的预编译SQL, Statement执行不带参数的简单SQL。执行的对象较多时，preparedStatement会降低运行时间。企业更喜欢preparedStatement，因为它更安全，传递给preparedStatement的对象参数可以被强制进行类型转换。Statement每次执行一个SQL，都会对它进行解析和编译。preparedStatement和Statement都需要调用close函数关闭，不应等待对象自动关闭。
 
+
+
 26.java:comp/env/
 这是J2EE环境的定义，代表了当前J2EE应用的环境，使用这样的方式，必须设置当前应用环境到资源名的映射。
+
+
 
 27.JDBC-DataSource(数据库连接池)
 JDBC的数据库连接池使用javax.sql.DataSource来表示，它只是一个接口，该接口由应用服务器实现，或开源组织（DBCP,C3P0）.
@@ -248,6 +272,7 @@ DBCP:
 Tomcat的连接池正是采用这个连接池实现的，可以和应用服务器整合使用，也可以由程序单独使用。
 C3P0:
 C3p0性能更胜一筹，hibernate推荐使用该连接池，c3p0连接池不仅可以自动清理不使用的connection，还可以自动清理statement和resultset.
+
 
 
 28.idea创建springboot项目
@@ -260,8 +285,11 @@ Maven的Snapshot版本与Release版本
 4）点击finish 
 5)等待编译完成(这个貌似翻墙会好点,要不然下载依赖特别慢。。。)
 
+
+
 29.application.properties
 原来spring boot2.0之后，server.context-path上下文的配置改为了server.servlet.context-path
+
 
 
 30.idea spring打包为war包
@@ -315,6 +343,7 @@ Pom.xml添加
 </dependency>
 
 
+
 31.如果使用spring-boot的服务器
 在Edit Configurations时选择Spring-boot,Main class填写
 com.cddw.com.xs.XsApplication
@@ -327,6 +356,8 @@ com.cddw.com.xs.XsApplication
             <version>1.2.50</version>
 </dependency>
 
+
+
 33.创建普通maven工程
 idea:
 点击Create New Project ->然后选择Maven->新建普通的Java工程，因此选择-quickstart,如果是新建Java web工程就选择-webapp
@@ -334,6 +365,7 @@ idea:
 -> 点击下一步 -> 填写工程名和保存路径 -> 点击下一步，工程建好后，会自动下载Maven相关的包
 创建运行环境：
 点击Run->Edit Configurations ，接着点击 + ，在新出来的界面，点击Application
+
 
 
 33.spring boot jdbc连接池
@@ -352,6 +384,7 @@ spring.datasource.hikari.minimum-idle=10
 spring.datasource.hikari.maximum-pool-size=30
 #指定连接池等待连接返回的最大等待时间，毫秒单位.
 spring.datasource.hikari.max-lifetime=500000
+
 
 
 34.springboot项目结构
@@ -444,10 +477,12 @@ hikariDataSource.setLoginTimeout(5);              //
 hikariDataSource.setMaxLifetime(60000);           //池中连接最长生命周期
 
 
+
 37.spring缓存方案
 有guava cache、redis、tair、memcached等。
 Spring Boot默认情况下使用ConcurrentMapCacheManager作为缓存技术。
 @Cacheable注解可以使用缓存
+
 
 
 38.spring boot定时任务
@@ -492,6 +527,7 @@ set方法注入
 所以变量方式注入应该尽量避免，使用set方式注入或者构造器注入，这两种方式的选择就要看这个类是强制依赖的话就用构造器方式，选择依赖的话就用set方法注入。
 
 
+
 40.Spring Boot动态定时任务
 @Autowired
 JdbcTemplate jdbcTemplate;
@@ -505,6 +541,7 @@ private class MyRunnable implements Runnable {
            System.out.println("DynamicTask.MyRunnable.run()，" + new Date());
        }
 }
+
 
 
 41.maven工程连接c3p0
@@ -538,6 +575,7 @@ private class MyRunnable implements Runnable {
             throw new RuntimeException();
         }
     }
+
 
 
 41.spring基础知识
@@ -717,6 +755,8 @@ public class hello {
 }
 访问：
 http://localhost:8080/swagger-ui.html
+
+
 
 
 45.lombok
@@ -967,6 +1007,7 @@ PACKAGE:包
 
 
 
+
 55.获取application配置文件参数的两种方式
 application.properties：
 zwj.name = zwj
@@ -982,6 +1023,7 @@ zwj.name = zwj
  配置文件的占位符：
  application.properties：
  zwj.age = ${random.int}
+ 
  
  
 56.多项目（如：金证的）
@@ -1667,6 +1709,7 @@ springboot2的application.properties 官方配置 说明文件：
 https://docs.spring.io/spring-boot/docs/2.3.0.RELEASE/reference/html/appendix-application-properties.html#common-application-properties
 
 
+
 69.Autowired与Resource
 @Resource的作用相当于@Autowired，只不过@Autowired按byType自动注入，而@Resource默认按 byName自动注入罢了。
 @Resource有两个属性是比较重要的，分是name和type，Spring将@Resource注解的name属性解析为bean的名字，而type属性则解析为bean的类型。
@@ -1892,7 +1935,6 @@ u.setId(id);
 u.setVersion(version);
 userService.updateById(u);
 	
-
 73.6 性能分析插件
 MybatisPlusConfig中添加：
 /**
@@ -2170,7 +2212,6 @@ target匹配目标对象的类型，即被代理对象的类型，例如A继承�
 args
 该函数接收一个类名，表示目标类方法入参对象是指定类（包含子类）时，切点匹配。
 
-
 AOP应用场景
 场景一： 记录日志
 场景二： 监控方法运行时间 （监控性能）
@@ -2184,4 +2225,114 @@ Spring实现AOP采用cglib和jdk动态代理两种方式，@EnableAspectJAutoPro
 表示开启AOP代理自动配置，如果配@EnableAspectJAutoProxy表示使用cglib进行代理对象的生成；
 设置@EnableAspectJAutoProxy(exposeProxy=true)表示通过aop框架暴露该代理对象，aopContext能够访问.
 
-  
+CGLIB（Code Generation Library)是一个基于ASM的字节码生成库，它允许我们在运行时对字节码进行修改和动态生成。CGLIB通过继承方式实现代理。  
+cglib需要引入cglib的jar包，spring-core的jar包，则无需引入，因为spring中包含了cglib。
+cglib代理无需实现接口，通过生成类字节码实现代理，比反射稍快，不存在性能问题，但cglib会继承目标对象，需要重写方法，所以目标对象不能为final类。
+
+jdk的动态代理，其只能代理接口
+调用了Proxy.newProxyInstance(ClassLoader loader,Class<?>[] interfaces,InvocationHandler h) 静态方法。
+通过该方法生成字节码，动态的创建了一个代理类，
+interfaces参数是该动态类所继承的所有接口，而继承InvocationHandler 接口的类则是实现在调用代理接口方法前后的具体逻辑。
+通过跟踪提示代码可以看出：当代理对象调用真实对象的方法时，其会自动的跳转到代理对象关联的handler对象的invoke方法来进行调用。
+
+asm是assembly的缩写，是汇编的称号，对于java而言，asm就是字节码级别的编程。  
+而这里说到的asm是指objectweb asm,一种.class的代码生成器的开源项目.  
+ASM是一套java字节码生成架构，它可以动态生成二进制格式的stub类或其它代理类，  
+或者在类被java虚拟机装入内存之前，动态修改类。
+它被用于以下项目：
+openjdk，实现lambda表达式调用， Nashorn编译器
+Groovy和Kotlin编译器
+Cobertura 和Jacoco，测量代码范围
+CGLIB动态代理类
+
+
+
+
+
+
+
+
+76  pom <optional>true</optional> 防止将依赖传递到其他模块中造成冲突
+<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional> <!-- 防止将devtools依赖传递到其他模块中 -->
+
+</dependency>
+
+
+
+
+
+77. springboot idea热部署
+1)添加环境变量：
+<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional> <!-- 防止将devtools依赖传递到其他模块中 -->
+</dependency>
+2)settings->compiler勾选build project automatically
+3)alt + shift + ctrl + / 选择registry... 勾选：compiler.automake.allow.when.app.running
+4)修改代码，切换到其它应用idea就会重新编译
+
+spring.devtools.restart.exlude=config/** #排除某些内容
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

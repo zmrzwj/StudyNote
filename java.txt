@@ -642,6 +642,10 @@ for (int i = 0; i < ms.length; i++) {
 
     printFieldMessage(class1);
 }
+method类中的invoke方法，可以用来执行获取的方法
+Method method = clazz.getMethod("sayHi", String.class); // 获取sayHi()方法
+method.invoke(clazz.newInstance(),"zwj"); // 把"zwj"传给sayHi(),并执行
+
 获取类属性：
 Class<?> class1 = object.getClass();
 Field[] fs = class1.getDeclaredFields();
@@ -652,6 +656,7 @@ for (Field field : fs) {
     String fieldName = field.getName();
     System.out.println(typeName + " " + fieldName);
 }
+
 获取类构造函数：
 Class<?> class1 = object.getClass();
 Constructor[] cs = class1.getDeclaredConstructors();
@@ -664,6 +669,9 @@ for (Constructor constructor : cs) {
     }
     System.out.println(")");
 }
+
+
+
 
 
 
