@@ -35,8 +35,11 @@ SimpleChannelHandler
 SimpleChannelInboundHandler能自动释放ByteBuf.
 
 
+
 4. ByteBuf
 既然所有的网络通信都是要基于底层的字节流来传输，那么传输所使用的数据接口就要求是效率高得、使用方便的而且容易使用的，Netty的ByteBuf更好能够达到这些要求
+
+
 
 5.为了支持TCP的粘包和拆包，一般采用如下4种方式：
   1）消息长度固定，累计读取到消息长度总和为定长Len的报文之后即认为是读取到了一个完整的消息。计数器归位，重新读取。
@@ -63,6 +66,8 @@ socketChannel.pipeline().addLast(new LineBasedFrameDecoder(1024));
 
 6.Protobuf是一种平台无关、语言无关、可扩展且轻便高效的序列化数据结构的协议，可以用于网络通信和数据存储。
 
+
+
 7.编解码方式
 LengthFieldBasedFrameDecoder解码时，计算每个数据包的整体长度时，多增加了一部分。
 需要LengthFieldPrepender
@@ -84,13 +89,18 @@ void channelRead(ChannelHandlerContext ctx, byte[] bytes) {
 }
 
 
+
 8.netty服务端默认启动线程有多少
 NioEventLoopGroup//创建的线程，不提供参数时，默认为2倍cpu的核数
 netty解决jdk空轮训bug
 
 异步串行无锁化
 
+
+
 9.netty在哪检测新链接
+
+
 
 10.pipeline在创建channel时创建
 pipeline的数据节点ChannelHandlerContext
@@ -98,13 +108,21 @@ ChannelHandlerContext有哪些方法：
 channel()当前节点的channel
 pipeline()当前节点的pipeline
 
+
+
+
 11.一个Channel包含了一个ChannelPipeline,而ChannelPipeline中又维护了一个由ChannelHandlerCOntext组成的双向链表.
 在ChannelPipeline中，ChannelHandler可以被链在一起处理用户逻辑。
 
 ChannelHandler处理顺序为先添加先处理.
 
+
+
 12. ChannelOutboundHandler
 处理顺序为先添加后处理
+
+
+
 
 13.netty接收16进制字节码
 channelRead( ... ){
@@ -125,8 +143,10 @@ maven的pom中加入
 Hex.encodeHexString(receiveMsgBytes)
 
 
+
 14.netty客户端管理
 使用concurrentHashmap来管理
+
 
 
 15.maven工程打包为jar包
@@ -254,11 +274,13 @@ mvn package打包
 </build>  
 
 
+
 16.netty解码器
 ByteToMessageDecoder
 累加字节流
 调用子类的decode方法进行解析
 将解析到的Bytebuf向下传
+
 
 
 17.netty百万连接优化
@@ -280,11 +302,13 @@ vi /etc/sysctl.conf
 修改fs.file-max = 1000000
 
 
+
 18.给应用添加线程池
 将pipeline.addLast(new ServerHandler());
 改为：
 private EventLoopGroup serverGroup = new NioEventLoopGroup(16);
 pipeline.addLast(serverGroup,new ServerHandler());
+
 
 
 19.centos jar开机启动
@@ -317,10 +341,48 @@ systemctl disable （服务名）
 
 
 
+21）心跳
+心跳机制
+﻿心跳是在TCP长连接中，客户端和服务端定时向对方发送数据包通知对方自己还在线，保证连接的有效性的一种机制
+在服务器和客户端之间一定时间内没有数据交互时, 即处于 idle 状态时, 客户端或服务器会发送一个特殊的数据包给对方, 
+当接收方收到这个数据报文后, 也立即发送一个特殊的数据报文, 
+回应发送方, 此即一个 PING-PONG 交互. 自然地, 当某一端收到心跳消息后, 就知道了对方仍然在线, 这就确保 TCP 连接的有效性.
 
+使用：
+socketChannel.pipeline().addLast(new IdleStateHandler(5, 0, 0, TimeUnit.SECONDS));
+class HeartBeatServerHandler extends ChannelInboundHandlerAdapter {
+	@Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        System.out.println("已经5秒未收到客户端的消息了！");
+        if (evt instanceof IdleStateEvent){
+            IdleStateEvent event = (IdleStateEvent)evt;
+            if (event.state()== IdleState.READER_IDLE){
+                lossConnectCount++;
+                if (lossConnectCount>2){
+                    System.out.println("关闭这个不活跃通道！");
+                    ctx.channel().close();
+                }
+            }
+        }else {
+            super.userEventTriggered(ctx,evt);
+        }
+    }
+}
 
+IdleStateHandler参数：
+readerIdleTime读空闲超时时间设定，如果channelRead()方法超过readerIdleTime时间未被调用则会触发超时事件调用userEventTrigger()方法；
+writerIdleTime写空闲超时时间设定，如果write()方法超过writerIdleTime时间未被调用则会触发超时事件调用userEventTrigger()方法；
+allIdleTime所有类型的空闲超时时间设定，包括读空闲和写空闲；
+unit时间单位，包括时分秒等；
 
-
-
-
-
+心跳任务建立流程：
+（1）IdleStateHandler的channelActive()方法在socket通道建立时被触发
+（2）channelActive()方法调用Initialize()方法,根据配置的readerIdleTime，WriteIdleTIme等超时事件参数往任务队列taskQueue中添加定时任务task；
+    （定时任务）
+（3）定时任务添加到对应线程EventLoopExecutor对应的任务队列taskQueue中，在对应线程的run()方法中循环执行
+	 用当前时间减去最后一次channelRead方法调用的时间判断是否空闲超时；
+	 如果空闲超时则创建空闲超时事件并传递到channelPipeline中；
+（4）在管道中传递调用自定义的userEventTrigger()方法
+	protected void channelIdle(ChannelHandlerContext ctx, IdleStateEvent evt) throws Exception {
+		ctx.fireUserEventTriggered(evt);
+	}

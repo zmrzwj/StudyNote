@@ -179,7 +179,7 @@ vi /etc/security/limits.conf
 * soft nofile 1000000
 //soft是一个警告值，而hard则是一个真正意义的阀值，超过就会报错
 * 代表针对所有用户
-            noproc 是代表最大进程数
+            nproc 是代表最大进程数
             nofile 是代表最大文件打开数 
 重启电脑
 limits.conf生效就必须保证/etc/pam.d/login中有：session    required   pam_limits.so

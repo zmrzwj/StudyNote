@@ -674,15 +674,87 @@ for (Constructor constructor : cs) {
 
 
 
-
-
-
-
-
-
 37.java10 var
 java10引入了局部变量折断 var用于声明局部变量。 
 如var user=new ArrayList<User>();
+
+
+
+
+
+38.零拷贝
+零拷贝(英语: Zero-copy) 技术是指计算机执行操作时，CPU不需要先将数据从某处内存复制到另一个特定区域。
+这种技术通常用于通过网络传输文件时节省CPU周期和内存带宽。
+➢零拷贝技术可以减少数据拷贝和共享总线操作的次数，消除传输数据在存储器之间不必要的中间拷贝次数，从而有效地提高数据传输效率
+➢零拷贝技术减少了用户进程地址空间和内核地址空间之间因为上:下文切换而带来的开销
+
+直接从hardware读取数据到kernel buffer后，再从kernel buffer写到目标地点不就好了。为了解决这种不必要的数据复制，操作系统出现了零拷贝的概念。
+（hardware可以使磁盘可以是网络）
+linux: sendfile,mmap
+https://www.jianshu.com/p/2fd2f03b4cc3
+
+NIO中内存映射方式I/O
+NIO中的FileChannel.map()方法其实就是采用了操作系统中的内存映射方式，将内核缓冲区的内存和用户缓冲区的内存做了一个地址映射。
+它解决数据从磁盘读取到内核缓冲区，然后内核缓冲区的数据复制移动到用户空间缓冲区。
+程序还是需要从用户态切换到内核态，然后再进行操作系统调用，并且数据移动和复制了两次。
+这种方式适合读取大文件，同时也能对文件内容进行更改，但是如果其后要通过SocketChannel发送，还是需要CPU进行数据的拷贝.
+
+NIO中的零拷贝
+fileChannel.transferTo(0, fileChannel.size(), socketChannel);
+transferTo()方法直接将当前通道内容传输到另一个通道，没有涉及到Buffer的任何操作，
+NIO中的Buffer是JVM堆或者堆外内存，但不论如何他们都是操作系统内核空间的内存。也就是说这种方式不会有内核缓冲区到用户缓冲区的读写问题。
+transferTo()的实现方式就是通过系统调用sendfile()（当然这是Linux中的系统调用），
+根据我们上面所写说这个过程是效率远高于从内核缓冲区到用户缓冲区的读写的。
+
+netty零拷贝：
+1）CompositeByteBuf：它可以将多个ByteBuf合并为一个逻辑上的ByteBuf，避免了各个ByteBuf之间的拷贝。
+2）通过wrap操作，我们可以将byte[]数组、ByteBuf、 ByteBuffer 等包装成一个 Netty ByteBuf对象，进而避免了拷贝操作。
+3）ByteBuf支持slice 操作，因此可以将ByteBuf分解为多个共享同一个存储区域的ByteBuf，避免了内存的拷贝。
+4）通过FileRegion包装的FileChannel.tranferTo实现文件传输，可以直接将文件缓冲区的数据发送到目标Channel，避免了传统通过循环write方式导致的内存拷贝问题。
+前三个都是 广义零拷贝，都是减少不必要数据copy；偏向于应用层数据优化的操作。
+（CompositeByteBuf实现零拷贝将多个ByteBuf合并为一个逻辑上的ByteBuf，简单理解就是类似于用一个链表，把分散的多个ByteBuf通过引用连接起来；）
+wrap操作实现零拷贝
+将byte[]数组、ByteBuf、 ByteBuffer 等包装成一个 Netty ByteBuf对象；
+这个比较简单，看过ByteBuf源码的同学一定会知道，ByteBuf其实就是组合(包含)了byte[]；
+通过 Unpooled.wrappedBuffer 方法来将 bytes 包装成为一个 UnpooledHeapByteBuf 对象, 而在包装的过程中, 是不会有拷贝操作的. 即最后我们生成的生成的 ByteBuf 对象是和 bytes 数组共用了同一个存储空间, 对 bytes 的修改也会反映到 ByteBuf 对象中.
+slice操作实现零拷贝
+将ByteBuf分解为多个共享同一个存储区域的ByteBuf
+slice恰好是将一整块区域，划分成逻辑上独立的小区域；
+在读取每个逻辑小区域时，实际会去按slice(int index, int length) index和length去读取原内存buffer的数据。
+（参考：https://www.jianshu.com/p/2fd2f03b4cc3）
+https://blog.csdn.net/u013096088/article/details/79122671
+
+
+
+
+
+
+
+
+
+39.为什么需要内存对齐
+一个变量的地址最好刚在一个寻址步长内，这样一次寻址就可以读取到该变量的值，如果变量跨步长存储，
+就需要寻址两次甚至多次然后再进行拼接才能获取到变量的值，效率明显就低了，所以编译器会进行内存对齐，以保证寻址效率。
+
+
+
+
+
+
+
+
+
+40.多线程run()中经常写while(true)的作用
+while(true)的作用：
+run方法中的代码就是线程要运行的代码，运行完毕以后，就不会再次运行，其方法本身并不是无限循环的。
+而while(true)是为了让run方法中的代码不断重复的运行，也就是让线程不停的运行，便于查看效果。如果去掉，run运行结束，线程也就结束了。
+
+
+
+
+
+
+
 
 
 
