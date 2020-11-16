@@ -1,0 +1,10 @@
+1、之前的小程序没有使用云开发，现在需要使用云函数怎么办呢？
+（1）点击“云开”按钮
+（2）将原来的代码（以前的全部文件哟）放到 miniprogram 目录
+（3）新增 cloudfunctions 目录
+（4）app.json 新增配置 "cloud": true
+（5）project.config.json 配置 "miniprogramRoot":"miniprogram/" 和 "cloudfunctionRoot":"cloudfunctions/"
+
+
+2、云函数本地调试无法开启
+在新建的云函数下执行npm install把依赖都按照上
