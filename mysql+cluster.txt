@@ -778,7 +778,8 @@ select * from information_schema.innodb_trx;
 
 
 
-
+30.source
+mysql>source d:/xxx.sql;
 
 
 

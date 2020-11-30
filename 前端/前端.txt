@@ -233,3 +233,27 @@ console.log(calculateBonus('S',20000)); // 输出：80000
 但是如果在标签中添加了anonymous属性，那么浏览器再去解析这些跨域资源的时候，就不会以它的自带跨域功能去加载了，
 而是 使用CORS的方式加载，就像我们的ajax一样，需要服务器设置跨域头，才可以完成加载，否则会报跨域问题，导致加载失败。
 
+
+
+
+19.form表单中的button自动刷新页面问题
+原因是因为<button>标签默认的类型是submit，即默认的button点击就会触发表单的提交事件。
+解决的办法有三个。
+1.在<button>标签中添加属性type="button"。
+<button type="button"></button>
+2.将<button>标签改为<input>标签。
+<input type="button" />
+3.在button的点击事件中加入阻止默认事件执行的代码段（JavaScript）。
+e.preventDefault();
+
+
+
+
+
+
+
+
+
+
+
+

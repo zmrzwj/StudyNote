@@ -204,6 +204,17 @@ fi
  
 
 
+
+8.AMQP与rabbitmq
+AMQP（Advanced Message Queue Protocol 高级消息队列协议）：是一个网络协议，它支持符合条件的客户端和消息代理中间件（message middleware broker）进行通讯。
+rabbitmq是AMQP协议的实现者，所以amqp中的概念和准则也适用于rabbitmq。
+
+
+
+
+9.交换机
+RabbitMQ中，所有生产者提交的消息都由Exchange来接受，然后Exchange按照特定的策略转发到Queue进行存储
+RabbitMQ提供了四种Exchange：fanout,direct,topic,header
  
  
  

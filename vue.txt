@@ -640,7 +640,7 @@ BASE_URL和NODE_ENV
 热重载跟业务无关，是为了让开发更加便捷，不需要频繁刷新重来。
 
 
-35.
+35._init()执行顺序
 在_init()中有这样的一个执行顺序：其中initState()是在beforeCreate和created之间
   initLifecycle(vm)
   initEvents(vm)
@@ -1398,6 +1398,46 @@ plugins // 插件，需要下载然后再在这配置
 https://www.babeljs.cn/docs/7.2.0/configuration
 https://www.babeljs.cn/docs/7.2.0/presets
 https://babel.docschina.org/docs/en/plugins // 汇总plugin
+
+
+
+
+41.history
+base: process.env.NODE_ENV === 'production' ? '/msb/webMsb' : process.env.BASE_URL,
+
+
+
+
+
+
+42.vite
+npm install -g create-vite-app
+npm init vite-app viteVue3
+cd viteVue3
+npm install
+npm run dev
+
+由于我们用的是 VUE3.0,所以我们VUE-ROUTER也要对应版本为 4.X.
+npm install vue-router@next -S
+npm install vuex@next -S
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
