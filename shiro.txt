@@ -1,0 +1,135 @@
+1.三大组件
+subject、
+security manager安全管理器：做账号的校验
+realm连接数据库
+
+2.使用
+resources下创建shiro.ini文件
+[users]
+root=123456
+admin=222
+
+[roles]
+seller=order-add.order-del
+ckmgr=ck-add,ck-list
+
+3.JdbcRealm规定表结构
+用户信息表
+create table users{
+	id	int primary key auto_increment,
+	username varchar(60) not null unique,
+	password varchar(20) not null,
+	password_salt varchar(20)
+}
+角色信息表user_roles
+create table user_roles {
+	id	int primary key auto_increment,
+	username varchar(60) not null unique,
+	role_name varchar(100) not null
+}
+权限信息表roles_permissions
+create table roles_permissions {
+	id	int primary key auto_increment,
+	role_name varchar(100) not null,
+	permission varchar(100) not null
+}
+ 
+
+自定义realm
+用户角色表
+create table tb_urs {
+	uid int not null,
+	rid int not null
+}
+角色权限表
+create table tb_rps {
+	rid int not null,
+	pid int not null
+}
+然后需要自己写查询语句，去查询表。
+
+创建MyRealm：
+public class MyRealm extends AuthorizingRealm {
+    @Override
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
+        return null;
+    }
+
+    // 获取认证数据，用户名和密码等
+    @Override
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
+        return null;
+    }
+}
+在config目录创建ShiroConfig：
+@Configuration
+public class ShiroConfig {
+
+//    @Bean
+    
+
+    @Bean
+    public MyRealm getMyRealm() {
+        MyRealm myRealm = new MyRealm();
+        return myRealm;
+    }
+
+    @Bean
+    public JdbcRealm getJdbcRealm(DataSource dataSource) {
+        JdbcRealm jdbcRealm = new JdbcRealm();
+        jdbcRealm.setDataSource(dataSource);
+        return jdbcRealm;
+    }
+
+//    @Bean
+//    public IniRealm getIniRealm() {
+//        IniRealm iniRealm = new IniRealm("classpath:shiro.ini");
+//        return iniRealm;
+//    }
+
+    @Bean
+    public DefaultWebSecurityManager getDefaultWebSecurityManager(JdbcRealm jdbcRealm) {
+        DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
+
+        // securityManager要完成校验，需要realm
+        securityManager.setRealm(jdbcRealm);
+
+        return securityManager;
+    }
+
+    @Bean
+    public ShiroFilterFactoryBean shiroFilter(DefaultWebSecurityManager securityManager) {
+        ShiroFilterFactoryBean filter = new ShiroFilterFactoryBean();
+
+        filter.setSecurityManager(securityManager);
+
+        // 设置shiro的拦截规则
+        // anon匿名用户可访问
+        // authc 认证用户可访问
+        // user 使用remeberMe的用户可访问
+        // perms 对应权限可访问
+        // role 对应角色可访问
+        Map<String, String> filterMap = new HashMap<>();
+        filterMap.put("/", "anon");
+        filterMap.put("/user/login", "anon");
+        filterMap.put("/shiro", "anon");
+//        filterMap.put("/hndl-api/shiro", "anon");
+        filterMap.put("/**", "authc");
+
+        filter.setFilterChainDefinitionMap(filterMap);
+        filter.setLoginUrl("/");
+        filter.setUnauthorizedUrl("/");
+
+        return filter;
+    }
+}
+
+
+
+4.多realm
+链式处理：一个一个realm处理
+分支处理：按条件分不同realm处理
+
+
+
+

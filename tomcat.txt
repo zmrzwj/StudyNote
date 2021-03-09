@@ -27,3 +27,62 @@ systemctl stop tomcat
 4、appBase=”webapps”配置
 若只配appBase，不配Context 的docBase(appBase和docBase二选一就可以了)，
 则appBase的每个文件夹里都代表一个应用，每个应用都必须放ROOT文件夹，ROOT里则包含web所有文件
+
+
+
+
+5.tomcat日志处理
+crontab -e
+添加这行（每月1号凌晨2点执行）：
+0 2 1 * * sh /mnt/tomcat/apache-tomcat-8.5.23/logs/clean.sh
+clean.sh内容（需要安装zip）
+#!/bin/sh
+######
+# 日志定时运行时间为每天4点0分
+# 删除20天之前的日志文件，压缩一周之前的日志文件
+# 日志文件时间是根据日志名称后面的日期来计算
+# 运行脚本注意日志文件中是否有其他相同后缀的非日志文件和日志文件名称是否符合要求
+######
+#日志文件所在目录
+path=/user/local/tomcat9.0/logs
+#进入日志目录
+cd $path
+#catalina.out日志文件备份
+#获取前一天的日期
+bak_date=`date +%Y-%m-%d -d "1 days ago"`
+#备份catalina.out日志，后面添加日期
+cp catalina.out catalina.out.$bak_date.log
+#清空catalina.out日志文件
+echo > catalina.out
+#20天之前的日志文件删除
+#获取20天之前的日期
+del_date=`date +%Y-%m-%d -d "20 days ago"`
+#获取文件名中的日期字符串，然后对比时间进行相应的操作，localhost_access_log的后缀文件名一般是txt，这里包括txt文件
+for n in `ls *.log *.txt -1`;do
+m=`echo $n | awk -F. '{print $(NF-1)}'`
+m=`echo ${m:0-10}`
+if [[ $m < $del_date || $m = $del_date ]];then
+echo file $n will be deleted.
+rm -rf $n
+fi
+done
+#一周之前的文件压缩
+#获取一周之前的日期
+zip_date=`date +%Y-%m-%d -d "7 days ago"`
+#获取文件名中的日期字符串，然后对比时间进行相应的操作
+for n in `ls *.log *.txt -1`;do
+m=`echo $n | awk -F. '{print $(NF-1)}'`
+m=`echo ${m:0-10}`
+echo $n $m
+if [ ! $m ]; then
+echo "IS NULL"
+continue
+fi
+if [[ $m < $zip_date || $m = $zip_date ]];then
+echo file $n will be zip.
+zip $n.zip $n
+rm -rf $n
+fi
+done
+
+

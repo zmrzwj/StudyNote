@@ -1412,7 +1412,7 @@ base: process.env.NODE_ENV === 'production' ? '/msb/webMsb' : process.env.BASE_U
 
 42.vite
 npm install -g create-vite-app
-npm init vite-app viteVue3
+npm init vite-app viteVue3 // npm init vite-app <project-name>
 cd viteVue3
 npm install
 npm run dev
@@ -1421,8 +1421,40 @@ npm run dev
 npm install vue-router@next -S
 npm install vuex@next -S
 
+集成ts:
+yarn add typescript -D
+npx tsc --init
 
 
+
+
+
+
+
+43.vue3新特点
+新开发工具vite
+	使用rollup打包
+组合式api	
+	同时支持options api和composition API
+	composition-api 把复杂组件的逻辑抽地更紧凑，而且可以将公共逻辑进行抽取
+新的响应式函数proxy, let proxy = new Proxy({name: "123"}, {get(){}, set(){}})
+新的全家桶
+对typescript全新支持
+重写了 Vdom ，突破了 Vdom 的性能瓶颈
+支持了 tree-shaking
+1）入口函数setup
+	创建组件前使用
+	它将接受两个参数：
+		props
+		context
+		props 是响应式的，你不能使用 ES6 解构，因为它会消除 prop 的响应性
+		context 是一个普通的 JavaScript 对象{ attrs, slots, emit }
+2）watchEffect
+const stop = watchEffect(() => {
+  /* ... */
+})
+// later 用于停止这个监听的函数
+stop()
 
 
 

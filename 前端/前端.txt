@@ -249,8 +249,44 @@ e.preventDefault();
 
 
 
+20.puppeteer
+Puppeteer 是什么
+Puppeteer 是 Node.js 工具引擎
+Puppeteer 提供了一系列 API，通过 Chrome DevTools Protocol 协议控制 Chromium/Chrome 浏览器的行为
+Puppeteer 默认情况下是以 headless 启动 Chrome 的，也可以通过参数控制启动有界面的 Chrome
+Puppeteer 默认绑定最新的 Chromium 版本，也可以自己设置不同版本的绑定
+Puppeteer 让我们不需要了解太多的底层 CDP 协议实现与浏览器的通信
+Puppeteer 能做什么
+官方称：“Most things that you can do manually in the browser can be done using Puppeteer”，那么具体可以做些什么呢？
+
+网页截图或者生成 PDF
+爬取 SPA 或 SSR 网站
+UI 自动化测试，模拟表单提交，键盘输入，点击等行为
+捕获网站的时间线，帮助诊断性能问题
+创建一个最新的自动化测试环境，使用最新的 js 和最新的 Chrome 浏览器运行测试用例
+测试 Chrome 扩展程序
 
 
+
+
+21.dependencies与devDependencies
+不同的地方在于：
+当某个项目依赖了你的  mylib，那么在安装的时候会链式地安装 mylib 这个项目中 dependencies 配置声明的依赖，因为根据约定，npm 认为这是项目运行时需要的依赖。而 devDependencies 则是开发时需要的依赖。 
+如果你输入 npm install --production 指令，就只会安装 dependencies 目录下的依赖，在一些服务端自动构建的过程中或者在一些特殊的需求下，可能会用到这个指令。
+
+webpack 构建项目是根据入口文件的引用树来构建的，跟你放在哪个 dependency 里面没有关系，就算你没有放在 dependency 里面，只要你文件中引用了这个库并且 webpack 能在 node_modules 文件夹中找到这个库，就会打包进去。
+
+
+
+22.npx
+npm 从5.2版开始，增加了 npx 命令。
+npx 想要解决的主要问题，就是调用项目内部安装的模块。比如，项目内部安装了测试工具 Mocha。
+$ npm install -D mocha
+一般来说，调用 Mocha ，只能在项目脚本和 package.json 的scripts字段里面， 如果想在命令行下调用，必须像下面这样。
+# 项目的根目录下执行
+$ node-modules/.bin/mocha --version
+npx 就是想解决这个问题，让项目内部安装的模块用起来更方便，只要像下面这样调用就行了。
+$ npx mocha --version
 
 
 
