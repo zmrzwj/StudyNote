@@ -1404,6 +1404,11 @@ https://babel.docschina.org/docs/en/plugins // 汇总plugin
 
 41.history
 base: process.env.NODE_ENV === 'production' ? '/msb/webMsb' : process.env.BASE_URL,
+nginx: html下创建/msb/webMsb
+		location  ^~/msb/webMsb {
+                index index.html;
+                try_files $uri $uri/ /msb/webMsb/index.html @router;
+        }
 
 
 
@@ -1411,6 +1416,7 @@ base: process.env.NODE_ENV === 'production' ? '/msb/webMsb' : process.env.BASE_U
 
 
 42.vite
+1)创建项目
 npm install -g create-vite-app
 npm init vite-app viteVue3 // npm init vite-app <project-name>
 cd viteVue3
@@ -1421,9 +1427,78 @@ npm run dev
 npm install vue-router@next -S
 npm install vuex@next -S
 
-集成ts:
+2）集成ts:
 yarn add typescript -D
 npx tsc --init
+把main.js转为main.ts
+把.vue文件里的scripts转为ts
+index.html里src="/src/main.js"改为src="/src/main.ts"
+新建shim-vue.d.ts：
+declare module "*.vue" {
+    import { Component } from "vue";
+    const component: Component;
+    export default components;
+}
+/**
+ * shims-vue.d.ts的作用
+ * 为了 typescript 做的适配定义文件，因为.vue 文件不是一个常规的文件类型，ts 是不能理解 vue 文件是干嘛的，
+ * 加这一段是是告诉 ts，vue 文件是这种类型的。
+ * 可以把这一段删除，会发现 import 的所有 vue 类型的文件都会报错。
+ */
+ 
+就是说，虽然 TypeScript 本身不支持导入非 JavaScript 内容，但是为了支持其他工具接下来的工作，所以做了这么个语法支持。
+*.vue 这个大概是 webpack 的 vue-loader 支持的
+
+3）安装router
+npm install vue-router@next -S (npm install vue-router@4.0 会出现箭头让你选)
+在src下创建router目录,再创建inex.ts文件：
+import {createRouter, createWebHashHistory} from 'vue-router'
+export default createRouter({
+    history: createWebHashHistory(),
+    routes: []
+})
+在main.ts：
+	app.use(router)
+
+4）安装vuex:
+npm install vuex@next -S
+创建store文件夹，再新建index.ts
+	import { createStore } from 'vuex'
+
+	export default createStore({
+		state: {
+			userName: '王大锤'
+		}
+	})
+在main.ts：
+import router from './router/index'
+import vuex from './store/index'
+const app = createApp(App)
+app.use(router)
+app.use(vuex)
+app.mount('#app')
+
+5）vite.config.js
+vite项目中使用的不是vue.config.js,而是vite.config.js
+import type { UserConfig } from 'vite'
+const  viteConfig:UserConfig = {
+    port: 3555,
+    proxy: {
+        '/api': {
+            target: 'http://192.168.11.206',
+            changeOrigin: true,
+            rewrite: path => path.replace('/^\/api', '')
+        }
+    }
+}
+export default viteConfig
+6）axios
+npm install axios
+
+7）vant3
+npm install vant@next -S
+
+
 
 
 
@@ -1455,15 +1530,27 @@ const stop = watchEffect(() => {
 })
 // later 用于停止这个监听的函数
 stop()
-
-
-
-
-
-
-
-
-
+3）setup()
+使用Composition API 的入口
+在beforeCreate之前调用
+在setup中没有this
+返回对象中的属性刻在模板中使
+4）ref和reactive
+ref只可以监听简单数据，reactive可以监听所有数据
+ref通过.value的形式来修改
+ref 和 reactive 本质我们可以简单的理解为ref是对reactive的二次包装, ref定义的数据访问的时候要多一个.value
+使用ref定义基本数据类型,ref也可以定义数组和对象。
+5）readonly
+传入ref或reactive对象,并返回一个原始对象的只读代理,对象内部任何嵌套的属性也都是只读的。
+传入普通对象等也返回只读代理
+传入普通数值或字符串不能变成只读
+	import {readonly } from 'vue'
+	setup()
+	{
+		const xx=readonly(参数);
+	}
+5）toRefs函数
+toRefs()函数可以将reactive()创建出来的响应式对象，转换为普通对象，只不过这个对象上的每个属性节点，都是ref()类型的响应式数据
 
 
 

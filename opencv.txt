@@ -1,0 +1,45 @@
+1、安装
+先安装numpy、matplotlib
+pip install opencv-python==3.4.8.29
+(opencv-python3.4.3有些经典算法申请了专利)
+sift和surf需要扩展库
+pip install opencv-contrib-python==3.4.8.29
+
+安装matplotlib：
+先安装wheel: pip install wheel
+安装pillow: https://www.lfd.uci.edu/~gohlke/pythonlibs/
+
+
+
+2、模块
+core
+highgui
+imgproc
+feature2d
+objdetect
+FLANN
+ml
+photo
+video
+calib3d
+G-API
+
+
+
+3、计算
+cv为饱和加法: cv.add
+250+10 = 260 =》 255
+numpy为取模加法：
+250 + 10 = 260 =》 260 % 256 = 4
+
+cv.warpAffine(src, M, flags)
+M平移矩阵，flags: 插值方法
+M = [1 0 tx]
+    [0 1 ty]
+
+
+
+
+
+
+
