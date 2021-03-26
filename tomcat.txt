@@ -27,7 +27,10 @@ systemctl stop tomcat
 4、appBase=”webapps”配置
 若只配appBase，不配Context 的docBase(appBase和docBase二选一就可以了)，
 则appBase的每个文件夹里都代表一个应用，每个应用都必须放ROOT文件夹，ROOT里则包含web所有文件
-
+注意：
+<host appBase="webapps">
+<context docBase=“xxx”>
+二者选其一配置，不然导致Listener被重复加载
 
 
 
