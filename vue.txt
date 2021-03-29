@@ -1412,10 +1412,36 @@ nginx: html下创建/msb/webMsb
 
 
 
+42.自定义指令方法
+import Vue from 'vue'
+
+const auth = Vue.directive('auth', {
+  bind (el, binding, vnode) {
+    console.log(el)
+    console.log(binding)
+    console.log(vnode.context)
+    console.log(vnode.context.$route)
+    // el.parentNode.removeChild(el);
+  }
+})
+
+export default auth
+main.js: 
+import './directive/auth'
+钩子函数介绍
+指令定义函数提供了几个钩子函数（可选）
+bind：只调用一次，指令第一次绑定到元素时调用。
+inserted：被绑定元素插入父节点时调用。
+update：所在组件的VNode更新时调用，但是可能发生在其子 VNode 更新之前。
+componentUpdated：指令所在组件的 VNode 及其子 VNode 全部更新后调用。
+unbind：只调用一次，指令与元素解绑时调用。
 
 
 
-42.vite
+
+
+
+43.vite
 1)创建项目
 npm install -g create-vite-app
 npm init vite-app viteVue3 // npm init vite-app <project-name>
@@ -1506,7 +1532,7 @@ npm install vant@next -S
 
 
 
-43.vue3新特点
+44.vue3新特点
 新开发工具vite
 	使用rollup打包
 组合式api	
