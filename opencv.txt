@@ -27,6 +27,7 @@ G-API
 
 
 
+
 3、计算
 cv为饱和加法: cv.add
 250+10 = 260 =》 255
@@ -37,6 +38,211 @@ cv.warpAffine(src, M, flags)
 M平移矩阵，flags: 插值方法
 M = [1 0 tx]
     [0 1 ty]
+
+
+
+
+
+4、旋转
+x1 = xsina + ysina
+y2 = -xsina + ycosa
+#图像旋转
+rows,cols = img.shape[:2]
+#生成旋转矩阵
+M = cv.getRotationMatrix2D((cols/2, rows/2), 45, 0.5) # 中心、旋转45度、缩放比例0.5
+#进行旋转
+dst = cv.warpAffine(img, M, (cols, rows))
+
+#仿射变换
+#仿射变换需要2X3的矩阵
+# M = [A, B] = [a00 a01 b0]
+#              [a10 a11 b1]
+# A = [a00 a01] B = [b0]
+#     [a10 a11]     [b1]
+#
+rows, cols = img.shape[:2]
+pts1 = np.float32([[50, 50], [200, 50], [50, 200]])
+pts2 = np.float32([[100, 100], [200, 50], [100, 250]])
+M = cv.getAffineTransform(pts1, pts2)
+dst = cv.warpAffine(img, M, (cols, rows))
+
+#透视变换
+#[x1, y1, z1] = [u, v, w][a00, a01, a02]
+#                        [a10, a11, a12]
+#                        [a20, a21, a22]
+# T = [a00, a01, a02] = [T1, T2]
+#     [a10, a11, a12]   [T3, a22]
+#     [a20, a21, a22]
+pst1 = np.float32([[56, 65], [368, 52], [28, 387], [389, 390]])
+pst2 = np.float32([[100, 145], [300, 100], [80, 290], [310, 300]])
+T = cv.getPerspectiveTransform(pst1, pst2)
+dest = cv.warpPerspective(img, T, (cols, rows)) # (cols, rows) size of the output image
+
+# 图像金字塔
+imgup = cv.pyrUp(img) # 上采样
+imgdown = cv.pyrDown(img) # 上采样
+
+
+
+
+
+5、 形态学操作
+# 腐蚀和膨胀
+# 腐蚀它提取的是内核覆盖下的相素最小值
+# 1、前景物体会变小，整幅图像的白色区域会减少，这对于去除白噪声很有用。
+# 2、平滑对象边缘
+# 3、弱化或分割图像之间的半岛型连接
+#
+# 膨胀将内核 B 划过图像,将内核 B 覆盖区域的最大相素值提取，并代替锚点位置的相素。显然，这一最大化操作将会导致图像中的亮区开始”扩展”
+#1、对象大小增加一个像素（3x3）
+#2、平滑对象边缘
+#3、减少或填充对象之间的距离，也可以连接两个分开的物体。
+kernel = np.ones((5, 5), np.uint8)
+img_k = cv.erode(img, kernel)
+img_d = cv.dilate(img, kernel)
+
+# 开闭运算
+# 开运算 = 先腐蚀运算，再膨胀运算（看上去把细微连在一起的两块目标分开了）
+# （１）开运算能够除去孤立的小点，毛刺和小桥，而总的位置和形状不便。
+# （２）开运算是一个基于几何运算的滤波器。
+# （３）结构元素大小的不同将导致滤波效果的不同。
+# （４）不同的结构元素的选择导致了不同的分割，即提取出不同的特征。
+
+# 闭运算 = 先膨胀运算，再腐蚀运算（看上去将两个细微连接的图块封闭在一起）
+# （1）闭运算能够填平小湖（即小孔），弥合小裂缝，而总的位置和形状不变。
+# （2）闭运算是通过填充图像的凹角来滤波图像的。
+# （3）结构元素大小的不同将导致滤波效果的不同。
+# （4）不同结构元素的选择导致了不同的分割。
+kernel = np.ones((10, 10), np.uint8)
+img_close = cv.morphologyEx(img, cv.MORPH_CLOSE, kernel)
+img_open = cv.morphologyEx(img, cv.MORPH_OPEN, kernel)
+
+# 礼帽和黑帽
+# 礼帽图像=原始图像-开运算图像
+# 得到噪声图像
+top = cv.morphologyEx(img, cv.MORPH_TOPHAT, kernel)
+# 黑帽图像=闭运算图像-原始图像
+# 得到图像内部的小孔，或前景色的小黑点
+black = cv.morphologyEx(img, cv.MORPH_BLACKHAT, kernel)
+
+
+
+
+6、噪声
+# 椒盐噪声，也叫脉冲噪声
+# 它是一种随机出现的白点或者黑点，可能是亮的区域有黑色像素或是在暗的区域有白色像素（或是两者皆有）
+# 高斯噪声
+# 噪声密度函数服从高斯分布的一类噪声。
+
+
+
+
+
+7、图形平滑
+# 均值滤波
+# 均值滤波也称为线性滤波，
+# 其采用的主要方法为邻域平均法。线性滤波的基本原理是用均值代替原图像中的各个像素值，即对待处理的当前像素点（x，y），选择一个模板，该模板由其近邻的若干像素组成，
+# 求模板中所有像素的均值，再把该均值赋予当前像素点（x，y），作为处理后图像在该点上的灰度g（x，y），即g（x，y）=∑f（x，y）/m m为该模板中包含当前像素在内的像素总个数。
+img_blur = cv.blur(img, (5, 5))
+
+# 高斯滤波
+# 高斯滤波就是对整幅图像进行加权平均的过程，每一个像素点的值，都由其本身和邻域内的其他像素值经过加权平均后得到。
+# 高斯滤波的具体操作是：用一个模板（或称卷积、掩模）扫描图像中的每一个像素，用模板确定的邻域内像素的加权平均灰度值去替代模板中心像素点的值。
+img_gauss = cv.GaussianBlur(dog, (3, 3), 1)  # 标准差为1， 模板3 X 3
+
+# 中值滤波
+# 中值滤波法是一种非线性平滑技术，它将每一像素点的灰度值设置为该点某邻域窗口内的所有像素点灰度值的中值（核大小为奇数就一定有中值）
+# 对椒盐噪声很有效
+img_medianBlur = cv.medianBlur(dog, 3) # 3为核大小为奇数且大于1
+
+
+
+8、 直方图
+# range 统计取值范围
+# bins 特征空间子区段的数目, 如：【0， 255】 = [0, 15] U [16, 30] ... [240, 255]
+# dims 统计的特征数目
+dog = cv.imread('dog.jpg')
+histr = cv.calcHist([dog], [0], None, [10], [0, 256])  # channels 灰度图只有[0]， 彩色B,G,R 分别为[0],[1],[2]
+# plt.figure(figsize=(10, 6), dpi=100)
+# plt.plot(histr)
+# plt.grid()
+# plt.show()
+# 掩膜
+# 在图像处理的过程中，我们时常需要对指定区域或目标进行操作，
+# 这个区域我们称之为感兴趣区域。opencv中mask的作用就是创建感兴趣区域，即待处理的区域。
+# 图像掩模主要用于：
+#
+# ①提取感兴趣区,用预++++++++++++++++++++++++++++++++++++++先制作的感兴趣区掩模与待处理图像相乘,得到感兴趣区图像,感兴趣区内图像值保持不变,而区外图像值都为0。
+# ②屏蔽作用,用掩模对图像上某些区域作屏蔽,使其不参加处理或不参加处理参数的计算,或仅对屏蔽区作处理或统计。
+# ③结构特征提取,用相似性变量或图像匹配方法检测和提取图像中与掩模相似的结构特征。
+# ④特殊形状图像的制作。
+
+# 蒙版
+mask = np.zeros(img.shape[:2], np.uint8)
+mask[10:150, 20:300] = 255
+# 掩膜
+masked_img = cv.bitwise_and(img, img, mask = mask)
+mask_hist = cv.calcHist([img], [0], mask, [256], [1, 256])
+# fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 8))
+# axes[0, 0].imshow(img, cmap=plt.cm.gray)
+# axes[0, 0].set_title("原图")
+# axes[0, 1].imshow(mask, cmap=plt.cm.gray)
+# axes[0, 1].set_title("蒙版")
+# axes[1, 0].imshow(masked_img, cmap=plt.cm.gray)
+# axes[1, 0].set_title("掩膜数据")
+# axes[1, 1].plot(mask_hist)
+# axes[1, 1].grid()
+# axes[1, 1].set_title("灰度直方图")
+# plt.show()
+
+# 直方图均衡化
+# 直方图均衡化(Histogram Equalization)是一种增强图像对比度(Image Contrast)的方法，
+# 其主要思想是将一副图像的直方图分布变成近似均匀分布，从而增强图像的对比度。
+dog0 = cv.imread('dog.jpg', 0)
+dst = cv.equalizeHist(dog0)
+# plt.imshow(dst, cmap = plt.cm.gray)
+# plt.show()
+# 自适应的直方图均衡化
+# 创建自适应均衡化对象
+cl = cv.createCLAHE(2.0, (8, 8)) # 对比度限制2.0
+clahe = cl.apply(dog0)
+plt.imshow(clahe, cmap = plt.cm.gray)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

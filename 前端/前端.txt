@@ -292,4 +292,65 @@ $ npx mocha --version
 
 
 
+23.getPropertyValue CSS属性的值
+var a = document.getElementById("content");
+window.getComputedStyle(a).getPropertyValue("color"));
+或
+var declaration = document.styleSheets[0].cssRules[0].style;
+var value = declaration.getPropertyValue('margin'); // "1px 2px"
+
+getComputedStyle 和 element.style 的相同点就是二者返回的都是 CSSStyleDeclaration 对象，
+取相应属性值得时候都是采用的 CSS 驼峰式写法，均需要注意 float 属性。
+而不同点就是：
+element.style 读取的只是元素的内联样式，即写在元素的 style 属性上的样式；
+而 getComputedStyle 读取的样式是最终样式，包括了内联样式、嵌入样式和外部样式。
+element.style 既支持读也支持写，我们通过 element.style 即可改写元素的样式。
+而 getComputedStyle 仅支持读并不支持写入。我们可以通过使用 getComputedStyle 读取样式，通过 element.style 修改样式。
+
+
+
+
+
+24.scrollHeight、scrollTop、clientHeight
+scrollHeight（文档内容实际高度，包括超出视窗的溢出部分）、
+scrollTop（滚动条滚动距离）、
+clientHeight（窗口可视范围高度）。
+scrollHeight - scrollTop - clientHeight == 0 // 说明滚动条到底了
+
+
+
+
+
+25.CSS 自定义属性
+.foo {
+  --theme-color: blue;
+  --spacer-width: 8px;
+  --favorite-number: 3;
+  --greeting: "Hey, what's up?";
+  --reusable-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.85);
+}
+.button {
+  background-color: var(--theme-color);
+}
+section.news > .sidenote {
+  --theme-color: gray;
+}
+.child {
+  width: calc(100% - 16px);
+}
+.title {
+  text-size: calc(5 * var(--base-size));
+}
+const styles = getComputedStyle(document.querySelector('.foo'));
+// Read value. Be sure to trim to remove whitespace. 
+const oldColor = styles.getPropertyValue('--color').trim();
+// Write value. 
+foo.style.setProperty('--color', 'green');
+
+
+
+
+
+
+
 
