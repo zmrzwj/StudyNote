@@ -157,6 +157,7 @@ img_medianBlur = cv.medianBlur(dog, 3) # 3为核大小为奇数且大于1
 
 
 
+
 8、 直方图
 # range 统计取值范围
 # bins 特征空间子区段的数目, 如：【0， 255】 = [0, 15] U [16, 30] ... [240, 255]
@@ -207,6 +208,170 @@ dst = cv.equalizeHist(dog0)
 cl = cv.createCLAHE(2.0, (8, 8)) # 对比度限制2.0
 clahe = cl.apply(dog0)
 plt.imshow(clahe, cmap = plt.cm.gray)
+
+
+
+
+
+
+9、边缘检测
+#图像强度的显著变化可分为：
+# 阶跃变化函数，即图像强度在不连续处的两边的像素灰度值有着显著的差异；
+# 线条（屋顶）变化函数，即图像强度突然从一个值变化到另一个值，保持一较小行程后又回到原来的值。
+# 图像的边缘有方向和幅度两个属性,沿边缘方向像素变化平缓,垂直于边缘方向像素变化剧烈.边缘上的这种变化可以用微分算子检测出来,通常用一阶或二阶导数来检测边缘。
+
+# sobel检测算子 (索贝尔算子)
+x = cv.Sobel(dog, cv.CV_16S, 1, 0)
+y = cv.Sobel(dog, cv.CV_16S, 0, 1)
+absx = cv.convertScaleAbs(x)
+absy = cv.convertScaleAbs(y)
+res = cv.addWeighted(absx, 0.5, absy, 0.5, 0)
+# plt.imshow(res, cmap = plt.cm.gray)
+# plt.show()
+#schaar算子
+#  Scharr 算子是对 Sobel 算子差异性的增强，两者之间的在检测图像边缘的原理和使用方式上相同。
+# 而 Scharr 算子的主要思路是通过将模版中的权重系数放大来增大像素值间的差异。
+x = cv.Sobel(dog, cv.CV_16S, 1, 0, ksize=-1)
+y = cv.Sobel(dog, cv.CV_16S, 0, 1, ksize=-1)
+absx = cv.convertScaleAbs(x)
+absy = cv.convertScaleAbs(y)
+res = cv.addWeighted(absx, 0.5, absy, 0.5, 0)
+# plt.imshow(res, cmap = plt.cm.gray)
+# plt.show()
+
+x = cv.Scharr(dog, cv.CV_16S, 1, 0)
+y = cv.Scharr(dog, cv.CV_16S, 0, 1)
+absx = cv.convertScaleAbs(x)
+absy = cv.convertScaleAbs(y)
+res = cv.addWeighted(absx, 0.5, absy, 0.5, 0)
+# plt.imshow(res, cmap = plt.cm.gray)
+# plt.show()
+
+
+# 拉普拉斯算子
+# 是一种基于图像导数运算的高通线性滤波器。它通过二阶导数来度量图像函数的曲率。
+# 一阶导数的极值位置，二阶导数为0。所以我们也可以用这个特点来作为检测图像边缘的方法。
+res = cv.Laplacian(dog, cv.CV_16S)
+res = cv.convertScaleAbs(res)
+# plt.imshow(res, cmap = plt.cm.gray)
+# plt.show()
+
+# canny算法
+# Canny边缘检测算法可以分为以下5个步骤：
+# 应用高斯滤波来平滑图像, 目的是去除噪声
+# 找寻图像的强度梯度（intensity gradients）,每个像素点的梯度可以由Sobel算子来获得
+# 应用非最大抑制（non-maximum suppression）技术来消除边误检（本来不是但检测出来是）,就是保留了每个像素点上梯度强度的极大值，而删掉其他的值。
+# 应用双阈值的方法来决定可能的（潜在的）边界, Canny算法中应用了一种叫双阈值的技术。
+#       即设定一个阈值上界和阈值下界（opencv中通常由人为指定的），图像中的像素点如果大于阈值上界则认为必然是边界（称为强边界，strong edge），小于阈值下界则认为必然不是边界，两者之间的则认为是候选项（称为弱边界，weak edge）
+# 利用滞后技术来跟踪边界, 和强边界相连的弱边界认为是边界，其他的弱边界则被抑制。
+zangzu = cv.imread("./zangzu.jpg")
+lowH = 0
+highH = 400
+canny = cv.Canny(zangzu, lowH, highH)
+# plt.figure(figsize=(10, 8), dpi=100)
+# plt.subplot(121), plt.imshow(zangzu, cmap=plt.cm.gray), plt.title('原图')
+# plt.xticks([]), plt.yticks([])
+# plt.subplot(122), plt.imshow(canny, cmap=plt.cm.gray), plt.title('检测后')
+# plt.xticks([]), plt.yticks([])
+# plt.show()
+
+
+
+
+
+
+
+10、模板匹配
+idCard = cv.imread("./zangzu.jpg")
+head = cv.imread("./zangyu_part.PNG")
+
+h, w = head.shape[:2]
+# TM_SQDIFF, TM_SQDIFF_NORMED, TM_CCORR, TM_CCORR_NORMED, TM_CCOEFF, TM_CCOEFF_NORMED
+res_ = cv.matchTemplate(idCard, head, cv.TM_CCOEFF_NORMED)
+min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res_)
+top_left = max_loc
+bottom_right = (top_left[0] + w, top_left[1] + h)
+cv.rectangle(idCard, top_left, bottom_right, (0, 255, 0), 2)
+# plt.imshow(idCard[:, :, ::-1])
+# plt.title('匹配结果')
+# plt.xticks([]), plt.yticks([])
+# plt.show()
+
+
+
+
+
+11、霍夫变换
+# 线检测
+# 笛卡尔坐标系下的点A、B、M映射到极坐标系下的参数空间中实际上是线，
+# 而笛卡尔坐标系中的直线ABM映射到极坐标系下的参数空间中实际上是点F。即同样具备对偶性。
+# 且对于平行于X或Y轴的直线也可以很好映射到参数空间下，保证其有交点.
+# 直线检测就简单很多了。先通过极坐标系的参数空间将平面的散点集一一映射到其中，
+# 然后在参数空间中找出曲线相交较多的点，则其即为原散点集中被检测出的直线。
+# 故依据上图，我们可判定参数空间中的F点即为原散点集中被检测到的直线。
+img = cv.imread("./nimg.jpg", 0)
+img_ = cv.imread("./nimg.jpg")
+edges = cv.Canny(img, 50, 150)
+# plt.imshow(edges, cmap = plt.cm.gray)
+# plt.show()
+
+# rho为距离分辨率
+# theta为角度分辨率
+# threshold为阈值
+lines = cv.HoughLines(edges, 0.8, np.pi/180, 150)
+for line in lines:
+    rho, theta = line[0]
+    a = np.cos(theta)
+    b = np.sin(theta)
+    x0 = rho*a
+    y0 = rho*b
+    x1 = int(x0 + 1000*(-b))
+    y1 = int(y0 + 1000*(a))
+    x2 = int(x0 - 1000*(-b))
+    y2 = int(y0 - 1000*(a))
+    cv.line(img_, (x1, y1), (x2, y2), (0, 255, 0))
+
+# plt.imshow(img_[:, :, ::-1])
+# plt.show()
+
+# 圆检测
+# 霍夫圆检测
+# 霍夫圆检测分为两个阶段：
+#
+# 检测圆心
+# 从圆心推导出圆半径
+# 检测圆心
+# 检测圆心的原理是圆心是它所在圆周所有法线的交点。因此只要找到法线的交点，即可确定圆心。具体步骤如下：
+#
+# 边缘检测；
+# 计算图像梯度，并确定圆周线。圆周线的梯度即为法线；
+# 在二维霍夫空间内，绘制所有图形的梯度直线，某坐标点上累加和的值越大，说明在该点上直线相交的次数越多，也就越可能是圆心；
+# 在霍夫空间内，4领域内进行非最大值抑制；
+# 设定阈值，霍夫空间内累加和大于该阈值的点就对应于圆心。
+# 从圆心推导出圆半径
+# 计算某一个圆心到所有圆周线的距离；
+# 设定两个阈值，定义为最大半径和最小半径，保留距离在这两个半径之间的值，这意味着我们检测的圆不能太大，也不能太小；
+# 对保留下来的距离进行排序；
+# 找到距离相同的那些值，并计算相同值的数量；
+# 设定一个阈值，只有相同值的数量大于该阈值，才认为该值是该圆心对应的圆半径；
+# 对每一个圆心，完成以上步骤，得到所有的圆半径。
+img_ = cv.imread("./circle.jpg")
+gay_img = cv.cvtColor(img_, cv.COLOR_BGR2GRAY)
+edges = cv.medianBlur(gay_img, 7)
+# param1，Canny 边缘检测的高阈值，低阈值被自动置为高阈值的一半，默认为 100。
+# param2，累加平面某点是否是圆心的判定阈值。它越大，能通过检测的圆就更接近完美的圆形，默认为 100。
+# minDist，两个圆心之间的最小距离。若两圆心距离 < minDist，则认为是同一个圆。
+circles = cv.HoughCircles(edges, cv.HOUGH_GRADIENT, 1, 200, param1=100, param2=20, minRadius=0, maxRadius=150)
+for i in circles[0, :]:
+    cv.circle(img_, (i[0], i[1]), i[2], (0, 255, 0), 2)
+    cv.circle(img_, (i[0], i[1]), 2, (0, 255, 0), -1)
+
+plt.imshow(img_[:,:,::-1])
+plt.show()
+
+
+
+
 
 
 
