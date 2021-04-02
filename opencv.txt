@@ -1,10 +1,13 @@
 https://www.bilibili.com/video/BV1Fo4y1d7JL?p=14
 1、安装
 先安装numpy、matplotlib
-pip install opencv-python==3.4.8.29
-(opencv-python3.4.3有些经典算法申请了专利)
+pip install opencv-python==4.5.1.48
+pip install opencv-python== 3.4.5.20
+（pip uninstall opencv-python）
+(opencv-python3.4.3有些经典算法申请了专利，4.4.0后重新支持sift,因为专利过期了)
 sift和surf需要扩展库
-pip install opencv-contrib-python==3.4.8.29
+pip install opencv-contrib-python==4.5.1.48
+（pip uninstall opencv-contrib-python）
 
 安装matplotlib：
 先安装wheel: pip install wheel
@@ -374,8 +377,77 @@ plt.show()
 
 
 
+12.角点特征
+# 角点所具有的特征：
+# >轮廓之间的交点；
+# >对于同一场景，即使视角发生变化，通常具备稳定性质的特征；
+# >该点附近区域的像素点无论在梯度方向上还是其梯度幅值上有着较大变化；
+# 检测思想：如果存在任意方向上的滑动，都有着较大灰度变化，那么我们可以认为该窗口中存在角点。
+# 通过矩阵M进行特征值求解，而特征值所对应的特征向量即为灰度变化方向。如果两个特征值较大，则表示有两个方向灰度变化较快。所以可以直接通过求解M的特征值进行角点判断
+# harris角点检测
+img_ = cv.imread("./aiimg.jpg")
+gay_img = cv.cvtColor(img_, cv.COLOR_BGR2GRAY)
+gray = np.float32(gay_img)
+# • img - 数据类型为 float32 的输入图像。
+# • blockSize - 角点检测中要考虑的领域大小。
+# • ksize - Sobel 求导中使用的窗口大小
+# • k - Harris 角点检测方程中的自由参数，取值参数为 [0,04，0.06]
+dst = cv.cornerHarris(gray, 2, 3, 0.04)
+# img_[dst > 0.001*dst.max()] = [0, 0, 255]
 
+# shi-tomasi角点检测
+# image: 输入图像，是八位的或者32位浮点型，单通道图像，所以有时候用灰度图
+# maxCorners: 返回最大的角点数，是最有可能的角点数，如果这个参数不大于0，那么表示没有角点数的限制。
+# qualityLevel: 图像角点的最小可接受参数，质量测量值乘以这个参数就是最小特征值，小于这个数的会被抛弃。
+# minDistance: 返回的角点之间最小的欧式距离。
+# mask: 检测区域。如果图像不是空的(它需要具有CV_8UC1类型和与图像相同的大小)，它指定检测角的区域。
+# blockSize: 用于计算每个像素邻域上的导数协变矩阵的平均块的大小。
+# useHarrisDetector：选择是否采用Harris角点检测，默认是false.
+# k: Harris检测的自由参数。
+corners = cv.goodFeaturesToTrack(gay_img, 1000, 0.01, 10)
+for i in corners:
+    x, y = i.ravel()
+    cv.circle(img_, (x, y), 2, (0, 0, 255), -1)
 
+# sift算法 (尺度不变特征变换)
+# 尺度空间极值检测
+#   高斯差分金字塔
+#   寻找极值点
+# 关键点定位
+#   阈值化
+#   在高斯差分金字塔中找极值
+# 方向赋值，确定关键点方向
+# 关键点描述
+# https://blog.csdn.net/tengfei461807914/article/details/78175095
+img = cv.imread("./aiimg.jpg")
+gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+sift = cv.SIFT_create()
+kp = sift.detect(gray_img, None)
+cv.drawKeypoints(img, kp, img, flags=cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+# plt.imshow(img[:, :, ::-1])
+# plt.show()
+# surf算法
+# sift改进版本，4.4无法使用
+
+# fast算法
+# 用一句话来讲FASTN算法的原理就是：若一个像素周围有一定数量的像素与该点像素值不同，则认为其为角点。
+# FAST算法包含3个主要步骤：
+#          （1）对固定半径圆上的像素进行分割测试，通过逻辑测试可以去处大量的非特征候选点；
+#          （2）基于分类的角点特征检测，利用ID3 分类器根据16个特征判决候选点是否为角点特征，每个特征的状态为一1，0，1。
+#          （3）利用非极大值抑制进行角点特征的验证。排除不稳定角点
+fast = cv.FastFeatureDetector_create(threshold=70)
+kp = fast.detect(img, None)
+img2 = cv.drawKeypoints(img, kp, None, color=(0, 0, 255))
+fast.setNonmaxSuppression(0)
+kp = fast.detect(img, None)
+
+img3 = cv.drawKeypoints(img, kp, None, color=(0, 0, 255))
+fig,axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 8), dpi=100)
+axes[0].imshow(img2[:,:,::-1])
+axes[0].set_title("加入非极大值抑制")
+axes[1].imshow(img3[:,:,::-1])
+axes[1].set_title("未加入非极大值抑制")
+plt.show()
 
 
 
