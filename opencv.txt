@@ -450,6 +450,15 @@ axes[1].set_title("未加入非极大值抑制")
 plt.show()
 
 
+# ORB算法
+# 一种快速特征点提取和描述的算法
+# 先使用fast算法查找特征点
+# 再使用BRIEF算法，创建二元特征向量
+# orb = cv.ORB_create(nfeatures=5000)
+# kp = orb.detect(img, None)
+# img2 = cv.drawKeypoints(img, kp, None, flags=0)
+# plt.imshow(img2[:, :, ::-1])
+# plt.show()
 
 
 
@@ -457,6 +466,107 @@ plt.show()
 
 
 
+
+13.视频操作
+# cap = cv.VideoCapture("./outV.avi")
+
+# while(cap.isOpened()):
+#     ret, frame = cap.read()
+#     if ret == True:
+#         cv.imshow("frame", frame)
+#     if cv.waitKey(25) & 0xff == ord("q"):
+#         break
+# cap.release()
+# cv.destroyAllWindows()
+
+# 视频保存
+# frame_width = int(cap.get(3))
+# frame_height = int(cap.get(4))
+# # VideoWriter_fourcc 4 个字母表示采用的编码器，常用有“MJPG”、“XVID”，列表在https://www.fourcc.org/codecs.php
+# out = cv.VideoWriter('outV.avi', cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), 10, (frame_width, frame_height))
+# i = 0
+# while(True):
+#     ret, frame = cap.read()
+#     if ret == True:
+#         i += 1
+#         print(i)
+#         if(i > 15000 and i < 20000):
+#             out.write(frame)
+#     else:
+#         break
+#
+# cap.release()
+# out.release()
+# cv.destroyAllWindows()
+
+
+
+
+
+
+14.meanshift
+#指定追踪目标:算法用于视频目标跟踪时，采用目标的颜色直方图作为搜索特征，通过不断迭代
+# meanshift算法的目的是找到含有最多特征的窗口区域，即使圆心与概率密度函数的局部极值点重合，亦即使圆心与特征数据点最密集的地方中心尽量重合到一块。
+# 算法实现是通过向特征数据点密度函数上升梯度方向逐步迭代偏移至上升梯度值近似为零（到达最密集的地方）。
+# ret, frame = cap.read()
+# r, h, c, w = 197, 500, 700, 608
+# win = (c, r, w, h)
+# roi = frame[r: r+h:, c:c+w]
+# #计算直方图
+# hsv_roi = cv.cvtColor(roi, cv.COLOR_BGR2HSV)
+# roi_hist = cv.calcHist([hsv_roi], [0], None, [180], [0, 180])
+# cv.normalize(roi_hist, roi_hist, 0, 255, cv.NORM_MINMAX)
+
+# 目标追踪
+# term = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 1)
+# while(True):
+#     ret, frame = cap.read()
+#     if ret == True:
+#         hst = cv.cvtColor(frame, cv.COLOR_RGB2HSV)
+#         dst = cv.calcBackProject([hst], [0], roi_hist, [0, 180], 1)
+#         # ret, win = cv.meanShift(dst, win, term)
+#         ret, win = cv.CamShift(dst, win, term)
+#
+#         x, y, w, h = win
+#         img2 = cv.rectangle(frame, (x, y), (x+w, y+h), 255, 2)
+#         cv.imshow("frame", img2)
+#         if cv.waitKey(25) & 0xff == ord("q"):
+#             break
+# cap.release()
+# cv.destroyAllWindows()
+
+# camshift算法
+# meanshift的改进
+# Camshift它是MeanShift算法的改进，称为连续自适应的MeanShift算法，CamShift算法的全称是"Continuously Adaptive Mean-SHIFT"，
+# 它的基本思想是视频图像的所有帧作MeanShift运算，
+# 并将上一帧的结果（即Search Window的中心和大小）作为下一帧MeanShift算法的Search Window的初始值，如此迭代下去。
+
+
+
+
+
+
+15、视频人脸检测
+# Opencv自带的Haar特征分类器
+# Haar特征分类器
+# Haar特征分类器就是一个XML文件，该文件中会描述人体各个部位的Haar特征值。包括人脸、眼睛、嘴唇等等。
+cap = cv.VideoCapture("./cgx.ts")
+pathf = 'C:\\Python\\Python38\\Lib\\site-packages\\cv2\\data\\haarcascade_frontalface_default.xml'
+while(True):
+    ret, frame = cap.read()
+    if ret == True:
+        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5,
+                                              minSize=(32, 32))
+        # 遍历人脸检测结果
+        for (x, y, w, h) in faces:
+            # 在原彩色图上画人脸矩形框
+            img2 = cv.rectangle(frame, (x, y), (x + w, y + h), (255, 255, 0), 2)
+        cv.imshow("frame", frame)
+        if cv.waitKey(25) & 0xff == ord("q"):
+            break
+cap.release()
+cv.destroyAllWindows()
 
 
 
