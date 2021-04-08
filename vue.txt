@@ -1585,7 +1585,7 @@ toRefs()函数可以将reactive()创建出来的响应式对象，转换为普�
 
 
 45.jest单元测试
-配置可以在package.json中：
+1）配置可以在package.json中（也可以创建jest.config.js）：
 "jest": {
     "moduleFileExtensions": [
       "js",
@@ -1618,13 +1618,13 @@ toRefs()函数可以将reactive()创建出来的响应式对象，转换为普�
 	"collectCoverageFrom": ["**/src/**.{js,vue}", "!**/node_modules/**", "!**src/main.js**", "!**src/router.js**"]
   }
 
-collectCoverage覆盖率报告：
+2）collectCoverage覆盖率报告：
 // branches 分支覆盖率
 // functions 函数执行的覆盖率
 // lines 代码函数覆盖率
 // statements 声明的覆盖率
 
-expect常用匹配方法:
+3）expect常用匹配方法:
 toBe 使用 Object.is 判断是否严格相等。
 toEqual 递归检查对象或数组的每个字段。
 toBeNull 只匹配 null。
@@ -1642,9 +1642,199 @@ toContain 判断数组中是否包含指定项。
 .toHaveProperty(keyPath, value) 判断对象中是否包含指定属性。
 toThrow 判断是否抛出指定的异常。
 toBeInstanceOf 判断对象是否是某个类的实例，底层使用 instanceof。
+toMatchObject
+
+4）处理第三方库和组件
+import Vant from 'vant'
+const localVue = createLocalVue()
+localVue.use(Vant)
+wrapper = shallowMount(HeadComponent, {
+      localVue,
+      stubs: ['app-button'] // 存根，忽略此子组件
+})
+什么是存根？
+在自上而下的集成测试中使用存根，以便模拟尚未集成的较低级别模块的行为。（即还在开发中的模块，不能集成。因此，Stubs用于测试模块。）
+Stub是作为被调用模块的临时替换的模块，并提供与实际产品相同的输出。
+
+5）测试props
+const itemProps = {
+      activityName: '2021.Q1',
+	  activityPictureUrl: 'http://test.sccddw.com/bg'      
+    }
+    wrapper.setProps({
+      item: itemProps
+    })
+ // eslint-disable-next-line
+    expect(wrapper.props().item.activityName).toBe(itemProps.activityName)
+	// eslint-disable-next-line
+    expect(wrapper.find('.img').element.style.backgroundImage).toBe('url(http://test.sccddw.com/bg)')
+	
+6)测试click
+methods: {
+    onClick () {
+      this.$emit('click', 'i am params') // 此处的参数'i am params'纯为测试准备，并未真正使用
+    }
+  },
+ // eslint-disable-next-line
+  it('copy test', () => {
+    const imgWrapper = wrapper.find('img')
+    // eslint-disable-next-line
+    const mockFn = jest.fn()
+    imgWrapper.trigger('click')
+
+    wrapper.setMethods({
+      onClick: mockFn
+    })
+    // 断言函数被触发且只触发一次
+    // eslint-disable-next-line
+    expect(mockFn).toBeCalled()
+    // eslint-disable-next-line
+    expect(mockFn).toHaveBeenCalledTimes(1)
+  })
+	
+// 测试内容：$emit
+  // 函数被触发后，emit的函数也会被触发
+  it('when onClick is called $emit is called', () => {
+    const wrapper = shallowMount(AppButton)
+    // 测试$emmit函数被正确触发
+    // mock函数替代点击按钮后$emit的函数，此处函数名相同，依然为click
+    const mockFn1 = jest.fn()
+    wrapper.vm.$on('click', mockFn1)
+    // 测试mock函数是否被触发，触发的次数,以及参数
+    wrapper.vm.onClick()
+    expect(mockFn1).toBeCalled()
+    expect(mockFn1).toHaveBeenCalledTimes(1)
+    expect(mockFn1).toHaveBeenCalledWith('i am params')
+    // 第二次点击button，依然测试mock函数是否被触发，触发的次数
+    wrapper.vm.onClick()
+    expect(mockFn1).toBeCalled()
+    expect(mockFn1).toHaveBeenCalledTimes(2)
+    expect(mockFn1).toHaveBeenCalledWith('i am params')
+
+    wrapper.destroy()
+  })	
+	
+7)测试slot
+const _wrapper = shallowMount(HeadComponent, {
+      localVue,
+      slots: {
+        content: '<span>测试slot</span>'
+      }
+    })
+    const slotContent = _wrapper.find('.content-slot')
+    console.log('slotContent', slotContent.html())
+    // eslint-disable-next-line
+    expect(slotContent.contains('span')).toBe(true)
+    const slotContentSpan = _wrapper.find('.content-slot span')
+    // eslint-disable-next-line
+    expect(slotContentSpan.text()).toBe('测试slot')
+	
+8) 测试v-show
+	// 测试内容：v-show 测试，v-if v-bind的测试思路基本相同，
+  // 设置变量的值，断言对应的DOM结构显示与否
+  it('v-show test', () => {
+    // true时显示的div
+    const truediv = wrapper.find('.text.format')
+    // false时显示的div
+    const falsediv = wrapper.find('.text.noformat')
+    // toggleShow默认值为true
+    expect(truediv.isVisible()).toBe(true)
+    expect(falsediv.isVisible()).toBe(false)
+    // 设置为false
+    wrapper.vm.toggleShow = false
+    expect(truediv.isVisible()).toBe(false)
+    expect(falsediv.isVisible()).toBe(true)
+  })
+  
+9）测试filter
+filters: {
+    formatText: function (value) {
+      // console.log(value)
+      if (!value) return ''
+      if (value.length > 7) {
+        let frontVal = value.slice(0, 2)
+        let endVal = value.slice(value.length - 2, value.length)
+        return frontVal + '...' + endVal
+      } else {
+        return value
+      }
+    }
+  }
+import FilterTest from '@/components/FilterAddWatchTest.vue'
+  // 测试内容：filter----filter不能通过wrapper或者vm获取，只能通过组件获取
+  // filter需要测试函数的所有可能性
+  it('filter test', () => {
+    // console.log(FilterTest.filters)
+    expect(FilterTest.filters.formatText('12345678')).toBe('12...78')
+    expect(FilterTest.filters.formatText('12345')).toBe('12345')
+    expect(FilterTest.filters.formatText()).toBe('')
+  })
+  
+10)测试watch
+watch: {
+    toggleShow(newValue, oldValue){
+      console.log(newValue)      
+    }
+  }
+  it('watch test', () => {
+    // mock掉console.log
+    const spy = jest.spyOn(console, 'log') // 把console.log替换成一个mock function
+    // 手动将变量的值设置为false,默认值是true
+    wrapper.vm.toggleShow = '自定义'
+    // 断言函数是否执行, 通过console.log是否执行判断toggleShow是否watch成功
+    expect(spy).toBeCalled()
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith('自定义')
+    // 清除掉mock
+    spy.mockClear()
+  })
+	
+11）测试computed
+computed: {
+    cssClasses () {
+      let classes = ['app-button']
+      classes.push('app-button--' + this.size)
+      if (this.type && !this.disabled) {
+        classes.push('app-button--' + this.type)
+      }
+      if (this.disabled) {
+        classes.push('app-button--disabled')
+      }
+      return classes.join(' ')
+    }
+  }
+// 测试内容：computed(要注意计算属性不是函数，是变量，测试时很容易看着组件内写法按照函数测试)
+  // 改变props的type，size，disable值时，cssClasses的值也会跟着改变
+  it('computed test', () => {
+    const wrapper = shallowMount(AppButton)
+    // 设置props 断言computed计算属性（注意props有default值）
+    wrapper.setProps({ type: 'danger' })
+    expect(wrapper.vm.cssClasses).toBe('app-button app-button--md app-button--danger')
+    wrapper.setProps({ size: 'lg' })
+    expect(wrapper.vm.cssClasses).toBe('app-button app-button--lg app-button--danger')
+    wrapper.setProps({ disabled: true })
+    expect(wrapper.vm.cssClasses).toBe('app-button app-button--lg app-button--disabled')
+
+    wrapper.destroy()
+  })
+
+12) 测试route
+
+
+13)测试methods
+(1) 普通方法
+wrapper.vm.onClick()
+expect() // 在判断函数的逻辑，如更改数据呀、执行方法呀、返回值呀
+(2) 异步方法
 
 
 
+单元测试内容：
+工具函数：
+	不同输入，是否有正确输出；固定输入下输出是否固定
+组件：
+	默认值是否正确
+	当用户选择日期范围，data是否会做相应改变
 
 
 
