@@ -1680,7 +1680,7 @@ methods: {
     const imgWrapper = wrapper.find('img')
     // eslint-disable-next-line
     const mockFn = jest.fn()
-    imgWrapper.trigger('click')
+    imgWrapper.trigger('click') //注意: trigger是异步的,可能需要await
 
     wrapper.setMethods({
       onClick: mockFn
@@ -1819,15 +1819,184 @@ computed: {
   })
 
 12) 测试route
-
+const mockPush = jest.fn()
+const $router = {
+  push: mockPush
+  // ... 其他属性
+}
+const $route = {
+  path: '/ActivityScore',
+  name: 'ActivityScore',
+  query: {
+    id: 121
+  }
+}
+wrapper = shallowMount(ActivityScore, {         
+      stubs:  ['router-link', 'router-view'],
+      mocks: {
+        $route,
+        $router
+      }
+    })
+注意：不要在其他文件使用import router from '../router'，
+	 会造成could not overwrite property $route的错误，所以测试时先不要用
 
 13)测试methods
 (1) 普通方法
 wrapper.vm.onClick()
 expect() // 在判断函数的逻辑，如更改数据呀、执行方法呀、返回值呀
 (2) 异步方法
+mock整个模块：
+jest.mock('@/http/http', () => ({
+  get () {
+    return Promise.resolve({
+      data: {}
+    })
+  },
+  post () {
+    return Promise.resolve({
+      data: {}
+    })
+  }
+}))
+mock api:
+// eslint-disable-next-line
+jest.mock('@/api/index', () => ({
+  findActivityById: jest.fn().mockResolvedValue({
+    data: {
+      activityName: '2021.Q1'
+    }
+  }),
+  findActivityMainPageById: jest.fn().mockResolvedValue({
+    data: []
+  })
+}))
+当想修改返回值时，使用mockImplementation：
+import { findActivityById } from '@/api/index'
+findActivityById.mockImplementation(() => ({
+      data: {
+        activityName: '2021.Q1.qqqq'
+      }
+    }))
+如何mock methods:
+const  findActivityById = jest.spyOn(_wrapper.vm, 'findActivityById')
+异步方法需要await等待其完成：
+await _wrapper.vm.findActivityById()
 
 
+14) 测试vuex
+import { shallowMount, createLocalVue } from '@vue/test-utils'
+import VuexTest from '@/components/VuexTest.vue'
+import Vuex from 'vuex'
+const localVue = createLocalVue()
+localVue.use(Vuex)
+let wrapper
+  let actions
+  let state
+  let getters
+  let mutations
+  let store
+  beforeEach(() => {
+  // 伪造actions state getters mutations
+    actions = {
+      increment: jest.fn(),
+      decrement: jest.fn()
+    }
+    console.log('actions', actions)
+    mutations = {
+      increment: jest.fn(),
+      decrement: jest.fn()
+    }
+    state = {
+      count: 0
+    }
+    getters = {
+      evenOrOdd: () => 'gettersVal' // 伪造的越简单越好
+    }
+    // 伪造store
+    store = new Vuex.Store({
+      state,
+      actions,
+      mutations,
+      getters
+    })
+    // 挂载store
+    wrapper = shallowMount(VuexTest, {
+      localVue,
+      store,
+      stubs: ['app-button']
+    })
+  })
+
+  afterEach(() => {
+    wrapper.destroy()
+  })
+// 测试内容：state
+  // 只需测试伪造的state值是否存在于dom中
+  it('getters test', () => {
+    const text = wrapper.find('.text')
+    expect(text.text()).toContain(state.count)
+  })
+  // 测试内容：actions-通过点击按钮直接调用
+  // 点击按钮测试伪造的函数是否被调用
+  it('actions test', () => {
+    const buttonAdd = wrapper.find('.add')
+    const buttonMinus = wrapper.find('.minus')
+    buttonAdd.vm.$emit('click')
+    expect(actions.increment).toHaveBeenCalled()
+    expect(actions.increment).toHaveBeenCalledTimes(1)
+  })
+// 测试内容：mutations
+  // 调用函数测试伪造的函数是否被调用
+  it('mutations test', () => {
+    wrapper.vm.mutationsDecrement()
+    expect(mutations.decrement).toHaveBeenCalled()
+    expect(mutations.decrement).toHaveBeenCalledTimes(1)
+  })
+  // 测试内容：getters
+  // 只需测试伪造的getters值是否存在于dom中
+  it('getters test', () => {
+    const text = wrapper.find('.text')
+    expect(text.text()).toContain(getters.evenOrOdd())
+  })
+  
+15)快照测试 snapshot
+安装一个自定义的序列化工具
+ npm install --save-dev jest-serializer-vue
+ package.json 中配置它：
+ "jest": {
+    // ...
+    // 快照的序列化工具
+    "snapshotSerializers": ["jest-serializer-vue"]
+  }
+  测试代码：
+  // eslint-disable-next-line
+  it('snapshot test', () => {
+    const _wrapper = shallowMount(ActivityScore, {
+      localVue,
+      // router,
+      stubs: ['van-icon', 'van-radio-group'],
+      mocks: {
+        $route,
+        $router
+      }
+    })
+	// 需要2次nextTick，第一次shallowMount，第二次api异步更新
+    // eslint-disable-next-line
+    _wrapper.vm.$nextTick(() => {
+      _wrapper.vm.$nextTick(() => {
+      expect(_wrapper.html()).toMatchSnapshot()
+      _wrapper.destroy()
+      })
+    })
+  })
+  toMatchSnapshot()快照匹配的执行流程：
+		1、第一次运行generateConfig函数时，没有快照，调用toMatchSnapshot()匹配器时，会自动帮我们生成一个快照。
+		把generateConfig函数返回的内容存到快照里边去。
+		2、当我们修改业务文件进行保存后，toMatchSnapshot()又会生成一次快照，跟上次生成的快照相对比，如果一致，则测试通过，
+		   如果不一致，则测试不通过，证明有代码改动。
+		3、快照文件为：_ _ snapshots_ _/demo.test.js.snap (如下)
+如果出现Your test suite must contain at least one test错误是因为testRegex的原因
 
 单元测试内容：
 工具函数：
