@@ -1,11 +1,13 @@
 https://www.bilibili.com/video/BV1Fo4y1d7JL?p=14
 1、安装
 先安装numpy、matplotlib
-pip install opencv-python==3.4.8.29
-(pip install -i https://pypi.tuna.tsinghua.edu.cn/simple opencv-python==3.4.8.29 使用清华的源安装)
-(opencv-python3.4.3有些经典算法申请了专利)
+pip install opencv-python==4.5.1.48
+pip install opencv-python== 3.4.5.20
+（pip uninstall -i https://pypi.tuna.tsinghua.edu.cn/simple opencv-python==3.4.8.29 使用清华的源安装）
+(opencv-python3.4.3有些经典算法申请了专利，4.4.0后重新支持sift,因为专利过期了)
 sift和surf需要扩展库
-pip install opencv-contrib-python==3.4.8.29
+pip install opencv-contrib-python==4.5.1.48
+（pip uninstall opencv-contrib-python）
 
 安装matplotlib：
 先安装wheel: pip install wheel
@@ -29,6 +31,7 @@ G-API
 
 
 
+
 3、计算
 cv为饱和加法: cv.add
 250+10 = 260 =》 255
@@ -44,7 +47,549 @@ M = [1 0 tx]
 
 
 
-4、
+4、旋转
+x1 = xsina + ysina
+y2 = -xsina + ycosa
+#图像旋转
+rows,cols = img.shape[:2]
+#生成旋转矩阵
+M = cv.getRotationMatrix2D((cols/2, rows/2), 45, 0.5) # 中心、旋转45度、缩放比例0.5
+#进行旋转
+dst = cv.warpAffine(img, M, (cols, rows))
+
+#仿射变换
+#仿射变换需要2X3的矩阵
+# M = [A, B] = [a00 a01 b0]
+#              [a10 a11 b1]
+# A = [a00 a01] B = [b0]
+#     [a10 a11]     [b1]
+#
+rows, cols = img.shape[:2]
+pts1 = np.float32([[50, 50], [200, 50], [50, 200]])
+pts2 = np.float32([[100, 100], [200, 50], [100, 250]])
+M = cv.getAffineTransform(pts1, pts2)
+dst = cv.warpAffine(img, M, (cols, rows))
+
+#透视变换
+#[x1, y1, z1] = [u, v, w][a00, a01, a02]
+#                        [a10, a11, a12]
+#                        [a20, a21, a22]
+# T = [a00, a01, a02] = [T1, T2]
+#     [a10, a11, a12]   [T3, a22]
+#     [a20, a21, a22]
+pst1 = np.float32([[56, 65], [368, 52], [28, 387], [389, 390]])
+pst2 = np.float32([[100, 145], [300, 100], [80, 290], [310, 300]])
+T = cv.getPerspectiveTransform(pst1, pst2)
+dest = cv.warpPerspective(img, T, (cols, rows)) # (cols, rows) size of the output image
+
+# 图像金字塔
+imgup = cv.pyrUp(img) # 上采样
+imgdown = cv.pyrDown(img) # 上采样
+
+
+
+
+
+5、 形态学操作
+# 腐蚀和膨胀
+# 腐蚀它提取的是内核覆盖下的相素最小值
+# 1、前景物体会变小，整幅图像的白色区域会减少，这对于去除白噪声很有用。
+# 2、平滑对象边缘
+# 3、弱化或分割图像之间的半岛型连接
+#
+# 膨胀将内核 B 划过图像,将内核 B 覆盖区域的最大相素值提取，并代替锚点位置的相素。显然，这一最大化操作将会导致图像中的亮区开始”扩展”
+#1、对象大小增加一个像素（3x3）
+#2、平滑对象边缘
+#3、减少或填充对象之间的距离，也可以连接两个分开的物体。
+kernel = np.ones((5, 5), np.uint8)
+img_k = cv.erode(img, kernel)
+img_d = cv.dilate(img, kernel)
+
+# 开闭运算
+# 开运算 = 先腐蚀运算，再膨胀运算（看上去把细微连在一起的两块目标分开了）
+# （１）开运算能够除去孤立的小点，毛刺和小桥，而总的位置和形状不便。
+# （２）开运算是一个基于几何运算的滤波器。
+# （３）结构元素大小的不同将导致滤波效果的不同。
+# （４）不同的结构元素的选择导致了不同的分割，即提取出不同的特征。
+
+# 闭运算 = 先膨胀运算，再腐蚀运算（看上去将两个细微连接的图块封闭在一起）
+# （1）闭运算能够填平小湖（即小孔），弥合小裂缝，而总的位置和形状不变。
+# （2）闭运算是通过填充图像的凹角来滤波图像的。
+# （3）结构元素大小的不同将导致滤波效果的不同。
+# （4）不同结构元素的选择导致了不同的分割。
+kernel = np.ones((10, 10), np.uint8)
+img_close = cv.morphologyEx(img, cv.MORPH_CLOSE, kernel)
+img_open = cv.morphologyEx(img, cv.MORPH_OPEN, kernel)
+
+# 礼帽和黑帽
+# 礼帽图像=原始图像-开运算图像
+# 得到噪声图像
+top = cv.morphologyEx(img, cv.MORPH_TOPHAT, kernel)
+# 黑帽图像=闭运算图像-原始图像
+# 得到图像内部的小孔，或前景色的小黑点
+black = cv.morphologyEx(img, cv.MORPH_BLACKHAT, kernel)
+
+
+
+
+6、噪声
+# 椒盐噪声，也叫脉冲噪声
+# 它是一种随机出现的白点或者黑点，可能是亮的区域有黑色像素或是在暗的区域有白色像素（或是两者皆有）
+# 高斯噪声
+# 噪声密度函数服从高斯分布的一类噪声。
+
+
+
+
+
+7、图形平滑
+# 均值滤波
+# 均值滤波也称为线性滤波，
+# 其采用的主要方法为邻域平均法。线性滤波的基本原理是用均值代替原图像中的各个像素值，即对待处理的当前像素点（x，y），选择一个模板，该模板由其近邻的若干像素组成，
+# 求模板中所有像素的均值，再把该均值赋予当前像素点（x，y），作为处理后图像在该点上的灰度g（x，y），即g（x，y）=∑f（x，y）/m m为该模板中包含当前像素在内的像素总个数。
+img_blur = cv.blur(img, (5, 5))
+
+# 高斯滤波
+# 高斯滤波就是对整幅图像进行加权平均的过程，每一个像素点的值，都由其本身和邻域内的其他像素值经过加权平均后得到。
+# 高斯滤波的具体操作是：用一个模板（或称卷积、掩模）扫描图像中的每一个像素，用模板确定的邻域内像素的加权平均灰度值去替代模板中心像素点的值。
+img_gauss = cv.GaussianBlur(dog, (3, 3), 1)  # 标准差为1， 模板3 X 3
+
+# 中值滤波
+# 中值滤波法是一种非线性平滑技术，它将每一像素点的灰度值设置为该点某邻域窗口内的所有像素点灰度值的中值（核大小为奇数就一定有中值）
+# 对椒盐噪声很有效
+img_medianBlur = cv.medianBlur(dog, 3) # 3为核大小为奇数且大于1
+
+
+
+
+8、 直方图
+# range 统计取值范围
+# bins 特征空间子区段的数目, 如：【0， 255】 = [0, 15] U [16, 30] ... [240, 255]
+# dims 统计的特征数目
+dog = cv.imread('dog.jpg')
+histr = cv.calcHist([dog], [0], None, [10], [0, 256])  # channels 灰度图只有[0]， 彩色B,G,R 分别为[0],[1],[2]
+# plt.figure(figsize=(10, 6), dpi=100)
+# plt.plot(histr)
+# plt.grid()
+# plt.show()
+# 掩膜
+# 在图像处理的过程中，我们时常需要对指定区域或目标进行操作，
+# 这个区域我们称之为感兴趣区域。opencv中mask的作用就是创建感兴趣区域，即待处理的区域。
+# 图像掩模主要用于：
+#
+# ①提取感兴趣区,用预++++++++++++++++++++++++++++++++++++++先制作的感兴趣区掩模与待处理图像相乘,得到感兴趣区图像,感兴趣区内图像值保持不变,而区外图像值都为0。
+# ②屏蔽作用,用掩模对图像上某些区域作屏蔽,使其不参加处理或不参加处理参数的计算,或仅对屏蔽区作处理或统计。
+# ③结构特征提取,用相似性变量或图像匹配方法检测和提取图像中与掩模相似的结构特征。
+# ④特殊形状图像的制作。
+
+# 蒙版
+mask = np.zeros(img.shape[:2], np.uint8)
+mask[10:150, 20:300] = 255
+# 掩膜
+masked_img = cv.bitwise_and(img, img, mask = mask)
+mask_hist = cv.calcHist([img], [0], mask, [256], [1, 256])
+# fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 8))
+# axes[0, 0].imshow(img, cmap=plt.cm.gray)
+# axes[0, 0].set_title("原图")
+# axes[0, 1].imshow(mask, cmap=plt.cm.gray)
+# axes[0, 1].set_title("蒙版")
+# axes[1, 0].imshow(masked_img, cmap=plt.cm.gray)
+# axes[1, 0].set_title("掩膜数据")
+# axes[1, 1].plot(mask_hist)
+# axes[1, 1].grid()
+# axes[1, 1].set_title("灰度直方图")
+# plt.show()
+
+# 直方图均衡化
+# 直方图均衡化(Histogram Equalization)是一种增强图像对比度(Image Contrast)的方法，
+# 其主要思想是将一副图像的直方图分布变成近似均匀分布，从而增强图像的对比度。
+dog0 = cv.imread('dog.jpg', 0)
+dst = cv.equalizeHist(dog0)
+# plt.imshow(dst, cmap = plt.cm.gray)
+# plt.show()
+# 自适应的直方图均衡化
+# 创建自适应均衡化对象
+cl = cv.createCLAHE(2.0, (8, 8)) # 对比度限制2.0
+clahe = cl.apply(dog0)
+plt.imshow(clahe, cmap = plt.cm.gray)
+
+
+
+
+
+
+9、边缘检测
+#图像强度的显著变化可分为：
+# 阶跃变化函数，即图像强度在不连续处的两边的像素灰度值有着显著的差异；
+# 线条（屋顶）变化函数，即图像强度突然从一个值变化到另一个值，保持一较小行程后又回到原来的值。
+# 图像的边缘有方向和幅度两个属性,沿边缘方向像素变化平缓,垂直于边缘方向像素变化剧烈.边缘上的这种变化可以用微分算子检测出来,通常用一阶或二阶导数来检测边缘。
+
+# sobel检测算子 (索贝尔算子)
+x = cv.Sobel(dog, cv.CV_16S, 1, 0)
+y = cv.Sobel(dog, cv.CV_16S, 0, 1)
+absx = cv.convertScaleAbs(x)
+absy = cv.convertScaleAbs(y)
+res = cv.addWeighted(absx, 0.5, absy, 0.5, 0)
+# plt.imshow(res, cmap = plt.cm.gray)
+# plt.show()
+#schaar算子
+#  Scharr 算子是对 Sobel 算子差异性的增强，两者之间的在检测图像边缘的原理和使用方式上相同。
+# 而 Scharr 算子的主要思路是通过将模版中的权重系数放大来增大像素值间的差异。
+x = cv.Sobel(dog, cv.CV_16S, 1, 0, ksize=-1)
+y = cv.Sobel(dog, cv.CV_16S, 0, 1, ksize=-1)
+absx = cv.convertScaleAbs(x)
+absy = cv.convertScaleAbs(y)
+res = cv.addWeighted(absx, 0.5, absy, 0.5, 0)
+# plt.imshow(res, cmap = plt.cm.gray)
+# plt.show()
+
+x = cv.Scharr(dog, cv.CV_16S, 1, 0)
+y = cv.Scharr(dog, cv.CV_16S, 0, 1)
+absx = cv.convertScaleAbs(x)
+absy = cv.convertScaleAbs(y)
+res = cv.addWeighted(absx, 0.5, absy, 0.5, 0)
+# plt.imshow(res, cmap = plt.cm.gray)
+# plt.show()
+
+
+# 拉普拉斯算子
+# 是一种基于图像导数运算的高通线性滤波器。它通过二阶导数来度量图像函数的曲率。
+# 一阶导数的极值位置，二阶导数为0。所以我们也可以用这个特点来作为检测图像边缘的方法。
+res = cv.Laplacian(dog, cv.CV_16S)
+res = cv.convertScaleAbs(res)
+# plt.imshow(res, cmap = plt.cm.gray)
+# plt.show()
+
+# canny算法
+# Canny边缘检测算法可以分为以下5个步骤：
+# 应用高斯滤波来平滑图像, 目的是去除噪声
+# 找寻图像的强度梯度（intensity gradients）,每个像素点的梯度可以由Sobel算子来获得
+# 应用非最大抑制（non-maximum suppression）技术来消除边误检（本来不是但检测出来是）,就是保留了每个像素点上梯度强度的极大值，而删掉其他的值。
+# 应用双阈值的方法来决定可能的（潜在的）边界, Canny算法中应用了一种叫双阈值的技术。
+#       即设定一个阈值上界和阈值下界（opencv中通常由人为指定的），图像中的像素点如果大于阈值上界则认为必然是边界（称为强边界，strong edge），小于阈值下界则认为必然不是边界，两者之间的则认为是候选项（称为弱边界，weak edge）
+# 利用滞后技术来跟踪边界, 和强边界相连的弱边界认为是边界，其他的弱边界则被抑制。
+zangzu = cv.imread("./zangzu.jpg")
+lowH = 0
+highH = 400
+canny = cv.Canny(zangzu, lowH, highH)
+# plt.figure(figsize=(10, 8), dpi=100)
+# plt.subplot(121), plt.imshow(zangzu, cmap=plt.cm.gray), plt.title('原图')
+# plt.xticks([]), plt.yticks([])
+# plt.subplot(122), plt.imshow(canny, cmap=plt.cm.gray), plt.title('检测后')
+# plt.xticks([]), plt.yticks([])
+# plt.show()
+
+
+
+
+
+
+
+10、模板匹配
+idCard = cv.imread("./zangzu.jpg")
+head = cv.imread("./zangyu_part.PNG")
+
+h, w = head.shape[:2]
+# TM_SQDIFF, TM_SQDIFF_NORMED, TM_CCORR, TM_CCORR_NORMED, TM_CCOEFF, TM_CCOEFF_NORMED
+res_ = cv.matchTemplate(idCard, head, cv.TM_CCOEFF_NORMED)
+min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res_)
+top_left = max_loc
+bottom_right = (top_left[0] + w, top_left[1] + h)
+cv.rectangle(idCard, top_left, bottom_right, (0, 255, 0), 2)
+# plt.imshow(idCard[:, :, ::-1])
+# plt.title('匹配结果')
+# plt.xticks([]), plt.yticks([])
+# plt.show()
+
+
+
+
+
+11、霍夫变换
+# 线检测
+# 笛卡尔坐标系下的点A、B、M映射到极坐标系下的参数空间中实际上是线，
+# 而笛卡尔坐标系中的直线ABM映射到极坐标系下的参数空间中实际上是点F。即同样具备对偶性。
+# 且对于平行于X或Y轴的直线也可以很好映射到参数空间下，保证其有交点.
+# 直线检测就简单很多了。先通过极坐标系的参数空间将平面的散点集一一映射到其中，
+# 然后在参数空间中找出曲线相交较多的点，则其即为原散点集中被检测出的直线。
+# 故依据上图，我们可判定参数空间中的F点即为原散点集中被检测到的直线。
+img = cv.imread("./nimg.jpg", 0)
+img_ = cv.imread("./nimg.jpg")
+edges = cv.Canny(img, 50, 150)
+# plt.imshow(edges, cmap = plt.cm.gray)
+# plt.show()
+
+# rho为距离分辨率
+# theta为角度分辨率
+# threshold为阈值
+lines = cv.HoughLines(edges, 0.8, np.pi/180, 150)
+for line in lines:
+    rho, theta = line[0]
+    a = np.cos(theta)
+    b = np.sin(theta)
+    x0 = rho*a
+    y0 = rho*b
+    x1 = int(x0 + 1000*(-b))
+    y1 = int(y0 + 1000*(a))
+    x2 = int(x0 - 1000*(-b))
+    y2 = int(y0 - 1000*(a))
+    cv.line(img_, (x1, y1), (x2, y2), (0, 255, 0))
+
+# plt.imshow(img_[:, :, ::-1])
+# plt.show()
+
+# 圆检测
+# 霍夫圆检测
+# 霍夫圆检测分为两个阶段：
+#
+# 检测圆心
+# 从圆心推导出圆半径
+# 检测圆心
+# 检测圆心的原理是圆心是它所在圆周所有法线的交点。因此只要找到法线的交点，即可确定圆心。具体步骤如下：
+#
+# 边缘检测；
+# 计算图像梯度，并确定圆周线。圆周线的梯度即为法线；
+# 在二维霍夫空间内，绘制所有图形的梯度直线，某坐标点上累加和的值越大，说明在该点上直线相交的次数越多，也就越可能是圆心；
+# 在霍夫空间内，4领域内进行非最大值抑制；
+# 设定阈值，霍夫空间内累加和大于该阈值的点就对应于圆心。
+# 从圆心推导出圆半径
+# 计算某一个圆心到所有圆周线的距离；
+# 设定两个阈值，定义为最大半径和最小半径，保留距离在这两个半径之间的值，这意味着我们检测的圆不能太大，也不能太小；
+# 对保留下来的距离进行排序；
+# 找到距离相同的那些值，并计算相同值的数量；
+# 设定一个阈值，只有相同值的数量大于该阈值，才认为该值是该圆心对应的圆半径；
+# 对每一个圆心，完成以上步骤，得到所有的圆半径。
+img_ = cv.imread("./circle.jpg")
+gay_img = cv.cvtColor(img_, cv.COLOR_BGR2GRAY)
+edges = cv.medianBlur(gay_img, 7)
+# param1，Canny 边缘检测的高阈值，低阈值被自动置为高阈值的一半，默认为 100。
+# param2，累加平面某点是否是圆心的判定阈值。它越大，能通过检测的圆就更接近完美的圆形，默认为 100。
+# minDist，两个圆心之间的最小距离。若两圆心距离 < minDist，则认为是同一个圆。
+circles = cv.HoughCircles(edges, cv.HOUGH_GRADIENT, 1, 200, param1=100, param2=20, minRadius=0, maxRadius=150)
+for i in circles[0, :]:
+    cv.circle(img_, (i[0], i[1]), i[2], (0, 255, 0), 2)
+    cv.circle(img_, (i[0], i[1]), 2, (0, 255, 0), -1)
+
+plt.imshow(img_[:,:,::-1])
+plt.show()
+
+
+
+
+
+
+12.角点特征
+# 角点所具有的特征：
+# >轮廓之间的交点；
+# >对于同一场景，即使视角发生变化，通常具备稳定性质的特征；
+# >该点附近区域的像素点无论在梯度方向上还是其梯度幅值上有着较大变化；
+# 检测思想：如果存在任意方向上的滑动，都有着较大灰度变化，那么我们可以认为该窗口中存在角点。
+# 通过矩阵M进行特征值求解，而特征值所对应的特征向量即为灰度变化方向。如果两个特征值较大，则表示有两个方向灰度变化较快。所以可以直接通过求解M的特征值进行角点判断
+# harris角点检测
+img_ = cv.imread("./aiimg.jpg")
+gay_img = cv.cvtColor(img_, cv.COLOR_BGR2GRAY)
+gray = np.float32(gay_img)
+# • img - 数据类型为 float32 的输入图像。
+# • blockSize - 角点检测中要考虑的领域大小。
+# • ksize - Sobel 求导中使用的窗口大小
+# • k - Harris 角点检测方程中的自由参数，取值参数为 [0,04，0.06]
+dst = cv.cornerHarris(gray, 2, 3, 0.04)
+# img_[dst > 0.001*dst.max()] = [0, 0, 255]
+
+# shi-tomasi角点检测
+# image: 输入图像，是八位的或者32位浮点型，单通道图像，所以有时候用灰度图
+# maxCorners: 返回最大的角点数，是最有可能的角点数，如果这个参数不大于0，那么表示没有角点数的限制。
+# qualityLevel: 图像角点的最小可接受参数，质量测量值乘以这个参数就是最小特征值，小于这个数的会被抛弃。
+# minDistance: 返回的角点之间最小的欧式距离。
+# mask: 检测区域。如果图像不是空的(它需要具有CV_8UC1类型和与图像相同的大小)，它指定检测角的区域。
+# blockSize: 用于计算每个像素邻域上的导数协变矩阵的平均块的大小。
+# useHarrisDetector：选择是否采用Harris角点检测，默认是false.
+# k: Harris检测的自由参数。
+corners = cv.goodFeaturesToTrack(gay_img, 1000, 0.01, 10)
+for i in corners:
+    x, y = i.ravel()
+    cv.circle(img_, (x, y), 2, (0, 0, 255), -1)
+
+# sift算法 (尺度不变特征变换)
+# 尺度空间极值检测
+#   高斯差分金字塔
+#   寻找极值点
+# 关键点定位
+#   阈值化
+#   在高斯差分金字塔中找极值
+# 方向赋值，确定关键点方向
+# 关键点描述
+# https://blog.csdn.net/tengfei461807914/article/details/78175095
+img = cv.imread("./aiimg.jpg")
+gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+sift = cv.SIFT_create()
+kp = sift.detect(gray_img, None)
+cv.drawKeypoints(img, kp, img, flags=cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+# plt.imshow(img[:, :, ::-1])
+# plt.show()
+# surf算法
+# sift改进版本，4.4无法使用
+
+# fast算法
+# 用一句话来讲FASTN算法的原理就是：若一个像素周围有一定数量的像素与该点像素值不同，则认为其为角点。
+# FAST算法包含3个主要步骤：
+#          （1）对固定半径圆上的像素进行分割测试，通过逻辑测试可以去处大量的非特征候选点；
+#          （2）基于分类的角点特征检测，利用ID3 分类器根据16个特征判决候选点是否为角点特征，每个特征的状态为一1，0，1。
+#          （3）利用非极大值抑制进行角点特征的验证。排除不稳定角点
+fast = cv.FastFeatureDetector_create(threshold=70)
+kp = fast.detect(img, None)
+img2 = cv.drawKeypoints(img, kp, None, color=(0, 0, 255))
+fast.setNonmaxSuppression(0)
+kp = fast.detect(img, None)
+
+img3 = cv.drawKeypoints(img, kp, None, color=(0, 0, 255))
+fig,axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 8), dpi=100)
+axes[0].imshow(img2[:,:,::-1])
+axes[0].set_title("加入非极大值抑制")
+axes[1].imshow(img3[:,:,::-1])
+axes[1].set_title("未加入非极大值抑制")
+plt.show()
+
+
+# ORB算法
+# 一种快速特征点提取和描述的算法
+# 先使用fast算法查找特征点
+# 再使用BRIEF算法，创建二元特征向量
+# orb = cv.ORB_create(nfeatures=5000)
+# kp = orb.detect(img, None)
+# img2 = cv.drawKeypoints(img, kp, None, flags=0)
+# plt.imshow(img2[:, :, ::-1])
+# plt.show()
+
+
+
+
+
+
+
+
+13.视频操作
+# cap = cv.VideoCapture("./outV.avi")
+
+# while(cap.isOpened()):
+#     ret, frame = cap.read()
+#     if ret == True:
+#         cv.imshow("frame", frame)
+#     if cv.waitKey(25) & 0xff == ord("q"):
+#         break
+# cap.release()
+# cv.destroyAllWindows()
+
+# 视频保存
+# frame_width = int(cap.get(3))
+# frame_height = int(cap.get(4))
+# # VideoWriter_fourcc 4 个字母表示采用的编码器，常用有“MJPG”、“XVID”，列表在https://www.fourcc.org/codecs.php
+# out = cv.VideoWriter('outV.avi', cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), 10, (frame_width, frame_height))
+# i = 0
+# while(True):
+#     ret, frame = cap.read()
+#     if ret == True:
+#         i += 1
+#         print(i)
+#         if(i > 15000 and i < 20000):
+#             out.write(frame)
+#     else:
+#         break
+#
+# cap.release()
+# out.release()
+# cv.destroyAllWindows()
+
+
+
+
+
+
+14.meanshift
+#指定追踪目标:算法用于视频目标跟踪时，采用目标的颜色直方图作为搜索特征，通过不断迭代
+# meanshift算法的目的是找到含有最多特征的窗口区域，即使圆心与概率密度函数的局部极值点重合，亦即使圆心与特征数据点最密集的地方中心尽量重合到一块。
+# 算法实现是通过向特征数据点密度函数上升梯度方向逐步迭代偏移至上升梯度值近似为零（到达最密集的地方）。
+# ret, frame = cap.read()
+# r, h, c, w = 197, 500, 700, 608
+# win = (c, r, w, h)
+# roi = frame[r: r+h:, c:c+w]
+# #计算直方图
+# hsv_roi = cv.cvtColor(roi, cv.COLOR_BGR2HSV)
+# roi_hist = cv.calcHist([hsv_roi], [0], None, [180], [0, 180])
+# cv.normalize(roi_hist, roi_hist, 0, 255, cv.NORM_MINMAX)
+
+# 目标追踪
+# term = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 1)
+# while(True):
+#     ret, frame = cap.read()
+#     if ret == True:
+#         hst = cv.cvtColor(frame, cv.COLOR_RGB2HSV)
+#         dst = cv.calcBackProject([hst], [0], roi_hist, [0, 180], 1)
+#         # ret, win = cv.meanShift(dst, win, term)
+#         ret, win = cv.CamShift(dst, win, term)
+#
+#         x, y, w, h = win
+#         img2 = cv.rectangle(frame, (x, y), (x+w, y+h), 255, 2)
+#         cv.imshow("frame", img2)
+#         if cv.waitKey(25) & 0xff == ord("q"):
+#             break
+# cap.release()
+# cv.destroyAllWindows()
+
+# camshift算法
+# meanshift的改进
+# Camshift它是MeanShift算法的改进，称为连续自适应的MeanShift算法，CamShift算法的全称是"Continuously Adaptive Mean-SHIFT"，
+# 它的基本思想是视频图像的所有帧作MeanShift运算，
+# 并将上一帧的结果（即Search Window的中心和大小）作为下一帧MeanShift算法的Search Window的初始值，如此迭代下去。
+
+
+
+
+
+
+15、视频人脸检测
+# Opencv自带的Haar特征分类器
+# Haar特征分类器
+# Haar特征分类器就是一个XML文件，该文件中会描述人体各个部位的Haar特征值。包括人脸、眼睛、嘴唇等等。
+cap = cv.VideoCapture("./cgx.ts")
+pathf = 'C:\\Python\\Python38\\Lib\\site-packages\\cv2\\data\\haarcascade_frontalface_default.xml'
+while(True):
+    ret, frame = cap.read()
+    if ret == True:
+        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5,
+                                              minSize=(32, 32))
+        # 遍历人脸检测结果
+        for (x, y, w, h) in faces:
+            # 在原彩色图上画人脸矩形框
+            img2 = cv.rectangle(frame, (x, y), (x + w, y + h), (255, 255, 0), 2)
+        cv.imshow("frame", frame)
+        if cv.waitKey(25) & 0xff == ord("q"):
+            break
+cap.release()
+cv.destroyAllWindows()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> eda510726c373dd22e7d136a428dd5cc11daf467
 
 
 
