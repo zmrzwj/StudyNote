@@ -4,6 +4,7 @@ https://www.oracle.com/database/technologies/oracle-database-software-downloads.
 
 2.创建用户
 默认会有用户：system
+默认实例：ORCL,(也就是数据库)
 密码在安装的时候会需要设置。
 使用system登录。
 cdb模式下用户名需要带上c##或C##

@@ -2,6 +2,7 @@ https://www.bilibili.com/video/BV1Fo4y1d7JL?p=14
 1、安装
 先安装numpy、matplotlib
 pip install opencv-python==3.4.8.29
+(pip install -i https://pypi.tuna.tsinghua.edu.cn/simple opencv-python==3.4.8.29 使用清华的源安装)
 (opencv-python3.4.3有些经典算法申请了专利)
 sift和surf需要扩展库
 pip install opencv-contrib-python==3.4.8.29
@@ -9,6 +10,7 @@ pip install opencv-contrib-python==3.4.8.29
 安装matplotlib：
 先安装wheel: pip install wheel
 安装pillow: https://www.lfd.uci.edu/~gohlke/pythonlibs/
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple matplotlib
 
 
 
@@ -37,6 +39,14 @@ cv.warpAffine(src, M, flags)
 M平移矩阵，flags: 插值方法
 M = [1 0 tx]
     [0 1 ty]
+
+
+
+
+
+4、
+
+
 
 
 
