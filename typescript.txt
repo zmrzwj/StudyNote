@@ -178,6 +178,49 @@ Vue.prototype.$warning = Modal.warning;
 所有框架的typescript类型声明文件都在这
 官网：http://definitelytyped.org/
 
+
 5.类型文件搜索工具
 https://github.com/typings/typings
+
+
+
+6、基本数据类型
+const a: Array<String | Number> = [1, 3, 5, '1']
+
+
+7.发布组件时声明文件指定
+package.json中type字段：
+{
+   "types": "./types/employee.d.ts" 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

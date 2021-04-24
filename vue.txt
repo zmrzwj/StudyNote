@@ -102,6 +102,7 @@ module.exports = {
 
 9.Linter/Formatter 支持代码风格检查和格式化。
 
+
 10.socket.io
 npm install vue-socket.io --save
 在main.js中注册
@@ -254,6 +255,9 @@ install(_vue){
 	vue = _vue
 }
 
+
+
+
 13.路由懒加载
 方法1:
 需要plugin-syntax-dynamic-import
@@ -268,6 +272,8 @@ const Expert = resolve => require(['./views/Expert'], resolve);
 打包后js文件和css文件都会单独成一个文件
 
 
+
+
 14.图片资源加载
  <img :src="logo"/>
 	data(){
@@ -280,13 +286,16 @@ const Expert = resolve => require(['./views/Expert'], resolve);
 15.history模式
 history模式需要后台配合
 nginx请配置：
-location /{
+location /example {
     try_files $uri $uri/ /index.html;
 }
 try_files 用于按序检测文件是否存在，并返回第一个找到的文件，如果没有就继续往下匹配。
 $uri  当用户请求 http://blog.csdn.net/example 时，这里的 $uri 就是 /example。
 $uri/，增加了一个 /，也就是看有没有名为 /$root/example/ 的目录。
-又找不到，就会到 ry_files的最后一个选项 /index.html，发起一个内部 “子请求”，也就是相当于nginx发起一个 HTTP请求到 http://localhost/index.html。
+又找不到，就会到 try_files的最后一个选项 /index.html，发起一个内部 “子请求”，也就是相当于nginx发起一个 HTTP请求到 http://localhost/index.html。
+也就是说：http://www.example.com/example，会先到你设置的root目录里去找有没有叫example的文件，再找有没有叫example的目录，都没有返回root目录里的index.html，index.html被浏览器加载之后，前端路由就会工作，将用户需要的资源加载出来。
+
+
 
 
 16.slot
@@ -1241,7 +1250,11 @@ createRouteMap 方法的功能就是将我们在项目中传入的路由配置�
 }
 History 基类的构造函数先将 router (new VueRouter) 实例挂载到 history 实例上，然后对 base 进行规范化（如果未配置则给默认值:'/'），下来初始化一个原始 current 对象（初始化current),这里的 current 初始值 是通过 START 产生的，START 其实是 createRoute 方法用 path = '/'创建的一个 route 对象，也被称为原始 route 对象，这样 current 就拿到了项目初始化（项目启动）时最原始的 route 路由对象，最后初始化了一些内置属性。
 
-4）transitionTo
+4）transitionTo 路由跳转
+// 获取匹配的路由信息
+	通过this.router.match处理
+// 确认切换路由
+// 更新 URL
 
 5) RouteLink
 RouteLink 组件首先是可以接收多个 props 选项，其中 to 是必传选型，其余都是可选，默认 tag 标签为 a ，默认触发跳转的事件为 click。该组件渲染也依赖于 render 函数，render 函数中首先拿到 router （$router）实例 和 当前激活态 route 对象（$route）,然后调用 router.resolve() 进行路由解析后取出 location、route、href。（location 表示规范化后的目标 location, route表示通过 match 匹配然后调用 createRoute 生成的最终目标 route，href 表示通过调用 createHref 计算出来的最终要跳转的 href ）
@@ -1271,6 +1284,26 @@ next: Function: 一定要调用该方法来 resolve 这个钩子。执行效果�
 next(): 进行管道中的下一个钩子。如果全部钩子执行完了，则导航的状态就是 confirmed (确认的)。
 next(false): 中断当前的导航。如果浏览器的 URL 改变了 (可能是用户手动或者浏览器后退按钮)，那么 URL 地址会重置到 from 路由对应的地址。
 next('/') 或者 next({ path: '/' }): 跳转到一个不同的地址。
+
+7)vuerouter 初始url处理
+在init中，有history.transitionTo(history.getCurrentLocation())
+getCurrentLocation (): string {
+    return getLocation(this.base)
+  }
+getLocation (base: string): string {
+  let path = decodeURI(window.location.pathname)
+  if (base && path.indexOf(base) === 0) {
+    path = path.slice(base.length)
+  }
+  return (path || '/') + window.location.search + window.location.hash
+}
+
+8)路由跳转
+路由跳转只能通过this.$router.push操作，
+直接通过：
+window.location.hash = 'login'或history.pushState(null, null, '/login')
+这种操作只能修改url无法实现页面跳转
+
 
 
 
@@ -1412,6 +1445,8 @@ nginx: html下创建/msb/webMsb
 
 
 
+
+
 42.自定义指令方法
 import Vue from 'vue'
 
@@ -1474,6 +1509,8 @@ declare module "*.vue" {
  
 就是说，虽然 TypeScript 本身不支持导入非 JavaScript 内容，但是为了支持其他工具接下来的工作，所以做了这么个语法支持。
 *.vue 这个大概是 webpack 的 vue-loader 支持的
+(注意：vite使用ts npm run dev esbuild有个bug，npm 版本v7以下，运行 npm config get ignore-scripts ，如果是 false 则是正确的，否则需要通过运行 npm config set ignore-scripts false 将 ignore-scripts设置为 false；npm 版本v7以上的，package-lock.json 文件的 lockfileVersion 字段为 1 ，或者 hasInstallScript 设置为 true，手动运行 node node_modules/esbuild/install.js 来解决esbuild安装问题。
+)
 
 3）安装router
 npm install vue-router@next -S (npm install vue-router@4.0 会出现箭头让你选)
@@ -1533,9 +1570,11 @@ npm install vant@next -S
 
 
 44.vue3新特点
-新开发工具vite
+1)新开发工具vite
 	使用rollup打包
-组合式api	
+	npm init @vitejs/app my-vue-app
+
+2)组合式api	
 	同时支持options api和composition API
 	composition-api 把复杂组件的逻辑抽地更紧凑，而且可以将公共逻辑进行抽取
 新的响应式函数proxy, let proxy = new Proxy({name: "123"}, {get(){}, set(){}})
@@ -1543,30 +1582,30 @@ npm install vant@next -S
 对typescript全新支持
 重写了 Vdom ，突破了 Vdom 的性能瓶颈
 支持了 tree-shaking
-1）入口函数setup
+(1）入口函数setup
 	创建组件前使用
 	它将接受两个参数：
 		props
 		context
 		props 是响应式的，你不能使用 ES6 解构，因为它会消除 prop 的响应性
 		context 是一个普通的 JavaScript 对象{ attrs, slots, emit }
-2）watchEffect
+(2）watchEffect
 const stop = watchEffect(() => {
   /* ... */
 })
 // later 用于停止这个监听的函数
 stop()
-3）setup()
+(3）setup()
 使用Composition API 的入口
 在beforeCreate之前调用
 在setup中没有this
 返回对象中的属性刻在模板中使
-4）ref和reactive
+(4）ref和reactive
 ref只可以监听简单数据，reactive可以监听所有数据
 ref通过.value的形式来修改
 ref 和 reactive 本质我们可以简单的理解为ref是对reactive的二次包装, ref定义的数据访问的时候要多一个.value
 使用ref定义基本数据类型,ref也可以定义数组和对象。
-5）readonly
+(5）readonly
 传入ref或reactive对象,并返回一个原始对象的只读代理,对象内部任何嵌套的属性也都是只读的。
 传入普通对象等也返回只读代理
 传入普通数值或字符串不能变成只读
@@ -1575,8 +1614,123 @@ ref 和 reactive 本质我们可以简单的理解为ref是对reactive的二次�
 	{
 		const xx=readonly(参数);
 	}
-5）toRefs函数
+(6）toRefs函数
 toRefs()函数可以将reactive()创建出来的响应式对象，转换为普通对象，只不过这个对象上的每个属性节点，都是ref()类型的响应式数据
+(7)生命周期
+组合式api去掉了beforeCreate、created，其他生命周期加on,如：onMounted
+3）组件现在可以有多个根节点
+<template>
+  <header>...</header>
+  <main v-bind="$attrs">...</main>
+  <footer>...</footer>
+</template>
+
+4)单文件组件组合式 API 语法糖
+<script setup>
+更多请看：https://vue3js.cn/docs/zh/guide/migration/introduction.html#%E6%A6%82%E8%A7%88
+5)teleport传输门
+<div id='myTeleport'></div>
+<teleport to='#myTeleport'>
+    <div v-if='isOpen'>
+      我是teleport
+    </div>
+  </teleport>
+<script>
+	const isOpen = ref(true)
+</script>
+
+5)emits
+emits 对自定义事件进行校验
+emits: {
+    // 没有验证函数
+    click: null,
+
+    // 带有验证函数
+    submit: payload => {
+      if (payload.email && payload.password) {
+        return true
+      } else {
+        console.warn(`Invalid submit event payload!`)
+        return false
+      }
+    }
+  }
+
+6）customRender
+7)全局 API
+使用createApp返回实例
+使用实例的全局方法，如：app.use,vue2是Vue.use
+Api可树摇，即没使用的API，如：Vue.nextTick()从未使用过，webpack打包可去掉。
+8)v-model
+// ChildComponent.vue
+export default {
+  model: {
+    prop: 'title',
+    event: 'change'
+  },
+  props: {
+    // 这将允许 `value` 属性用于其他用途
+    value: String,
+    // 使用 `title` 代替 `value` 作为 model 的 prop
+    title: {
+      type: String,
+      default: 'Default title'
+    }
+  }
+}
+<ChildComponent :title="pageTitle" @change="pageTitle = $event" />
+<ChildComponent :title.sync="pageTitle" />
+3.x
+<ChildComponent v-model="pageTitle" />
+props: {
+    modelValue: String // 以前是`value：String`
+  },
+  methods: {
+    changePageTitle(title) {
+      this.$emit('update:modelValue', title) // 以前是 `this.$emit('input', title)`
+    }
+  }
+9)异步组件
+import { defineAsyncComponent } from 'vue'
+const AsyncComp = defineAsyncComponent(() =>
+  import('./components/AsyncComponent.vue')
+)
+10)$on,$once,$off被移除,要使用要使用mitt.umd.js
+Const emitter = mitt()
+emitter.emit()
+emitter.on()
+11)vue-router4变化
+(1)<keep-alive>必须要在<router-view>内，eg:
+<router-view v-slot="{ Component }">
+  <transition>
+    <keep-alive>
+      <component :is="Component" />
+    </keep-alive>
+  </transition>
+</router-view>
+(2)组合式 API import { useRouter, useRoute } from 'vue-router'
+12)vuex
+import { useStore } from 'vuex'
+const store = useStore()
+// 在 computed 函数中访问一个 state
+count: computed(() => store.state.count),
+// 在 computed 函数中访问一个 getter
+double: computed(() => store.getters.double)
+// 访问一个 mutation
+increment: () => store.commit('increment'),
+const updateLoginInfo = () => {
+  store.commit('login/updateLoginInfo', 'logininfog' + Math.random())
+}
+// 访问一个 action
+asyncIncrement: () => store.dispatch('asyncIncrement')
+state响应性：
+return {
+    ...toRefs(store.state)
+}
+
+
+
+
 
 
 
@@ -1769,7 +1923,6 @@ import FilterTest from '@/components/FilterAddWatchTest.vue'
     expect(FilterTest.filters.formatText('12345')).toBe('12345')
     expect(FilterTest.filters.formatText()).toBe('')
   })
-  
 10)测试watch
 watch: {
     toggleShow(newValue, oldValue){
@@ -1787,8 +1940,7 @@ watch: {
     expect(spy).toHaveBeenCalledWith('自定义')
     // 清除掉mock
     spy.mockClear()
-  })
-	
+  })	
 11）测试computed
 computed: {
     cssClasses () {
@@ -1817,7 +1969,6 @@ computed: {
 
     wrapper.destroy()
   })
-
 12) 测试route
 const mockPush = jest.fn()
 const $router = {
@@ -1840,7 +1991,6 @@ wrapper = shallowMount(ActivityScore, {
     })
 注意：不要在其他文件使用import router from '../router'，
 	 会造成could not overwrite property $route的错误，所以测试时先不要用
-
 13)测试methods
 (1) 普通方法
 wrapper.vm.onClick()
@@ -1882,8 +2032,6 @@ findActivityById.mockImplementation(() => ({
 const  findActivityById = jest.spyOn(_wrapper.vm, 'findActivityById')
 异步方法需要await等待其完成：
 await _wrapper.vm.findActivityById()
-
-
 14) 测试vuex
 import { shallowMount, createLocalVue } from '@vue/test-utils'
 import VuexTest from '@/components/VuexTest.vue'
@@ -1959,7 +2107,6 @@ let wrapper
     const text = wrapper.find('.text')
     expect(text.text()).toContain(getters.evenOrOdd())
   })
-  
 15)快照测试 snapshot
 安装一个自定义的序列化工具
  npm install --save-dev jest-serializer-vue
@@ -2004,6 +2151,122 @@ let wrapper
 组件：
 	默认值是否正确
 	当用户选择日期范围，data是否会做相应改变
+
+
+
+
+
+
+46. renderTracked、renderTriggered、activate、deactivated
+renderTracked 在组件在渲染时调用，用于跟踪组件的渲染。
+renderTracked 会在渲染时触发，然后会拿到一个 tracked 对象，用它来描述组件的渲染发生了什么。
+renderTracked({key, target, type}) {
+  console.log({key, target, type})
+}
+renderTracked直译过来就是状态跟踪，它会跟踪页面上所有响应式变量和方法的状态，也就是我们用return返回去的值，他都会跟踪。只要页面有update的情况，他就会跟踪，然后生成一个event对象，我们通过event对象来查找程序的问题所在。
+
+renderTriggered 它会在 VNode 的重新渲染时调用，用于感知组件的重新渲染。
+renderTriggered 会在重新渲染时触发，然后会拿到一个参数 triggered，用来描述什么触发了组件的重新渲染。
+renderTracked({ key, target, type }) {
+    console.log({ key, target, type })
+  }
+被keep-alive包裹的组件八种钩子将失效，只剩下：
+activate：是在被包裹组建被激活的状态下使用的生命周期钩子
+deactivated：在被包裹组件停止使用时调用
+
+
+
+
+
+
+47.预加载
+// spa单页面应用对于网络爬虫是不友好的
+// prerender-spa-plugin 可以把指定路由单独打包成html
+// vue-meta-info修改meta，添加关键字，如：name: 'keyWords', content: '清华 eiiec 评优'
+const path = require('path')
+const PrerenderSPAPlugin = require('prerender-spa-plugin')
+const Renderer = PrerenderSPAPlugin.PuppeteerRenderer
+function resolve (dir) {
+  return path.join(__dirname, dir)
+}
+configureWebpack: config => {
+    if (process.env.NODE_ENV !== 'production') return
+    return {
+      plugins: [
+        new PrerenderSPAPlugin({
+          staticDir: resolve('dist'),
+          routes: ['/', '/login'],
+          renderer: new Renderer({
+            headless: false,
+            renderAfterDocumentEvent: 'render-event'
+          })
+        })
+      ]
+    }
+  }
+参数说明：
+staticDir：代码打包目录
+indexPath：模板页面
+routes：要预渲染的页面路由
+inject：默认挂在window.__PRERENDER_INJECTED对象上，可以通过window.__PRERENDER_INJECTED.foo在预渲染页面取值
+headless：渲染时显示浏览器窗口。对调试很有用。
+renderAfterDocumentEvent：等到事件触发去渲染，此处我理解为是Puppeteer获取页面的时机
+renderAfterElementExists：等到dom元素出现时去渲染
+renderAfterTime：5000ms后去渲染
+
+Main.js:
+import MetaInfo from 'vue-meta-info'
+Vue.use(MetaInfo)
+
+new Vue({
+  router,
+  store,
+  render: h => h(App),
+  mounted () {
+    document.dispatchEvent(new Event('render-event'))
+  }
+}).$mount('#app')
+
+在页面中：
+metaInfo () {
+    return {
+      title: '登录',
+      meta: [{
+        name: 'keyWords',
+        content: '清华 eiiec 评优'
+      }]
+    }
+  },
+data () {
+    return {}
+},
+methods: {}
+
+原理：
+prerender-spa-plugin 利用了 Puppeteer 的爬取页面的功能。 Puppeteer 是一个 Chrome官方出品的 headlessChromenode 库。它提供了一系列的 API, 可以在无 UI 的情况下调用 Chrome 的功能, 适用于爬虫、自动化处理等各种场景。它很强大，所以很简单就能将运行时的 HTML 打包到文件中。原理是在 Webpack 构建阶段的最后，在本地启动一个 Puppeteer 的服务，访问配置了预渲染的路由，然后将 Puppeteer 中渲染的页面输出到 HTML 文件中，并建立路由对应的目录。
+
+
+
+
+
+
+
+
+
+
+48.http-server测试打包后的文件
+打包vue项目进入dist文件后，进行服务的启动，运行http-server
+
+
+
+
+
+
+
+49.AST
+模版语法-> AST -> 渲染函数（h函数）-> 虚拟节点-> 界面
+
+
 
 
 

@@ -352,5 +352,12 @@ foo.style.setProperty('--color', 'green');
 
 
 
+26、clipboardjs源码
+核心api:
+Selection window.getSelection()
+document.execCommand
+
+
+
 
 
