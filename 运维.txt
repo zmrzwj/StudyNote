@@ -1,6 +1,53 @@
 一、自动化部署
 1、jenkins
+(包地址：https://pkg.jenkins.io/)
+安装：
+wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+yum install jenkins
+或 
+wget https://pkg.jenkins.io/redhat/jenkins-2.156-1.1.noarch.rpm
+rpm -ivh jenkins-2.156-1.1.noarch.rpm
+修改端口：
+vim /etc/sysconfig/jenkins
+JENKINS_PORT="8080"
+修改用户为root：
+vim /etc/sysconfig/jenkins
+#修改配置
+$JENKINS_USER="root"
+启动
+systemctl start jenkins
+（报错没有java ,  ln -s /usr/local/java/bin/java /usr/bin/java）
+访问：
+http://xxxx:8080
+查看初始密码:
+cat /var/lib/jenkins/secrets/initialAdminPassword
+汉化：
+系统管理 -> 系统设置 -> Locale
+若修改为中文简体，Default Language设置为：
+zh_cn
 
+jenkins插件下载源修改：
+系统管理-》插件管理-》高级-》升级站点
+官方地址：https://updates.jenkins.io/update-center.json
+清华地址：https://mirrors.tuna.tsinghua.edu.cn/jenkins/updates/update-center.json
+2、重启Jenkins
+http://192.168.11.206:8080/jenkins/restart
+3、用户角色
+安装插件	
+Role-based Authorization Strategy
+系统管理-》全局安全配置 -> 授权策略 -> Role-Based Strategy
+系统管理-》Manage and Assign Roles
+4、访问git问题
+git版本过老需要升级
+/usr/bin/git xxx报错，可能是安装时/usr/bin/下没有添加git，ln -s /usr/local/git/bin/git /usr/bin/git
+5、maven项目
+https://maven.apache.org/download.cgi
+wget xxxx
+解压后
+vim  /etc/profile
+export MAVEN_HOME=/usr/local/maven/
+export PATH=${MAVEN_HOME}/bin:${PATH}
 
 
 2、travis ci
@@ -34,7 +81,7 @@
 
 
 
-7.drone
+7.drone CI
 
 
 

@@ -233,8 +233,29 @@ gitlab-ctl start
 
 
 
+18.git 升级
+安装依赖软件
+yum install curl-devel expat-devel gettext-devel openssl-devel zlib-devel asciidoc
+yum remove git
+ wget https://www.kernel.org/pub/software/scm/git/git-2.31.1.tar.xz
+ tar -vxf git-2.31.1.tar.xz
+ cd git-2.31.1
+ make prefix=/usr/local/git all
+ make prefix=/usr/local/git install
+ vim /etc/profile
+ 添加：$PATH:/usr/local/git/bin
+ source /etc/profile
+ git --version
+ ln -s /usr/local/git/bin/git /usr/bin/git
+或：
+需要安装ius repo
+ yum install -y  https://centos7.iuscommunity.org/ius-release.rpm
+卸载git 1.8
+# yum remove git
+安装新git
+# yum -y install  git2u-all
 
-
+ 
 
 
 
