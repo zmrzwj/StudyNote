@@ -48,6 +48,50 @@ wget xxxx
 vim  /etc/profile
 export MAVEN_HOME=/usr/local/maven/
 export PATH=${MAVEN_HOME}/bin:${PATH}
+ln -s /usr/local/maven/bin/mvn /usr/bin/mvn
+6、pipeline
+声明式、脚本式
+触发远程构建：
+http://192.168.11.182:8080//job/pipeline_test/build?token=TOKEN_NAME（访问此连接就触发构建）
+Build after other projects are built（其它项目构建后）
+Build periodically 定时构建
+Poll SCM 轮询
+	设定日期拉取代码，代码有改变才会构建
+GitHub hook trigger for GITScm polling
+	github或gitlab需要安装相应的插件
+添加参数：
+	配置-》This project is parameterized -》 String Parameter 
+	填写名称和默认值。如：名称：branch，默认：master
+	（在项目这边就可以看到多了‘Build with Parameters’）
+	在Jenkinsfile中修改字符串为${branch}的变量
+7、整合邮箱
+	安装Email Extension Template
+	configure system -》 Extended E-mail Notification
+		填写相关信息：smtp.qq.com 开启ssl，端口为465
+	qq邮箱先开启stmp, 获取授权码：iymoiaxqfhptbdig
+	
+8、代码审查
+sonarQube
+安装sonarQube，在mysql创建sonar数据库
+https://www.sonarqube.org/downloads/
+https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-8.8.0.42792.zip (sonarQube7.9不再支持mysql, 且java为11)
+unzip sonarqube-8.8.0.42792.zip
+mv sonarqube-8.8.0.42792 /usr/local/sonarqube
+useradd sonar
+chown -R sonar /usr/local/sonarqube
+cd /usr/local/sonarqube/conf
+vim sonar.properties
+# sonar.jdbc.username=root
+# sonar.jdbc.password=uestc@123456
+# sonar.jdbc.url=jdbc:mysql://192.168.11.206:3306/sonar?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true&useConfigs=maxPerformance
+sonar.web.host=0.0.0.0
+su sonar
+cd /usr/local/sonarqube/bin/linux-x86-64
+./sonar.sh start
+tail -f logs/sonar.log
+http://192.168.11.182:9000
+默认：admin admin/ admin Admin12#$
+
 
 
 2、travis ci
