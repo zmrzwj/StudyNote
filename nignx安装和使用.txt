@@ -384,6 +384,20 @@ if ($request_filename ~* ^.*?.(txt|jpg|png)$){
 }
 
 
+6、图片防盗链
+location ~*\.(css|gif|png|jpg|js) {
+    valid_referers none blocked www.baidu.com;
+    if ($invalid_referer) {
+		rewrite ^/ http://********.com/ redirect;
+        # return 403;
+    }
+}
+nginx会通过查看referer字段和valid_referers后面的referer列表进行匹配，如果匹配到了就invalid_referer字段值为0否则设置该值为1.
+1.首先当我输入我要打开的网址的时候，因为是直接输入的没有referer所以匹配了
+valid_referers后面的none或者是blocked 所以invalid_referer值为0 所以不进行跳转.
+当我是从这个网站里面的链接跳到该网站首页的时候 因为referer的值是肯定包含srever_names 所以匹配了server_names所以不进行跳转.
+2.当我从搜素引擎进去的时候因为referer字段类似于www.google.com.hk/search
+
 
 
 
