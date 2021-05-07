@@ -1,56 +1,62 @@
-1.tomcat下载：
-	https://tomcat.apache.org/download-80.cgi
-	下载zip文件
+## 1、tomcat
 
-2.配置
-	conf/tomcat-users.xml
-	添加：
-	<user username="admin" password="admin" roles="manager-gui,admin-gui"/>
-	conf/web.xml
-	添加：
-	<init-param>
-            <param-name>compilerSource</param-name>
-            <param-value>1.8</param-value>
-        </init-param>
-        <init-param>
-            <param-name>compilerTargetVM</param-name>
-            <param-value>1.8</param-value>
-        </init-param>
-	conf/server.xml可以修改接口
+### 1.1.tomcat下载：
 
-3.运行
-	./startup.sh
-	如果出现startup.sh: command not found
-        需要更改startup.sh权限
-	sudo chmod 755 *.sh //需要在tomcat-xxx/bin/目录下执行
-	执行成功访问http://localhost:8080/
-	./shutdown.sh关闭tomcat
+​	https://tomcat.apache.org/download-80.cgi
+​	下载zip文件
 
-4.创建Maven
-	groupId一般分为多个段，这里我只说两段，第一段为域，第二段为公司名称。域又分为org、com、cn等等许多。如：top.hellozwj
-	artifactId设置为项目的名称;
-	使用阿里maven：
-	修改pom.xml:
-		<repositories><!-- 代码库 -->
-        		<repository>
-          			<id>maven-ali</id>
-            			<url>http://maven.aliyun.com/nexus/content/groups/public//</url>
-            			<releases>
-                			enabled>true</enabled>
-            			</releases>
-            			<snapshots>
-                			<enabled>true</enabled>
-                			<updatePolicy>always</updatePolicy>
-                			<checksumPolicy>fail</checksumPolicy>
-            			</snapshots>
-        		</repository>
-    		</repositories>
-	如果想修改settings文件的话：settings.xml的默认路径就：个人目录/.m2/settings.xml
-		Mac下在～/.m2/下,如果没有就自己创建
-			内容：<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
-      				xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      				xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
-                          	https://maven.apache.org/xsd/settings-1.0.0.xsd">
+### 1.2.配置
+
+​	conf/tomcat-users.xml
+​	添加：
+​	<user username="admin" password="admin" roles="manager-gui,admin-gui"/>
+​	conf/web.xml
+​	添加：
+​	<init-param>
+​            <param-name>compilerSource</param-name>
+​            <param-value>1.8</param-value>
+​        </init-param>
+​        <init-param>
+​            <param-name>compilerTargetVM</param-name>
+​            <param-value>1.8</param-value>
+​        </init-param>
+​	conf/server.xml可以修改接口
+
+### 1.3.运行
+
+​	./startup.sh
+​	如果出现startup.sh: command not found
+​        需要更改startup.sh权限
+​	sudo chmod 755 *.sh //需要在tomcat-xxx/bin/目录下执行
+​	执行成功访问http://localhost:8080/
+​	./shutdown.sh关闭tomcat
+
+## 2、创建Maven
+
+​	groupId一般分为多个段，这里我只说两段，第一段为域，第二段为公司名称。域又分为org、com、cn等等许多。如：top.hellozwj
+​	artifactId设置为项目的名称;
+​	使用阿里maven：
+​	修改pom.xml:
+​		<repositories><!-- 代码库 -->
+​        		<repository>
+​          			<id>maven-ali</id>
+​            			<url>http://maven.aliyun.com/nexus/content/groups/public//</url>
+​            			<releases>
+​                			enabled>true</enabled>
+​            			</releases>
+​            			<snapshots>
+​                			<enabled>true</enabled>
+​                			<updatePolicy>always</updatePolicy>
+​                			<checksumPolicy>fail</checksumPolicy>
+​            			</snapshots>
+​        		</repository>
+​    		</repositories>
+​	如果想修改settings文件的话：settings.xml的默认路径就：个人目录/.m2/settings.xml
+​		Mac下在～/.m2/下,如果没有就自己创建
+​			内容：<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+​      				xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+​      				xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+​                          	https://maven.apache.org/xsd/settings-1.0.0.xsd">
   				<localRepository/>
   				<interactiveMode/>
   				<usePluginRegistry/>
@@ -61,9 +67,11 @@
   				<proxies/>
   				<profiles/>
   				<activeProfiles/>
-			</settings>
-			
-5.下载离线maven
+​			</settings>
+​			
+
+## 3、下载离线maven
+
 http://maven.apache.org/download.cgi
 Mac 下载-bin.tar.gz解压到zwj/applictions
 在使用idea创建maven时，更改默认的maven,选择解压的目录就到apache-maven-3.5.4
@@ -76,23 +84,25 @@ Mac 下载-bin.tar.gz解压到zwj/applictions
         	<url>http://maven.aliyun.com/nexus/content/groups/public</url>
     	</mirror>
 
+## 4、IDEA设置tomcat
 
-6.IDEA设置tomcat
-	run->Edit Configurations
-	点击：+,点击：tomcat server,点击：local
-	然后配置tomcat，选择解压的tomcat目录
-	如果出现错误：no artifacts configured：
-	打开file->Project Structure,选择Aritfacts选项， 选择Web Application:Exploded,修改命名name,在右边avilable elements下选中要添加的项目，点击+，选择directory content,选择项目的目录.再次进入Edit Configration->Deployment，点击+号，即可看到Artifact选项了.(注意：Aritfact一定要是：xxx:war exploded)
-	war模式：将WEB工程以包的形式上传到服务器 ；
-	war exploded模式：直接把文件夹、jsp页面 、classes等等移到Tomcat 部署文件夹里面，进行加载部署，一般在开发的时候也是用这种方式。
-	就可以运行项目了，但什么都没有浏览器会显示404
+​	run->Edit Configurations
+​	点击：+,点击：tomcat server,点击：local
+​	然后配置tomcat，选择解压的tomcat目录
+​	如果出现错误：no artifacts configured：
+​	打开file->Project Structure,选择Aritfacts选项， 选择Web Application:Exploded,修改命名name,在右边avilable elements下选中要添加的项目，点击+，选择directory content,选择项目的目录.再次进入Edit Configration->Deployment，点击+号，即可看到Artifact选项了.(注意：Aritfact一定要是：xxx:war exploded)
+​	war模式：将WEB工程以包的形式上传到服务器 ；
+​	war exploded模式：直接把文件夹、jsp页面 、classes等等移到Tomcat 部署文件夹里面，进行加载部署，一般在开发的时候也是用这种方式。
+​	就可以运行项目了，但什么都没有浏览器会显示404
 
-7.创建webapp
+## 5.创建webapp
+
 选择Maven项目时，勾选create from archetype,并选中org.apache.maven.archetypes:maven-archetype-webapp.
 然后创建完项目后会加载很多依赖，会很慢，加载完后才会出现所有目录结构，不然只有pom.xml。
 最后下载离线的Maven，在创建项目时更改为自己下载的maven解压后的目录，settings.xml也要更改为自己的settings.xml在maven目录的conf目录里。
 
-8.创建的项目main下没有java目录
+## 6.创建的项目main下没有java目录
+
 解决：   选择File->Project Structure
 	选择Modules选项卡下面的Sources项，在main文件夹上右键，选择New Folder...并点击OK
 	输入要创建的文件夹名称java，并点击OK继续
@@ -100,38 +110,44 @@ Mac 下载-bin.tar.gz解压到zwj/applictions
 	我们发现java文件夹已经由黄色变成了蓝色，我们点击OK按钮表示设置完成（蓝色就对了）
 解决2:在main文件夹上右键,直接创建目录，即可。
 
-9.Servlet should have a mapping
+## 7.Servlet should have a mapping
+
 请添加<servlet-mapping>
     	<servlet-name>HelloWorld</servlet-name>
     	<url-pattern>/hello</url-pattern>
      </servlet-mapping>
 
+## 8.创建断点
 
-10.创建断点
 <servlet>下添加
 <load-on-startup>1</load-on-startup>
 
-11.@WebServlet(
+## 9.@WebServlet
+
+@WebServlet(
         name = "hello",
         urlPatterns = {"/hello","/greeting"},
         loadOnStartup = 1
 )可以代替web.xml的servlet的配置
 
+## 10.javax.inject.jar：依赖注入非常方便的jar包.
 
-12.javax.inject.jar：依赖注入非常方便的jar包.
 用过Spring框架的我们都知道，每当生成依赖注入的时候，我们都必须生成相应类的set方法，而且要在set方法上面写上@Autowired，才能实现依赖注入.
 
+## 11.scope=compile
 
-13.scope=compile的情况（默认scope),也就是说这个项目在编译，测试，运行阶段都需要这个artifact对应的jar包在classpath中。
+scope=compile的情况（默认scope),也就是说这个项目在编译，测试，运行阶段都需要这个artifact对应的jar包在classpath中。
 scope=provided的情况，则可以认为这个provided是目标容器已经provide这个artifact。换句话说，它只影响到编译，测试阶段。在编译测试阶段，我们需要这个artifact对应的jar包在classpath中，而在运行阶段，假定目标的容器（比如我们这里的liferay容器）已经提供了这个jar包，所以无需我们这个artifact对应的jar包了。
 即scope=provided，打包不会打包进去。
 
 
-14.Artifact 是maven中的一个概念，表示某个module要如何打包。
+
+## 12.Artifact 是maven中的一个概念，表示某个module要如何打包。
 
 
 
-15scope的分类
+## 13、scope的分类
+
 compile
 默认就是compile，什么都不配置也就是意味着compile。compile表示被依赖项目需要参与当前项目的编译，当然后续的测试，运行周期也参与其中，是一个比较强的依赖。打包的时候通常需要包含进去。
 test
@@ -145,21 +161,23 @@ provided意味着打包的时候可以不用包进去，别的设施(Web Contain
 system
 从参与度来说，也provided相同，不过被依赖项不会从maven仓库抓，而是从本地文件系统拿，一定需要配合systemPath属性使用。
 
-
-16.RSS 简单信息聚合
-
-
-
-17.SOAP(simple object access protocol)简单对象访问协议
+## 14.RSS 简单信息聚合
 
 
 
-18.ORM对象关系映射
+## 15.SOAP(simple object access protocol)简单对象访问协议
+
+
+
+## 16.ORM对象关系映射
+
 面向对象编程语言
 
 
 
-19.应用服务器有专门用于管理连接池的内建系统，可以改善应用程序中数据库连接的性能。对应管理这些连接的应用服务器，必须在应用服务器类加载器中而不是web应用类加载器中加载JDBC驱动。
+## 17.应用服务器内置连接池
+
+应用服务器有专门用于管理连接池的内建系统，可以改善应用程序中数据库连接的性能。对应管理这些连接的应用服务器，必须在应用服务器类加载器中而不是web应用类加载器中加载JDBC驱动。
 在mysql官网下载mysql JDBC,拿到JAR文件,把它放到tomcat\lib下。修改tomcat\conf\context.xml
 在<Context>里添加
 <Resource
@@ -181,7 +199,8 @@ server.xml不可动态重新加载资源，要修改这个文件，就要重启�
 
 
 
-20.ubuntu 安装tomcat9
+## 18.ubuntu 安装tomcat9
+
 下载：apache-tomcat-9.0.11.tar.gz
 解压到/usr/local
 修改tomcat/bin下的startup.sh文件，在最后添加
@@ -198,7 +217,8 @@ export PATH=${JAVA_HOME}/bin:$PATH
 
 
 
-21.SpringMVC 中 url-patter 与 @RequestMapping 的对应问题
+## 19.SpringMVC 中 url-patter 与 @RequestMapping 的对应问题
+
 利用 SpringMVC 响应前端发起的请求时，其完整 url 会按照 DispatcherServlet 指定的 url 格式进行匹配、修剪，去掉<url-pattern>指定的上下文部分，剩余部分 url'，再由注解 @RequestMapping 转到 Controller 特定的方法上，执行具体的处理。
 前端请求的完整 url：
 	http://localhost:8088/aaa/bbb/ccc?myParam=myValue
@@ -209,8 +229,8 @@ servlet 指定的 url 格式：
 	public String demoMethodSignature(String myParam) 
 	
 
+## 20.Spring项目
 
-22.Spring项目
 Controller层：负责具体业务模块流程的控制，即调用Service层的接口来控制业务流程。负责url映射（action）。
 Dao层：负责数据持久化，与数据库进行联络的任务都封装在其中，Dao层的数据源以及相关的数据库连接参数都在Spring配置文件中进行配置。
 Entity层：java对象，与数据库表一一对应，是其对应的实现类。即一个Entity就是对应表中的一条记录。
@@ -219,7 +239,8 @@ View层：表示层，负责前端jsp页面表示。
 
 
 
-23.JDBC连接数据库java.sql.Connection
+## 21.JDBC连接数据库java.sql.Connection
+
 <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
@@ -251,21 +272,24 @@ import java.sql.*;
 
 
 
-24.mac IDEA try catch自动添加，option+command+t
+## 22.mac IDEA try catch自动添加，option+command+t
 
 
 
-25.preparedStatement与Statement
+## 23.preparedStatement与Statement
+
 preparedStatement是预编译的，对批处理可以大大提高效率，Statement只执行一次性存取。preparedStatement用于执行带参数的预编译SQL, Statement执行不带参数的简单SQL。执行的对象较多时，preparedStatement会降低运行时间。企业更喜欢preparedStatement，因为它更安全，传递给preparedStatement的对象参数可以被强制进行类型转换。Statement每次执行一个SQL，都会对它进行解析和编译。preparedStatement和Statement都需要调用close函数关闭，不应等待对象自动关闭。
 
 
 
-26.java:comp/env/
+## 24.java:comp/env/
+
 这是J2EE环境的定义，代表了当前J2EE应用的环境，使用这样的方式，必须设置当前应用环境到资源名的映射。
 
 
 
-27.JDBC-DataSource(数据库连接池)
+## 25.JDBC-DataSource(数据库连接池)
+
 JDBC的数据库连接池使用javax.sql.DataSource来表示，它只是一个接口，该接口由应用服务器实现，或开源组织（DBCP,C3P0）.
 DBCP:
 需要两个依赖：commons-dbcp.jar，commons-pool.jar
@@ -275,8 +299,10 @@ C3p0性能更胜一筹，hibernate推荐使用该连接池，c3p0连接池不仅
 
 
 
-28.idea创建springboot项目
+## 26.idea创建springboot项目
+
 Maven的Snapshot版本与Release版本
+
 1. Snapshot版本代表不稳定、尚处于开发中的版本
 2. Release版本则代表稳定的版本
 1）选择File –> New –> Project –>Spring Initialer –> 点击Next 
@@ -287,12 +313,14 @@ Maven的Snapshot版本与Release版本
 
 
 
-29.application.properties
+## 27.application.properties
+
 原来spring boot2.0之后，server.context-path上下文的配置改为了server.servlet.context-path
 
 
 
-30.idea spring打包为war包
+## 28.idea spring打包为war包
+
 <packaging>jar</packaging>改为
 <packaging>war</packaging>
 主程序文件修改如下：
@@ -344,21 +372,23 @@ Pom.xml添加
 
 
 
-31.如果使用spring-boot的服务器
+## 29.如果使用spring-boot的服务器
+
 在Edit Configurations时选择Spring-boot,Main class填写
 com.cddw.com.xs.XsApplication
 
+## 30、fastjson将容器转为字符串
 
-32. fastjson将容器转为字符串
 <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.50</version>
+        <groupId>com.alibaba</groupId>
+        <artifactId>fastjson</artifactId>
+        <version>1.2.50</version>
 </dependency>
 
 
 
-33.创建普通maven工程
+## 31、创建普通maven工程
+
 idea:
 点击Create New Project ->然后选择Maven->新建普通的Java工程，因此选择-quickstart,如果是新建Java web工程就选择-webapp
 ->填写GroupID与ArtifactId (GroupID :com.test一般填域名, ArtifactId :一般为项目名)
@@ -368,7 +398,8 @@ idea:
 
 
 
-33.spring boot jdbc连接池
+## 32.spring boot jdbc连接池
+
 <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-jdbc</artifactId>
@@ -387,7 +418,8 @@ spring.datasource.hikari.max-lifetime=500000
 
 
 
-34.springboot项目结构
+## 33.springboot项目结构
+
 在com.xxx.xxx下
 entity
     usr类
@@ -401,14 +433,15 @@ controller
 
 
 
-35.springboot拦截器
+## 34.springboot拦截器
+
 与SpringBootApplication同级目录
 创建：TokenInterceptor类
 @Component
 public class TokenInterceptor implements HandlerInterceptor {
 
 	@Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler){}
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler){}
 }
 再创建TokenConfig：
 @Configuration
@@ -426,8 +459,8 @@ public class TokenConfig implements WebMvcConfigurer {
 
 
 
+## 35.纯Java项目使用HikariCP
 
-36.纯Java项目使用HikariCP
 Java 8
 <dependency>
     <groupId>com.zaxxer</groupId>
@@ -440,7 +473,7 @@ private String url = "jdbc:mysql://127.0.0.1:3306/magnetic?characterEncoding=utf
     private String password = "123456";
 
     private HikariDataSource ds;
-
+    
     public void start(){
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(this.url);
@@ -448,7 +481,7 @@ private String url = "jdbc:mysql://127.0.0.1:3306/magnetic?characterEncoding=utf
         config.setPassword(this.password);
         config.setDriverClassName("com.mysql.jdbc.Driver");
         //config.setDataSourceClassName();
-
+    
         //是否自定义配置，为true时下面两个参数才生效
         config.addDataSourceProperty("cachePrepStmts","true");
         //连接池大小默认25，官方推荐250-500
@@ -463,7 +496,7 @@ private String url = "jdbc:mysql://127.0.0.1:3306/magnetic?characterEncoding=utf
         config.addDataSourceProperty("maximumPoolSize", "20");
         //HikariCP将尝试通过仅基于jdbcUrl的DriverManager解析驱动程序，但对于一些较旧的驱动程序，还必须指定driverClassName
         config.addDataSourceProperty("driverClassName", "com.mysql.jdbc.Driver");
-
+    
         this.ds = new HikariDataSource(config);
     }
 
@@ -478,14 +511,16 @@ hikariDataSource.setMaxLifetime(60000);           //池中连接最长生命周�
 
 
 
-37.spring缓存方案
+## 36.spring缓存方案
+
 有guava cache、redis、tair、memcached等。
 Spring Boot默认情况下使用ConcurrentMapCacheManager作为缓存技术。
 @Cacheable注解可以使用缓存
 
 
 
-38.spring boot定时任务
+## 37.spring boot定时任务
+
 //表示每个星期1中午5点 "0 0 5 ? * 1"
 @Service
 public class ScheduledService{
@@ -499,7 +534,8 @@ public class EhomeApplication extends SpringBootServletInitializer{}
 
 
 
-39.依赖注入有三种方式：
+## 38.依赖注入有三种方式：
+
 变量（filed）注入
 构造器注入
 set方法注入
@@ -528,7 +564,8 @@ set方法注入
 
 
 
-40.Spring Boot动态定时任务
+## 39.Spring Boot动态定时任务
+
 @Autowired
 JdbcTemplate jdbcTemplate;
 private ScheduledFuture<?> future; 
@@ -544,7 +581,8 @@ private class MyRunnable implements Runnable {
 
 
 
-41.maven工程连接c3p0
+## 40.maven工程连接c3p0
+
 <!-- https://mvnrepository.com/artifact/com.mchange/c3p0 -->
         <dependency>
             <groupId>com.mchange</groupId>
@@ -559,7 +597,7 @@ private class MyRunnable implements Runnable {
             dataSource.setJdbcUrl("jdbc:mysql://39.98.182.112:3306/EHome?characterEncoding=utf8&useSSL=false");
             dataSource.setUser("root");
             dataSource.setPassword("uestc@123456");
-
+    
             //连接池每隔60秒自动检测数据库连接情况，如果断开则自动重连。
             dataSource.setTestConnectionOnCheckin(true);
             dataSource.setIdleConnectionTestPeriod(60);
@@ -578,7 +616,8 @@ private class MyRunnable implements Runnable {
 
 
 
-41.spring基础知识
+## 41.spring基础知识
+
 1）POJO
 POJO（Plain Ordinary Java Object）简单的Java对象，实际就是普通JavaBeans，是为了避免和EJB混淆所创造的简称。其中有一些属性及其getter setter方法的类,没有业务逻辑。
 2）IOC
@@ -602,7 +641,8 @@ XML显示配置Bean
 
 
 
-42.springboot整合Hibernate
+## 42.springboot整合Hibernate
+
 由于Spring boot默认已经集成了Hibernate, 所在我们只需在pom.xml引用jpa及mysql连接库.
 <dependency>  
   <groupId>org.springframework.boot</groupId>  
@@ -652,8 +692,8 @@ AUTO：根据数据库的不同，使用上面三种
 
 
 
+## 43.整合WebSocket
 
-43.整合WebSocket
 <!-- WebSocket依赖，移除Tomcat容器 -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -678,12 +718,12 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer{
             registry.addEndpoint("/endpointZwj").withSockJS();
 
         }
-
+    
         @Override
         public void configureMessageBroker(MessageBrokerRegistry registry) {//配置消息代理(Message Broker)
             //广播式应配置一个/topic消息代理
             registry.enableSimpleBroker("/topic");
-
+    
         }
 }
 写Controller
@@ -710,56 +750,56 @@ stompClient.connect({},function(frame){//连接WebSocket服务端})
 
 
 
+## 44.配置swagger
 
-44.配置swagger
-	<dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
-            <version>2.8.0</version>
-        </dependency>
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger-ui</artifactId>
-            <version>2.8.0</version>
-        </dependency>
+​	<dependency>
+​            <groupId>io.springfox</groupId>
+​            <artifactId>springfox-swagger2</artifactId>
+​            <version>2.8.0</version>
+​        </dependency>
+​        <dependency>
+​            <groupId>io.springfox</groupId>
+​            <artifactId>springfox-swagger-ui</artifactId>
+​            <version>2.8.0</version>
+​        </dependency>
 创建config文件夹创建Swagger类：
 @Configuration
 @EnableSwagger2
 public class Swagger {
-    @Bean
-    public Docket createRestApi() {
-        return new Docket(DocumentationType.SWAGGER_2)
-                .apiInfo(apiInfo())
-                .select()
-                .apis(RequestHandlerSelectors.basePackage("com.hibernate.hibernatedemo.controller"))
-                .paths(PathSelectors.any())
-                .build();
-    }
-    private ApiInfo apiInfo() {
-        return new ApiInfoBuilder()
-                .title("springboot利用swagger构建api文档")
-                .description("简单优雅的restfun风格，http://blog.csdn.net/wu_zi")
-                .termsOfServiceUrl("http://blog.csdn.net/wu_zi")
-                .version("1.0")
-                .build();
-    }
+​    @Bean
+​    public Docket createRestApi() {
+​        return new Docket(DocumentationType.SWAGGER_2)
+​                .apiInfo(apiInfo())
+​                .select()
+​                .apis(RequestHandlerSelectors.basePackage("com.hibernate.hibernatedemo.controller"))
+​                .paths(PathSelectors.any())
+​                .build();
+​    }
+​    private ApiInfo apiInfo() {
+​        return new ApiInfoBuilder()
+​                .title("springboot利用swagger构建api文档")
+​                .description("简单优雅的restfun风格，http://blog.csdn.net/wu_zi")
+​                .termsOfServiceUrl("http://blog.csdn.net/wu_zi")
+​                .version("1.0")
+​                .build();
+​    }
 }
 创建Controller做测试
 @RestController
 @RequestMapping("/test")
 public class hello {
-    @RequestMapping(value = "hello",method = {RequestMethod.POST})
-    public String helloWorld(){
-        return "helloWorld";
-    }
+​    @RequestMapping(value = "hello",method = {RequestMethod.POST})
+​    public String helloWorld(){
+​        return "helloWorld";
+​    }
 }
 访问：
 http://localhost:8080/swagger-ui.html
 
 
 
+## 45.lombok
 
-45.lombok
 <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
 <dependency>
     <groupId>org.projectlombok</groupId>
@@ -789,8 +829,8 @@ public class ToStringExample {}
 
 
 
+## 46.spring cloud
 
-46.spring cloud
 1）Spring Cloud的核心功能：
 分布式/版本化配置
 服务注册和发现
@@ -813,22 +853,541 @@ public class ToStringExample {}
 5、Hystrix负责处理服务超时熔断
 6、Turbine监控服务间的调用和熔断相关指标
 
-Eureka:
+创建springcloud主工程：
+创建普通的maven工程即可
+
+### 1、Eureka:
+
+#### 1.1、eureka server
+
 Idea：spring initialir -> cloud discovery -> eureka server 
+cap原理c一致性、a可用性、p分区容错性不可同时满足，eureka保证的是ap,zookeeper保证的是cp
+添加eureka server工程
+在springcloud主工程，右键创建module,创建springboot项目，工程名eureka-server 
+在选择依赖时选择web->spring web、spring cloud discovery -> eureka server
+在启动类下添加@EnableEurekaServer
+配置文件添加：
+
+```
+server.port=7001
+eureka.instance.hostname=localhost
+#是否向注册中心注册自己，服务端不向自己注册自己
+eureka.client.register-with-eureka=false
+#不检索其它服务
+eureka.client.fetch-registry=false
+#指定服务注册中心位置，监控页面
+eureka.client.service-url.defaultZone = http://${eureka.instance.hostname}:${server.port}/eureka/
+```
+
+注意：
+spring-cloud-starter-eureka-server是1.5以前的版本依赖；
+spring-cloud-starter-netflix-eureka-server是最新版本的依赖（推荐）
+
+启动eureka server工程，访问：http://127.0.0.1:7001/（注册中心）
+
+#### 1.2、服务注册到eureka
+
+创建服务提供者项目，一个springboot项目，server-provider
+
+添加依赖：
+
+```
+<properties>        
+        <spring-cloud.version>2020.0.2</spring-cloud.version>
+    </properties>
+<dependencies>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+</dependencies>
+<dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+```
+
+启动类添加@EnableEurekaClient
+
+配置文件添加：
+
+```
+server.port=8088
+# 服务名
+spring.application.name=server-provider
+# eureka注册证中心
+eureka.client.service-url.defaultZone=http://localhost:7001/eureka
+```
+
+再访问http://127.0.0.1:7001/，会在application看到一个实例
+
+#### 1.3、高可用集群
+
+1）拷贝eureka-server的application.properties，为application-8761.properties、application-8762.properties
+
+修改配置文件的port分别为8761、8762
+
+修改eureka.instance.hostname分别为localhost8761、localhost8762
+
+2）拷贝EurekaServerApplication为EurekaServerApplication8761、EurekaServerApplication8762，并且在class文件上右键选择create 'EurekaServerApplication...'，在environment的program arguments添加：
+
+--spring.profiles.active=8761，在EurekaServerApplication8762执行同样的操作。
+
+3）修改host,添加
+
+127.0.0.1 localhost8761
+
+127.0.0.1 localhost8762
+
+4）分别启动EurekaServerApplication8761、EurekaServerApplication8762。
+
+页面访问：http://localhost8761:8761、http://localhost8762:8762
+
+5）服务provider修改：
+
+```bash
+# eureka注册证中心
+eureka.client.service-url.defaultZone=http://localhost8761:8761/eureka,http://localhost8762:8762/eureka
+```
+
+6）consumer也修改：
+
+```bash
+# eureka注册证中心
+eureka.client.service-url.defaultZone=http://localhost8761:8761/eureka,http://localhost8762:8762/eureka
+```
+
+#### 1.4、eureka自我保护
+
+默认情况下，**如果Eureka Server在一定时间内（默认90秒）没有接收到某个微服务实例的心跳，Eureka Server将会移除该实例。**但是当网络分区故障发生时，微服务与Eureka Server之间无法正常通信，而微服务本身是正常运行的，此时不应该移除这个微服务，所以引入了自我保护机制。
+
+官方对于自我保护机制的定义：
+
+> 自我保护模式正是一种针对网络异常波动的安全保护措施，使用自我保护模式能使Eureka集群更加的健壮、稳定的运行。
+
+自我保护机制的工作机制是：**如果在15分钟内超过85%的客户端节点都没有正常的心跳，那么Eureka就认为客户端与注册中心出现了网络故障，Eureka Server自动进入自我保护机制**，此时会出现以下几种情况：
+
+1. Eureka Server不再从注册列表中移除因为长时间没收到心跳而应该过期的服务。
+2. Eureka Server仍然能够接受新服务的注册和查询请求，但是不会被同步到其它节点上，保证当前节点依然可用。
+3. 当网络稳定时，当前Eureka Server新的注册信息会被同步到其它节点中。
+
+因此Eureka Server可以很好的应对因网络故障导致部分节点失联的情况，而不会像ZK那样如果有一半不可用的情况会导致整个集群不可用而变成瘫痪。
+
+`eureka.server.enable-self-preservation` 来`true`打开/`false`禁用自我保护机制，默认打开状态，建议生产环境打开此配置。
+
+注册中心关闭自我保护机制，修改检查失效服务的时间。
+
+```bash
+eureka:
+  server:
+     enable-self-preservation: false
+     eviction-interval-timer-in-ms: 3000
+```
+
+微服务客户端修改减短服务心跳的时间。
+
+```bash
+# 每隔2s，向服务端发送一次心跳，默认30s
+eureka.instance.lease-renewal-interval-in-seconds=2
+
+# 告诉服务器，10s内没有给你发心跳，代表我故障了,默认90s
+eureka.instance.lease-expiration-duration-in-seconds=10
+```
+
+以上配置建议在生产环境使用默认的时间配置。
+
+### 2、Ribbon
+
+ribbon是客户端复制均衡，客户端负载均衡和服务端负载均衡最大的不同点在于上面所提到服务清单所存储的位置。在客户端负载均衡中，所有客户端节点都维护着自己要访问的服务端清单，而这些服务端端清单来自于服务注册中心，比如Eureka服务端。同服务端负载均衡的架构类似，在客户端负载均衡中也需要心跳去维护服务端清单的健康性，默认会创建针对各个服务治理框架的Ribbon自动化整合配置。
+
+在主工程添加module，新建springboot项目作为服务消费者，server-consumer，
+
+添加依赖：spring web、eureka client、ribbon、spring cloud config -> config client
+
+注意：springboot版本，springboot2.4后无法添加ribbon依赖，已经不推荐了，推荐spring-cloud-loadbalancer
+
+ribbon是和restTemplate整合到一起的。
+
+#### 2.1、消费provider
+
+添加依赖：
+
+```xml
+<properties>        
+        <spring-cloud.version>2020.0.2</spring-cloud.version>
+    </properties>
+<dependencies>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+</dependencies>
+<dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+```
+
+启动类添加@EnableEurekaClient
+
+配置文件添加：
+
+```properties
+server.port=8088
+# 服务名
+spring.application.name=server-consumer
+# eureka注册证中心
+eureka.client.service-url.defaultZone=http://localhost:7001/eureka
+```
+
+添加config目录，添加BeanConfig.class
+
+```java
+@Configuration
+public class BeanConfig {    
+    @LoadBalanced
+    @Bean
+    public RestTemplate restTemplate() {
+        return  new RestTemplate();
+    }
+}
+```
+
+创建controller做测试：
+
+```java
+@RestController
+public class WebController {
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @GetMapping("web/hello")
+    public String hello () {
+        System.out.println("consumer hello");
+//        return restTemplate.getForEntity("http://127.0.0.1:8088/hello", String.class).getBody() + "  consumer";
+        return restTemplate.getForEntity("http://server-provider/hello", String.class).getBody() + "  consumer";
+    }
+}
+```
+
+在provider工程也添加controller提供给consumer消费：
+
+```java
+@RestController
+public class HelloWorld {
+    @GetMapping("/hello")
+    public String hello() {
+        return "hello world";
+    }
+}
+```
+
+#### 2.2、负载均衡：
+
+把provider再拷贝一份，在主工程点file->new->module from existing sources,把刚拷贝的项目导入。
+
+修改项目名、端口，服务名spring.application.name保证一样不变。
+
+启动2个provider,
+
+访问http://127.0.0.1:8089/web/hello，接口会轮询（默认策略）访问服务。
+
+修改负载均衡策略：
+
+添加依赖
+
+```xml
+<!-- https://mvnrepository.com/artifact/com.netflix.ribbon/ribbon -->
+<dependency>
+    <groupId>com.netflix.ribbon</groupId>
+    <artifactId>ribbon</artifactId>
+    <version>2.7.18</version>
+    <scope>runtime</scope>
+</dependency>
+<!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-netflix-ribbon -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+    <version>2.2.8.RELEASE</version>
+</dependency>
+```
+
+BeanConfig添加：
+
+```java
+@Bean
+public IRule iRule() {
+    return new RandomRule();
+}
+```
+
+#### 2.3、升级
+
+升级问题，新版本Spring Cloud的ribbon推荐用 `spring-cloud-loadbalancer`替代
+
+关闭ribbon：
+
+```properties
+spring.cloud.loadbalancer.ribbon.enabled=false
+```
+
+因为新版本Spring Cloud的ribbon用 `spring-cloud-loadbalancer`替代了
+
+#### 2.4、restTemplate
+
+GET:
+
+getForEntity
+
+getForObject直接拿body
+
+POST:
+
+postForObject
+
+postForLocation
+
+postForEntity
+
+PUT:
+
+restTemplate.put
+
+DELETE:
+
+restTemplate.delete
 
 
 
-47.tomcat部署多个spring boot项目
+### 3、Hystrix
+
+**一个服务失败，导致整条链路的服务都失败的情形，我们称之为服务雪崩**。
+
+解决方案
+1） 应用扩容（扩大服务器承受力）
+
+加机器
+升级硬件
+2）流量控制（超出限定流量，返回类似重试页面让用户稍后再试）
+
+限流
+关闭重试
+3） 缓存
+
+将用户可能访问的数据大量的放入缓存中，减少访问数据库的请求。
+
+4）服务降级
+
+服务接口拒绝服务
+页面拒绝服务
+延迟持久化
+随机拒绝服务
+5） 服务熔断
+
+#### 3.1 使用hystrix
+
+在server-consumer添加依赖：
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+</dependency>
+```
+
+在启动类添加，@EnableHystrix
+
+controller添加：
+
+```java
+@GetMapping("/web/hystrix")
+@HystrixCommand(fallbackMethod = "error")
+public String hystrix () {
+    System.out.println("consumer hystrix hello");
+    return restTemplate.getForEntity("http://server-provider/hello", String.class).getBody() + "  consumer hystrix";
+}
+
+public String error() {
+    return "error";
+}
+```
+
+3.2、设置超时熔断时间
+
+默认1s，超过1s就熔断，需要调长些。
+
+```java
+@HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "1500")
+```
+
+#### 3.3、服务降级
+
+当服务器压力剧增的情况下，根据实际业务情况及流量，对一些服务和页面有策略的不处理或换种简单的方式处理，从而释放服务器资源以保证核心交易正常运作或高效运作。
+
+#### 3.4、异常
+
+```java
+public String error(Throwable throwable) {
+    System.out.println( "异常：" + throwable.getMessage());
+    return "error";
+}
+```
+
+忽略异常：
+
+```java
+@HystrixCommand(fallbackMethod = "error", ignoreExceptions = Exception.class)
+```
+
+自定义hystrix：
+
+创建MyHystrixCommand类:
+
+```java
+public class MyHystrixCommand extends HystrixCommand<String > {
+    private RestTemplate restTemplate;
+
+    public MyHystrixCommand(Setter setter, RestTemplate restTemplate) {
+        super(setter);
+        this.restTemplate = restTemplate;
+    }
+
+    @Override
+    protected String run() throws Exception {
+        return null;
+    }
+
+    @Override
+    protected String getFallback() {
+        Throwable throwable = super.getExecutionException();
+        return super.getFallback();
+    }
+}
+```
+
+```java
+@GetMapping("/web/my_hystrix")
+public String myHystrix() {
+    MyHystrixCommand myHystrixCommand = new MyHystrixCommand(com.netflix.hystrix.HystrixCommand.Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("")), restTemplate);
+    String str = myHystrixCommand.execute();
+    
+    Future<String> future =  myHystrixCommand.queue(); // 异步执行
+    String str = future.get();
+    
+    return "hello";
+}
+```
+
+3.5、仪表盘 dashboard
+
+新建springboot工程, server-hystrix-dashboard，添加依赖：
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
+</dependency>
+```
+
+修改配置文件端口为3721
+
+http://127.0.0.1:3721/hystrix
+
+在server-consumer项目，添加依赖：
+
+```xml
+<!--  spring boot 提供健康检查      -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+```
+
+配置文件添加：
+
+```properties
+management.endpoints.web.exposure.include=*
+```
+
+访问：http://127.0.0.1:8089/actuator/hystrix.stream（要先访问server-consumer的其它接口）
+
+server-hystrix-dashboard配置文件：
+
+```properties
+hystrix.dashboard.proxy-stream-allow-list=*
+```
+
+在http://127.0.0.1:3721/hystrix添加监控连接，取个名字。
+
+3.5、升级
+
+推荐Resilience4j代替hystrix
+
+### 4、feign
+
+Spring Cloud Feign是基于Netflix feign实现，整合了Spring Cloud Ribbon和Spring Cloud Hystrix
+
+OpenFeign是Spring Cloud 在Feign的基础上支持了Spring MVC的注解，如`@RequesMapping`。
+
+在主工程添加module,创建springboot,添加依赖：
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+```
+
+启动类添加：@EnableFeignClients
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 47.tomcat部署多个spring boot项目
+
 spring.jmx.default-domain=proj01
 spring.jmx.default-domain=proj02
 
 server.xml
+
+```
 <Context path="/ehome" docBase="/usr/local/tomcat/webapps/ehome" reloadable="true" />
 <Context path="/ehomewx" docBase="/usr/local/tomcat/webapps/ehomewx" reloadable="true" />
+```
 
 
 
-48.Nexus搭建maven私服
+## 48.Nexus搭建maven私服
+
 下载：
 https://www.sonatype.com/download-oss-sonatype
 nexus仓库管理器，分为两个版本，Nexus Repository Manager OSS 和 Nexus Repository Manager Pro。前者可以免费使用，相比后者，功能缺少一些，但是不影响我们搭建maven私服。
@@ -852,12 +1411,16 @@ export PATH=$PATH:$NEXUS_HOME/bin
 cp /usr/local/nexus/bin/nexus /etc/init.d/nexus
 cd /etc/init.d
 chkconfig --add nexus
-## 设置在3、4、5这3个系统运行级别的时候自动开启nexus服务
+
+设置在3、4、5这3个系统运行级别的时候自动开启nexus服务
+
 sudo chkconfig --levels 345 nexus on
 
 方法2：
 使用systemd(CentOS-7推荐使用)
 vim /etc/systemd/system/nexus.service
+
+```shell
 [Unit]
 Description=nexus service
 After=network.target
@@ -870,8 +1433,10 @@ User=root
 Restart=on-abort
 [Install]
 WantedBy=multi-user.target
+```
 
 systemctl daemon-reload
+
 #设置开机启动
 systemctl enable nexus.service 
 systemctl start nexus.service
@@ -886,12 +1451,12 @@ http://192.168.11.206:10000/
 
 
 
+## 49.异步service
 
-
-49.异步service
 @Service
 public class AsynSerivce {
     
+
     @Async
     public void hello() {
         try {
@@ -908,7 +1473,7 @@ public class AsynController {
 
     @Autowired
     AsynSerivce asynSerivce;
-
+    
     @GetMapping("/hello")
     public String hello() {
         asynSerivce.hello();
@@ -919,10 +1484,8 @@ public class AsynController {
 
 
 
+## 50.@Component, @Repository, @Service的区别
 
-
-
-50.@Component, @Repository, @Service的区别
 在Spring2.0之前的版本中，@Repository注解可以标记在任何的类上，用来表明该类是用来执行与数据库相关的操作（即dao对象），并支持自动处理数据库操作产生的异常
 在Spring2.5版本中，引入了更多的Spring类注解：@Component,@Service,@Controller。@Component是一个通用的Spring容器管理的单例bean组件。
 而@Repository, @Service, @Controller就是针对不同的使用场景所采取的特定功能化的注解组件。
@@ -931,10 +1494,8 @@ public class AsynController {
 
 
 
+## 51.@Configuration
 
-
-
-51.@Configuration
 @Configuration用于定义配置类，可替换xml配置文件，被注解的类内部包含有一个或多个被@Bean注解的方法，这些方法将会被AnnotationConfigApplicationContext或AnnotationConfigWebApplicationContext类进行扫描，并用于构建bean定义，初始化Spring容器。
 注意：
 @Configuration注解的配置类有如下要求：
@@ -944,8 +1505,8 @@ public class AsynController {
 
 
 
+## 52.HandlerMethod
 
-52.HandlerMethod
 HandlerMethod是springMVC中用@Controller声明的一个bean及对应的处理方法.
 if(!(object instanceof HandlerMethod)){// 如果不是是SpringMVC Controller请求，直接通过
             return true;
@@ -953,7 +1514,8 @@ if(!(object instanceof HandlerMethod)){// 如果不是是SpringMVC Controller请
 
 
 
-53.isAnnotationPresent, getAnnotation方法, 
+## 53.isAnnotationPresent, getAnnotation方法
+
 指定类型的注释存在于此元素上
 A.isAnnotationPresent(B.class)；意思就是：注释B是否在此A上。如果在则返回true；不在则返回false。
 getAnnotation 如果存在于此元素，则返回该元素注释指定的注释类型，否则返回为null。
@@ -961,9 +1523,8 @@ java.lang.reflect.Method.getAnnotation(Class <T> annotationClass)方法如果存
 
 
 
+## 54.自定义注解
 
-
-54.自定义注解
 import java.lang.annotation.*;
 
 @Target({ElementType.METHOD, ElementType.TYPE})
@@ -1007,8 +1568,8 @@ PACKAGE:包
 
 
 
+## 55.获取application配置文件参数的两种方式
 
-55.获取application配置文件参数的两种方式
 application.properties：
 zwj.name = zwj
 使用@Value方式（常用）
@@ -1018,15 +1579,16 @@ zwj.name = zwj
 使用ConfigurationProperties
 @Component
 @ConfigurationProperties(prefix = "person")
- 
+
  @Value不支持复杂类型
  配置文件的占位符：
  application.properties：
  zwj.age = ${random.int}
+
  
- 
- 
-56.多项目（如：金证的）
+
+## 56.多项目（如：金证的）
+
 新建个目录把它们都放里面
 idea open这个目录；
 然后：file->project structure->Modules-> + ->import module->(选中放到这个目录的项目，每个项目都要这么操作一遍)
@@ -1042,7 +1604,8 @@ idea open这个目录；
 
 
 
-57.DO:对应数据库表结构
+## 57.DO:对应数据库表结构
+
 VO：一般用于前端展示使用
 DTO：用于数据传递。（接口入参和接口返回值都可以）
 以ssm框架为例：
@@ -1052,11 +1615,11 @@ Service层：
 List<UserDTO> getUsers(UserDTO userDto);
 DAO层：
 List<UserDTO> getUsers(UserDO userDo);
- 
- 
+
  
 
-58.外部jar包集成
+## 58.外部jar包集成
+
  <dependency>
             <groupId>com.jnrsmcu.sdk.netdevice</groupId>
             <artifactId>netdevice</artifactId>
@@ -1080,20 +1643,20 @@ List<UserDTO> getUsers(UserDO userDo);
                     </webResources>
                 </configuration>
             </plugin>
+
   
+
   
-  
-  
-  
-  
- 59.@autowired注解原理
+
+##  59.@autowired注解原理
+
  getFields(),获取当前Class所表示类中所有的public的字段
  public Field[] getDeclaredFields():获取当前Class所表示类中所有的字段,不包括继承的字段.
  Method getMethod(String name, Class<?>... parameterTypes)  
 返回一个 Method 对象，它反映此 Class 对象所表示的类或接口的指定公共成员方法
 class.getMethods()
 该方法是获取本类以及父类或者父接口中所有的公共方法
- 
+
 自动装配过程：
 1、根据Class对象，通过反射获取所有的Field和```Method````对象
 2、通过反射获取Field和Method上的注解，并判断是否有@Autowired和@Value注解（使用到了spring的ReflectionUtils，）
@@ -1106,13 +1669,8 @@ class.getMethods()
 
 
 
+## 60.redis集成
 
- 
- 
- 
- 
- 
-60.redis集成
 <!--redis-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -1126,9 +1684,13 @@ class.getMethods()
 SpringBoot2.0默认采用Lettuce客户端来连接Redis服务端的
 默认是不使用连接池的，只有配置 redis.lettuce.pool下的属性的时候才可以使用到redis连接池
 #redis
-# Redis数据库索引（默认为0）
+
+Redis数据库索引（默认为0）
+
 spring.redis.database=0
-# Redis服务器地址
+
+Redis服务器地址
+
 spring.redis.host=192.168.11.206
 #Redis服务器连接端口
 spring.redis.port=6379
@@ -1151,20 +1713,20 @@ public class RedisUtil {
 
     @Autowired
     private RedisTemplate redisTemplate;
-
+    
     public String get(String key) {
         String value = (String) stringRedisTemplate.opsForValue().get(key);
         return value;
     }
-
+    
     public void add(String key, String value) {
         stringRedisTemplate.opsForValue().set(key, value);
     }
-
+    
     public Object getObj(String key) {
         return key == null ? null : redisTemplate.opsForValue().get(key);
     }
-
+    
     public boolean addObj(String key, Object value) {
         try {
             redisTemplate.opsForValue().set(key, value);
@@ -1199,7 +1761,7 @@ public class RedisConfig {
         // hash的value序列化方式采用jackson
         template.setHashValueSerializer(jackson2JsonRedisSerializer);
         template.afterPropertiesSet();
-
+    
         return template;
     }
 }
@@ -1217,11 +1779,11 @@ public class RedisBean  {
 方法中存在有参的构造函数,默认存在的无参构造函数是不存在的(继承自object),必须显示的去重写.
 
   
+
   
-  
- 
- 
-61.MongoDB集成
+
+## 61.MongoDB集成
+
 <!--mongodb-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -1248,12 +1810,12 @@ public class MongoUtil {
             return false;
         }
     }
-
+    
     public Object getObjById (String id) {
         Query query = new Query(Criteria.where("_id").is(id));
         return mongoTemplate.findOne(query, MongoBean.class);
     }
-
+    
     public List<MongoBean> findAll () {
         List<MongoBean> list = null;
         try {
@@ -1279,7 +1841,7 @@ public class MongoBean {
         this.info = info;
         this.createTime = createTime;
     }
-
+    
     @Override
     public String toString() {
         return "id=" + id + ",name=" + name + ",info=" + info + ",createTime" + createTime;
@@ -1289,13 +1851,13 @@ public class MongoBean {
 
 
 
-  
-62.es集成
-ES支持两种协议  
-       HTTP协议，支持的客户端有Jest client和Rest client
-       Native Elasticsearch binary协议，也就是Transport client和Node client
+## 62.es集成
+
+ES支持两种协议  
+       HTTP协议，支持的客户端有Jest client和Rest client
+       Native Elasticsearch binary协议，也就是Transport client和Node client
 Jest client和Rest client区别
-      Jest client非官方支持，在ES5.0之前官方提供的客户端只有Transport client、Node client。在5.0之后官方发布Rest client，并大力推荐.
+      Jest client非官方支持，在ES5.0之前官方提供的客户端只有Transport client、Node client。在5.0之后官方发布Rest client，并大力推荐.
 REST Client
 官方推荐使用，所以我们采用这个方式，这个分为两个Low Level REST Client和High Level REST Client，Low Level REST Client是早期出的API比较简陋了，
 还需要自己去拼写Query DSL，High Level REST Client使用起来更好用，更符合面向对象的感觉.
@@ -1344,8 +1906,8 @@ https://www.elastic.co/guide/en/elasticsearch/client/java-rest/current/java-rest
 
 
 
+## 63.单元测试无法使用Autowired的解决办法
 
-63.单元测试无法使用Autowired的解决办法
 1）单元测试使用junit4
 <dependency>
     <groupId>junit</groupId>
@@ -1357,11 +1919,11 @@ https://www.elastic.co/guide/en/elasticsearch/client/java-rest/current/java-rest
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @Test为import org.junit.Test;
-  
 
-  
-  
-64.socketIO集成：
+
+
+## 64.socketIO集成：
+
 SocketIOConfig：
 @org.springframework.context.annotation.Configuration
 public class SocketIOConfig {
@@ -1370,13 +1932,13 @@ public class SocketIOConfig {
 
     @Value("${socketIo.port}")
     private Integer port;
-
+    
     @Value("${socketIo.context}")
     private String context;
-
+    
     @Value("${socketIo.pingTimeout}")
     private int pingTimeout;
-
+    
     @Bean
     public SocketIOServer socketIOServer() {
         Configuration configuration = new Configuration();
@@ -1384,7 +1946,7 @@ public class SocketIOConfig {
         configuration.setPort(port);
         configuration.setContext(context);
         configuration.setPingTimeout(pingTimeout);
-
+    
         return new SocketIOServer(configuration);
     }
 }
@@ -1412,14 +1974,14 @@ public class SocketIOServiceImpl implements SocketIOService {
      * 自定义事件`push_data_event`,用于服务端与客户端通信
      */
     private static final String PUSH_DATA_EVENT = "push_data_event";
-	// client.sendEvent(PUSH_DATA_EVENT, msgContent); (发送事件)
-	
-	@Autowired
+    // client.sendEvent(PUSH_DATA_EVENT, msgContent); (发送事件)
+    
+    @Autowired
     private SocketIOServer socketIOServer;
-
+    
     @Resource
     private ConnectEventListenner connectEventListenner;
-
+    
     @Override
     public void start() {
         // 监听客户端连接
@@ -1448,7 +2010,7 @@ public class SocketIOServiceImpl implements SocketIOService {
         // 启动服务
         socketIOServer.start();
     }
-
+    
     @Override
     public void stop() {
         if (socketIOServer != null) {
@@ -1456,7 +2018,7 @@ public class SocketIOServiceImpl implements SocketIOService {
             socketIOServer = null;
         }
     }
-
+    
     /**
      * 获取客户端url中的userId参数（这里根据个人需求和客户端对应修改即可）
      *
@@ -1471,7 +2033,7 @@ public class SocketIOServiceImpl implements SocketIOService {
         }
         return null;
     }
-
+    
     /**
      * 获取连接的客户端ip地址
      *
@@ -1484,7 +2046,7 @@ public class SocketIOServiceImpl implements SocketIOService {
         return clientIp;
     }
 }  
-  
+
 使用CommandLineRunner让socket随springboot启动：
 @Component
 @Slf4j
@@ -1513,8 +2075,8 @@ public class socketCommandLineRunner implements CommandLineRunner {
 
 
 
+## 65.添加阿里maven仓库
 
-65.添加阿里maven仓库
 idea： file->settings->Maven->user settings file(勾选override)
 修改.setting.xml:
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
@@ -1534,7 +2096,8 @@ idea： file->settings->Maven->user settings file(勾选override)
 
 
 
-66.文件服务集成
+## 66.文件服务集成
+
 private String filePath = "G:\\";
 @PostMapping("/upload")
     @ApiOperation(value="单文件上传")
@@ -1609,7 +2172,8 @@ spring.servlet.multipart.max-request-size=5000MB
 
 
 
-67.profiles多环境切换
+## 67.profiles多环境切换
+
 新建文件
 application-206.properties
 在application.properties添加：
@@ -1619,8 +2183,9 @@ server
 	port: 8080
 spring:
 	profiles:
-		active: dev
----
+
+​		active: dev
+
 server
 	port: 8081
 spring
@@ -1677,7 +2242,7 @@ idea多环境切换：
                 <profiles.active>test</profiles.active>
             </properties>
         </profile>
-
+    
         <profile>
             <id>prod</id>
             <properties>
@@ -1685,14 +2250,15 @@ idea多环境切换：
             </properties>
         </profile>
     </profiles>
-	
+
 application.properties添加：	
 spring.profiles.active=@profiles.active@	
 然后你可以在idea右边maven看到的了一列Profiles	
 
 
 
-68.springboot配置文件加载顺序
+## 68.springboot配置文件加载顺序
+
 -file:./config
 -file:./
 -classpath:/config/
@@ -1710,7 +2276,8 @@ https://docs.spring.io/spring-boot/docs/2.3.0.RELEASE/reference/html/appendix-ap
 
 
 
-69.Autowired与Resource
+## 69.Autowired与Resource
+
 @Resource的作用相当于@Autowired，只不过@Autowired按byType自动注入，而@Resource默认按 byName自动注入罢了。
 @Resource有两个属性是比较重要的，分是name和type，Spring将@Resource注解的name属性解析为bean的名字，而type属性则解析为bean的类型。
 所以如果使用name属性，则使用byName的自动注入策略，而使用type属性时则使用byType自动注入策略。如果既不指定name也不指定type属性，这时将通过反射机制使用byName自动注入策略。
@@ -1724,8 +2291,8 @@ https://docs.spring.io/spring-boot/docs/2.3.0.RELEASE/reference/html/appendix-ap
 
 
 
+## 70.myBatis集成
 
-70.myBatis集成
 创建mapper
 1）使用注解
 @SpringBootApplication上添加@MapperScan("com.sccddw.iot.mapper")指定mapper包批量扫描，就不用每个类加@Mapper
@@ -1754,11 +2321,15 @@ public class xxxServiceImpl implements IxxxService {
 }
 
 2）使用新xml
-# mybatis-plus
+
+mybatis-plus
+
 #全局配置文件
 mybatis-plus.config-locations=classpath:mybatis/mybatis-config.xml
 #mybatis-plus.type-aliases-package=com.sccddw.test.entity.vo,com.sccddw.test.entity.db,com.sccddw.test.entity.bean
-# 指定sql映射文件的位置
+
+指定sql映射文件的位置
+
 mybatis-plus.mapper-locations=classpath:mybatis/mapper/*.xml
 mybatis-plus.global-config.db-config.id-type=auto
 在resources中创建mybatis目录
@@ -1770,8 +2341,8 @@ ${}将传入的数据直接显示生成在sql中,#{}将数据都当成一个字�
 
 
 
+## 71.shiro集成
 
-71.shiro集成
 <!--shiro-->
         <dependency>
             <groupId>org.apache.shiro</groupId>
@@ -1783,11 +2354,8 @@ shiro功能：
 
 
 
+## 72.oauth2
 
-
-
-
-72.oauth2
 四种模式：
 授权码模式（authorization code）
     网上看到通过微信登录，QQ登录等字眼。通过请求获取授权code，response_type:code（授权码模式下springOAuth2规定为code）;
@@ -1810,11 +2378,14 @@ GET /user?access_token = {令牌} &uid = {用户ID}
 
 
 
+## 73.mybatis-plus
 
-73.mybatis-plus
-73.1 @tableid
+### 73.1 @tableid
+
 mybatis主键注解，指名主键字段，不然默认是id.
-73.2 mybatis分页
+
+### 73.2 mybatis分页
+
 配置文件：
 public class MybatisPlusConfig {
     /**
@@ -1852,7 +2423,8 @@ IPage<Device> pageQueryDeviceByDeviceCodeOrDeviceNameMybatis(Page<?> page, @Para
 使用：
 IPage<Device> iDevicePage = deviceMapper.pageQueryDeviceByDeviceCodeOrDeviceNameMybatis(page, "123");
 
-73.3 多数据源
+### 73.3 多数据源
+
 <!-- mybatisplus集成 -->
         <dependency>
             <groupId>com.baomidou</groupId>
@@ -1865,7 +2437,9 @@ IPage<Device> iDevicePage = deviceMapper.pageQueryDeviceByDeviceCodeOrDeviceName
             <version>2.5.6</version>
         </dependency>
 application.properties添加：
-# mysql
+
+mysql
+
 spring.datasource.dynamic.datasource.master.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.datasource.dynamic.datasource.master.url=jdbc:mysql://192.168.11.206:3306/hndl5000?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&serverTimezone=GMT%2B8
 spring.datasource.dynamic.datasource.master.username=sccddw
@@ -1879,16 +2453,18 @@ spring.datasource.dynamic.datasource.slave.password=sccddw
 
 在service上使用  @DS("slave")使用指定数据源。
 
-73.4 自动填充
+### 73.4 自动填充
+
 // insert时填充
 @TableField(fill = FieldFill.INSERT)
 // update时填充
 @TableField(fill = FieldFill.UPDATE)
 /**
+
  * mybatis-plus自动填充配置
  **/
-@Component
-public class MyMetaObjectHandler implements MetaObjectHandler {
+ @Component
+ public class MyMetaObjectHandler implements MetaObjectHandler {
     @Override
     public void insertFill(MetaObject metaObject) {
         boolean hasSetter = metaObject.hasSetter("createTime");
@@ -1904,9 +2480,10 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
             setUpdateFieldValByName("updateTime", LocalDateTime.now(), metaObject);
         }
     }
-}
+ }
 
-73.5 乐观锁
+### 73.5 乐观锁
+
 乐观锁：总是假设最好的情况，每次去读数据的时候都认为别人不会修改，所以不会上锁。
 操作逻辑：
 每次查询时，查出带有version的数据记录，更新数据时，判断数据库里对应id的记录的version是否和查出的version相同。
@@ -1922,11 +2499,12 @@ MybatisPlusConfig中添加：
         return new OptimisticLockerInterceptor();
     }
 	
+
 	在表里添加version字段。
 	实体类添加：
 	// 版本
-    @Version
-    private Integer version;
+	@Version
+	private Integer version;
 使用：
 int id = 100;
 int version = 2;
@@ -1935,7 +2513,9 @@ u.setId(id);
 u.setVersion(version);
 userService.updateById(u);
 	
-73.6 性能分析插件
+
+### 73.6 性能分析插件
+
 MybatisPlusConfig中添加：
 /**
      * 打印 sql, 和运行时间
@@ -1952,7 +2532,8 @@ MybatisPlusConfig中添加：
         return performanceInterceptor;
     }
 
-73.7 动态表
+### 73.7 动态表
+
 MybatisPlusConfig中添加：
 	/**
      * 分页插件
@@ -1963,7 +2544,7 @@ MybatisPlusConfig中添加：
         paginationInterceptor.setDialectType("mysql");
 
         List<ISqlParser> sqlParsers = new ArrayList<>();
-
+    
         DynamicTableNameParser dynamicTableNameParser = new DynamicTableNameParser();
         Map<String, ITableNameHandler> tableNameHandlerMap = new HashMap<>();
         tableNameHandlerMap.put("sensor_data", new ITableNameHandler() {
@@ -1975,14 +2556,15 @@ MybatisPlusConfig中添加：
         dynamicTableNameParser.setTableNameHandlerMap(tableNameHandlerMap);
         sqlParsers.add(dynamicTableNameParser);
         paginationInterceptor.setSqlParserList(sqlParsers);
-
+    
         return paginationInterceptor;
     }
 使用：
 MybatisPlusConfig.myTableName.set("sensor_e_20201014"); //这里会把sensor_data表替换成sensor_e_20201014表达到动态表名的目的
 sensorDataMapper.selectById(1);
 
-73.8 自定义方法
+### 73.8 自定义方法
+
 创建DeleteAllMethod.class
 public class DeleteAllMethod extends AbstractMethod {
     @Override
@@ -2021,7 +2603,7 @@ public class MySqlInjector extends DefaultSqlInjector {
         methodList.add(new InsertBatchSomeColumn(t -> !t.isLogicDelete() && !t.getColumn().equals("age"))); // 把逻辑删除的字段和age字段都排除在数据里
         methodList.add(new LogicDeleteByIdWithFill()); // 在逻辑删除时修改些数据
         methodList.add(new AlwaysUpdateSomeColumnById(t -> !t.getColumn().equals("name"))); // name不进行更新
-
+    
         return methodList;
     }
 }
@@ -2037,7 +2619,8 @@ public interface MyMapper<T> extends BaseMapper<T> {   // 自定义mapper，在�
 	private String deviceCode = null;
 ）
 
-73.9 逻辑删除
+### 73.9 逻辑删除
+
 在表添加字段deleted用于标明逻辑删除，默认0-逻辑未删除值，1-逻辑已删除值，也可修改配置文件添加
 #mybatis-plus
 mybatis-plus.global-config.db-config.logic-not-delete-value=0
@@ -2057,7 +2640,8 @@ mybatis-plus.global-config.db-config.logic-delete-value=1
 sensorDataMapper.deleteById(1); // 他就会将这行deleted置为1，但不会在数据库真的删除，对查询数据是一样的。
 （注意：自定义语句要自己添加deleted筛选条件）
 
-73.10 AR模式
+### 73.10 AR模式
+
 使在对象上可以直接使用数据库增、删、改、查方法
 实体类继承Model：
 public class SensorData extends Model<SensorData>
@@ -2068,8 +2652,8 @@ sensorData.insertOrUpdate(); // 插入数据有就更新
 
 
 
+## 74.@Transactional
 
-74.@Transactional
 74.1 @Transactional 是声明式事务管理 编程中使用的注解
 74.2 @Transactional 注解的属性信息
 属性名	说明
@@ -2108,7 +2692,7 @@ propagation
    [不使用该 connection 连接数据库执行的数据库命令，在本事务回滚的时候得不到回滚]
   （物理连接 connection 逻辑上新建一个会话session；
    DataSource 与 TransactionManager 配置相同的数据源）
- 
+
 2) 事务结束时，回滚在第1步骤中得到的代理 connection 对象上执行的数据库命令，
    然后关闭该代理 connection 对象。
   （事务结束后，回滚操作不会对已执行完毕的SQL操作命令起作用）
@@ -2148,16 +2732,13 @@ Spring中事务信息存储在ThreadLocal变量中，变量是某个线程上进
 
 
 
+## 75.AOP编程
 
-
-
-
-75.AOP编程
-		<!--// aop-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
-        </dependency>
+​		<!--// aop-->
+​        <dependency>
+​            <groupId>org.springframework.boot</groupId>
+​            <artifactId>spring-boot-starter-aop</artifactId>
+​        </dependency>
 
 @Aspect 表明是一个切面类
 @Component 将当前类注入到Spring容器内
@@ -2249,10 +2830,10 @@ CGLIB动态代理类
 
 
 
+## 76、pom optional true
 
+pom <optional>true</optional> 防止将依赖传递到其他模块中造成冲突
 
-
-76  pom <optional>true</optional> 防止将依赖传递到其他模块中造成冲突
 <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -2264,75 +2845,16 @@ CGLIB动态代理类
 
 
 
-77. springboot idea热部署
+## 77、springboot idea热部署
+
 1)添加环境变量：
 <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <optional>true</optional> <!-- 防止将devtools依赖传递到其他模块中 -->
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-devtools</artifactId>
+        <optional>true</optional> <!-- 防止将devtools依赖传递到其他模块中 -->
 </dependency>
 2)settings->compiler勾选build project automatically
 3)alt + shift + ctrl + / 选择registry... 勾选：compiler.automake.allow.when.app.running
 4)修改代码，切换到其它应用idea就会重新编译
 
 spring.devtools.restart.exlude=config/** #排除某些内容
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
