@@ -1198,7 +1198,7 @@ restTemplate.delete
 随机拒绝服务
 5） 服务熔断
 
-#### 3.1 使用hystrix
+#### 3.1| 使用hystrix
 
 在server-consumer添加依赖：
 
@@ -1210,6 +1210,12 @@ restTemplate.delete
 ```
 
 在启动类添加，@EnableHystrix
+
+@SpringCloudApplication可以替换以下3个注解
+
+@SpringBootApplication
+@EnableEurekaClient
+@EnableHystrix
 
 controller添加：
 
@@ -1343,7 +1349,7 @@ Spring Cloud Feign是基于Netflix feign实现，整合了Spring Cloud Ribbon和
 
 OpenFeign是Spring Cloud 在Feign的基础上支持了Spring MVC的注解，如`@RequesMapping`。
 
-在主工程添加module,创建springboot,添加依赖：
+在主工程添加module,创建springboot工程, server-feign,添加依赖：
 
 ```xml
 <dependency>
@@ -1358,15 +1364,466 @@ OpenFeign是Spring Cloud 在Feign的基础上支持了Spring MVC的注解，如`
 
 启动类添加：@EnableFeignClients
 
+#### 4.1、声明服务：
+
+创建service目录，添加接口：
+
+```java
+/**
+ * 绑定服务名，大小写都可以
+ **/
+@FeignClient("server-provider")
+public interface HelloService {
+    @RequestMapping("/hello")
+    public String hello();
+}
+```
+
+创建controller：
+
+```java
+@RestController
+public class Hello {
+    @Autowired
+    HelloService helloService;
+
+    @RequestMapping("/web/feign/hello")
+    public String hello() {
+        return helloService.hello();
+    }
+}
+```
+
+配置文件添加：
+
+```properties
+server.port=9000
+
+# 服务名
+spring.application.name=server-feign
+# eureka注册证中心
+eureka.client.service-url.defaultZone=http://localhost8761:8761/eureka,http://localhost8762:8762/eureka
+```
+
+#### 4.2、负载均衡
+
+使用在接口使用RequestMapping，默认是负载均衡的。
+
+#### 4.3、熔断
+
+配置文件
+
+```properties
+feign.hystrix.enabled=true
+hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds=2000
+```
+
+创建MyFallBack.class
+
+```java
+@Component
+public class MyFallBack implements HelloService {
+    @Override
+    public String hello() {
+        return "远程服务不可用";
+    }
+}
+```
+
+```java
+@FeignClient(value = "server-provider", fallback = MyFallBack.class)
+@Component
+public interface HelloService {
+    @RequestMapping("/hello")
+    public String hello();
+}
+```
+
+升级：openfeign不再包含hystrix
 
 
 
+### 5、zuul
+
+　Zuul是spring cloud中的微服务网关。网关： 是一个网络整体系统中的前置门户入口。请求首先通过网关，进行路径的路由，定位到具体的服务节点上。
+
+　　Zuul是一个微服务网关，首先是一个微服务。也是会在Eureka注册中心中进行服务的注册和发现。也是一个网关，请求应该通过Zuul来进行路由。
+
+　　Zuul网关不是必要的。是推荐使用的。
+
+　　使用Zuul，一般在微服务数量较多（多于10个）的时候推荐使用，对服务的管理有严格要求的时候推荐使用，当微服务权限要求严格的时候推荐使用。
+
+#### 5.1、使用
+
+创建module，springboot项目，server-zuul
+
+依赖：
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
+</dependency>
+```
+
+启动类添加：
+
+```java
+@EnableZuulProxy
+```
+
+配置类：
+
+```properties
+server.port=9010
+spring.application.name=server-zuul
+# 匹配符号/api-wkcto/**的请求
+zuul.routes..api-wkcto.path=/api-wkcto/**
+# 路由到feign
+zuul.routes.api-wkcto.service-id=server-feign
+# eureka注册证中心
+eureka.client.service-url.defaultZone=http://localhost8761:8761/eureka,http://localhost8762:8762/eureka
+```
+
+启动项目访问：http://127.0.0.1:9010/api-wkcto/web/feign/hello，就会去访问server-feign的/web/feign/hello接口
+
+#### 5.2、请求过滤
+
+创建AuthFilter.class
+
+```java
+@Component
+public class AuthFilter extends ZuulFilter {
+    @Override
+    public String filterType() {
+        return "pre";
+    }
+
+    @Override
+    public int filterOrder() {
+        // 执行顺序
+        return 0;
+    }
+
+    @Override
+    public boolean shouldFilter() {
+        // 过滤器是否执行
+        return true;
+    }
+
+    @Override
+    public Object run() throws ZuulException {
+        RequestContext ctx = RequestContext.getCurrentContext();
+        HttpServletRequest request = ctx.getRequest();
+        String token = request.getParameter("token");
+        if (token == null) {
+            ctx.setSendZuulResponse(false);
+            ctx.setResponseStatusCode(401);
+            ctx.addZuulResponseHeader("content-type", "text/html;charset=utf-8");
+            ctx.setResponseBody("非法访问");
+        }
+        return null;
+    }
+}
+
+```
+
+#### 5.3、路由规则
+
+```properties
+# 忽略映射规则
+zuul.ignored-services=server-provider,server-consumer
+```
+
+忽略后无法使用http://127.0.0.1:9010/server-provider/server/hello?token=123访问。
+
+```properties
+#忽略接口路径
+zuul.ignored-patterns=/**/hello/**
+```
+
+路由添加前缀：
+
+```properties
+# 路由网格前缀
+zuul.prefix=/myApi
+```
+
+访问需要添加/myApi：http://127.0.0.1:9010/myApi/api-wkcto/web/feign/hello?token=123
+
+*匹配任意字符除了/， **匹配任意字符包括路径/
+
+#### 5.4、业务处理
+
+可以让请求到达网关后，再转发给自己本身，由api网关自己处理。
+
+创建controller：
+
+```java
+@RestController
+public class Hello {
+    @GetMapping("/api/local")
+    public String hello() {
+        System.out.println("zuul 处理页面hello");
+        return "hello zuul";
+    }
+}
+```
+
+配置文件：
+
+```properties
+# 路由规则
+zuul.routes.gateway.path=/gateway/**
+zuul.routes.gateway.url=forward:/api/local
+```
+
+访问http://127.0.0.1:9010/myApi/gateway?token=123
+
+#### 5.5、异常过滤器
+
+统一处理异常：
+
+```properties
+# 禁用默认错误过滤器
+zuul.SendErrorFilter.error.disable=true
+```
+
+创建ErrorFilter.class
+
+```java
+@Component
+public class ErrorFilter extends ZuulFilter {
+    @Override
+    public String filterType() {
+        return "error";
+    }
+
+    @Override
+    public int filterOrder() {
+        return 1;
+    }
+
+    @Override
+    public boolean shouldFilter() {
+        return true;
+    }
+
+    @Override
+    public Object run() throws ZuulException {
+        RequestContext ctx = RequestContext.getCurrentContext();
+        ZuulException exception = (ZuulException) ctx.getThrowable();
+        System.out.println("进入异常");
+        exception.printStackTrace();
+        HttpServletResponse response = ctx.getResponse();
+        ctx.setResponseStatusCode(exception.nStatusCode);
+        PrintWriter writer = null;
+        try {
+            writer = response.getWriter();
+            writer.println("code:" + exception.nStatusCode + ",message:" + exception.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
+
+        return null;
+    }
+}
+```
+
+测试：我们在上面的AuthFilter.class的run里面添加一行int a = 10 / 0;制造错误。
+
+重启访问：http://127.0.0.1:9010/myApi/api-wkcto/web/feign/hello?token=123会看到错误
+
+方法2：
+
+创建ErrorHandlerController.class
+
+```java
+@RestController
+public class ErrorHandlerController implements ErrorController {
+    @Override
+    public String getErrorPath() {
+        return "/error";
+    }
+    @GetMapping("/error")
+    public Object error () {
+        RequestContext ctx = RequestContext.getCurrentContext();
+        ZuulException exception = (ZuulException) ctx.getThrowable();
+        return exception.nStatusCode + "--" + exception.getMessage();
+    }
+}
+```
+
+测试：把之前的ErrorFilter注释掉，重启。
+
+#### 5.6、升级
+
+spring-cloud-gateway取代zuul 
 
 
 
+### 6、spring cloud config
 
+Spring Cloud Config项目是一个解决分布式系统的配置管理方案。它包含了Client和Server两个部分，server提供配置文件的存储、以接口的形式将配置文件的内容提供出去，client通过接口获取数据、并依据此数据初始化自己的应用。
 
+#### 6.1、spring cloud config服务端
 
+创建springboot项目,spring-cloud-config，依赖
+
+```xml
+<properties>
+    <java.version>1.8</java.version>
+    <spring-cloud.version>2020.0.2</spring-cloud.version>
+</properties>
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-config-server</artifactId>
+    </dependency>
+</dependencies>
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-dependencies</artifactId>
+            <version>${spring-cloud.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+启动类添加：@EnableConfigServer
+
+配置文件：
+
+```properties
+server.port=3700
+spring.application.name=spring-cloud-config
+spring.cloud.config.server.git.uri=https://gitee.com/zmrzwj/spring-cloud-config-study.git
+spring.cloud.config.server.git.search-paths=config-center
+spring.cloud.config.server.git.username=1790373371@qq.com
+spring.cloud.config.server.git.password=xxx
+```
+
+本地创建目录wkcto,里面再创建config-center,添加
+
+application.properties
+
+application-dev.properties
+
+application-test.properties
+
+application-online.properties
+
+http://127.0.0.1:3700/application/dev/master
+
+#### 6.2、spring cloud config客户端
+
+创建springboot项目：
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <!--  2020.X.X版本官方重构了bootstrap引导配置的加载方式，需要添加以下依赖：-->
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-bootstrap</artifactId>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-config</artifactId>
+    </dependency>   
+</dependencies>
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-dependencies</artifactId>
+            <version>${spring-cloud.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+创建bootstrap.properties配置文件：
+
+```properties
+server.port=3701
+spring.application.name=application
+spring.cloud.config.profile=dev
+spring.cloud.config.label=master
+spring.cloud.config.uri=http://localhost:3700/
+```
+
+创建controller:
+
+```java
+@RestController
+public class Hello {
+    @Value("${url}")
+    private String url;
+
+    @RequestMapping("/cloud/url")
+    public String url () {
+        return url;
+    }
+
+    @Autowired
+    private Environment env;
+
+    @RequestMapping("/cloud/url2")
+    public String url2 () {
+        return env.getProperty("url");
+    }
+}
+```
+
+启动项目，访问：http://127.0.0.1:3701/cloud/url 或 http://127.0.0.1:3701/cloud/url2
+
+#### 6.3、安全保护
+
+在服务端添加依赖：
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+```
+
+配置文件添加：
+
+```properties
+spring.security.user.name=sccddw
+spring.security.user.password=sccddw123456
+```
+
+客户端bootstrap.properties配置文件添加：
+
+```properties
+spring.cloud.config.username=sccddw
+spring.cloud.config.password=sccddw123456
+```
+
+7、nacos
+
+替换eureka。
 
 
 
@@ -2463,8 +2920,8 @@ spring.datasource.dynamic.datasource.slave.password=sccddw
 
  * mybatis-plus自动填充配置
  **/
- @Component
- public class MyMetaObjectHandler implements MetaObjectHandler {
+  @Component
+  public class MyMetaObjectHandler implements MetaObjectHandler {
     @Override
     public void insertFill(MetaObject metaObject) {
         boolean hasSetter = metaObject.hasSetter("createTime");
@@ -2480,7 +2937,7 @@ spring.datasource.dynamic.datasource.slave.password=sccddw
             setUpdateFieldValByName("updateTime", LocalDateTime.now(), metaObject);
         }
     }
- }
+  }
 
 ### 73.5 乐观锁
 
