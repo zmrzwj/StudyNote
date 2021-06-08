@@ -2269,6 +2269,10 @@ prerender-spa-plugin 利用了 Puppeteer 的爬取页面的功能。 Puppeteer �
 
 
 
+50.虚拟dom
+用javascript对象描述dom层次结构。dom中的一切属性在虚拟dom中有对应的属性。
+选择器相同且key相同，同一个虚拟节点才做精细化比较，否则暴力拆除再建。
+同一层才做精细化比较，不同层不比较。
 
 
 
