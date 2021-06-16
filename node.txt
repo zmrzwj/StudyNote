@@ -267,7 +267,41 @@ npm --registry https://registry.npm.taobao.org install express
 
 
 
+三、package.json 字段说明
+字段定义
+main : 定义了 npm 包的入口文件，browser 环境和 node 环境均可使用
+module : 定义 npm 包的 ESM 规范的入口文件，browser 环境和 node 环境均可使用
+browser : 定义 npm 包在 browser 环境下的入口文件
 
+// 名称
+  "name": "vue",
+  // 版本
+  "version": "2.6.10",
+  // 描述
+  "description": "Reactive, component-oriented view layer for modern web interfaces.",
+  // npm包项目的主要入口文件，必须的
+  "main": "dist/vue.runtime.common.js",
+  // rollup 打包需要的入口文件
+  "module": "dist/vue.runtime.esm.js",
+  // npm 上所有的文件都开启 cdn 服务地址
+  "unpkg": "dist/vue.js",
+  // jsdelivr cdn公共库
+  "jsdelivr": "dist/vue.js",
+  // TypeScript 的入口文件
+  "typings": "types/index.d.ts",
+  // 当你发布package时，具体那些文件会发布上去
+  "files": [
+    "src",
+    "dist/*.js",
+    "types/*.d.ts"
+  ],
+  // 声明该模块是否包含 sideEffects（副作用），从而可以为 tree-shaking 提供更大的优化空间。
+  "sideEffects": false,
+  // 定义一个针对 TypeScript 的入口文件
+  "types": "build/index.d.ts",
+  // type字段的产生用于定义package.json文件和该文件所在目录根目录中.js文件和无拓展名文件的处理方式。值为'moduel'则当作es模块处理；值为'commonjs'则被当作commonJs模块处理。目前node默认的是如果pacakage.json没有定义type字段，则按照commonJs规范处理
+
+  "type": "module"
 
 
 
