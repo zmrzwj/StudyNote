@@ -14,3 +14,29 @@
 
 
 4.新建的账号要在云函数那右键‘同步云函数列表’
+
+5、引入lodash
+npm install lodash
+npm install --save-dev @types/lodash
+import * as _ from 'lodash';
+在小程序开发工具的工具栏：点击‘工具’-》‘构建npm’
+将lodash/lodash.js中
+var root = freeGlobal || freeSelf || Function('return this')();
+替换为
+var root = {
+  Array: Array,
+  Date: Date,
+  Error: Error,
+  Function: Function,
+  Math: Math,
+  Object: Object,
+  RegExp: RegExp,
+  String: String,
+  TypeError: TypeError,
+  setTimeout: setTimeout,
+  clearTimeout: clearTimeout,
+  setInterval: setInterval,
+  clearInterval: clearInterval
+};
+然后重新构建。
+

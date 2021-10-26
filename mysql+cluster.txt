@@ -110,6 +110,9 @@ flush privileges;
 新建用户：
  create user 'cddw'@'%' identified by 'uestc@123' 'uestc@111' 'kdum@123456';
  create user 'sccddw'@'%' identified by 'sccddw';
+修改密码：
+ use mysql;
+ UPDATE user SET password = PASSWORD('sccddw') WHERE user = 'sccddw';
 授权：
 grant select on XS.* to 'cddw'@'%';//对数据库XS只有select权限
 grant select,insert,update,delete on EHome.* to 'cddw'@'%';
