@@ -2279,6 +2279,57 @@ prerender-spa-plugin 利用了 Puppeteer 的爬取页面的功能。 Puppeteer �
 
 
 
+51.chunk-vendors.js太大的优化
+1）使用compression-webpack-plugin压缩
+const CompressionWebpackPlugin = require('compression-webpack-plugin')
+const productionGzipExtensions = ['js', 'css']
+const isProduction = process.env.NODE_ENV === 'production'
+
+configureWebpack: {
+  plugins: [
+    new CompressionWebpackPlugin({
+        filename: '[path].gz[query]',
+        algorithm: 'gzip',
+        test: new RegExp('\\.(' + productionGzipExtensions.join('|') + ')$'), // 匹配文件名
+        threshold: 1024, // 对1K以上的数据进行压缩
+        minRatio: 0.8,
+        deleteOriginalAssets: false // 是否删除源文件
+    })
+  ]
+}
+2)使用configureWebpack.externals
+不把vue、axios等库打包进去
+function getExternals () {
+  return {
+    vue: 'Vue',
+    'vue-router': 'VueRouter',
+    vuex: 'Vuex',
+    moment: 'moment',
+    axios: 'axios'
+  }
+}
+configureWebpack: {
+    externals: isProduction ? getExternals() : {}
+  },
+chainWebpack: config => {
+    if (isProduction) {
+      // 使用配置 html-webpack-plugin 插件 生成发布html入口
+      config.plugin('html').tap(args => {
+        // 添加参数isProd
+        args[0].isProd = true
+        return args
+      })
+    }
+}
+Index.html:
+<% if(htmlWebpackPlugin.options.isProd){ %>
+    <script src="./static/vue/vue.min.js"></script>
+    <script src="./static/vue-router/vue-router.min.js"></script>
+    <script src="./static/vuex/vuex.min.js"></script>
+    <script src="./static/moment/moment.min.js"></script>
+    <script src="./static/axios/axios.min.js" defer></script>
+    <% } %>
+
 
 
 

@@ -448,7 +448,7 @@ make && make install
 gzip on;
 # gizp压缩起点，文件大于1k才进行压缩
 gzip_min_length 1k;
-# 设置压缩所需要的缓冲区大小，以4k为单位，如果文件为7k则申请2*4k的缓冲区 
+# 设置压缩所需要的缓冲区大小，以4k为单位，如果文件为7k则申请2*4k的缓冲区 ,默认 4 8k
 gzip_buffers 4 16k;
 # 设置gzip压缩针对的HTTP协议版本
 gzip_http_version 1.1;
