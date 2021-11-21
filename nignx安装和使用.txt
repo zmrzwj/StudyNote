@@ -2,7 +2,7 @@
 下载tar.gz
 tar -zxvf nginx....tar.gz
 cd nginx-1.10.3/
-./configure --prefix=/usr/local/nginx --with-http_ssl_module //指定安装路径，不指定安装到/usr/local/nginx. 带上ssl
+./configure --prefix=/usr/local/nginx --with-http_ssl_module --with-http_gzip_static_module //指定安装路径，不指定安装到/usr/local/nginx. 带上ssl
 make
 make install
 (
@@ -328,6 +328,11 @@ server {
 	}
 }
 
+
+
+
+
+
 2.websockect nginx配置：
 其实同http：
 websockect的核心：
@@ -360,6 +365,11 @@ Wss一样在https下配置，因为ws默认端口80，wss默认端口443
 （6）协议标识符是ws（如果加密，则为wss），服务器网址就是 URL。
 
 
+
+
+
+
+
 3.php配置
 	location ~ \.php$ {
 		include snippets/fastcgi-php.conf;
@@ -371,6 +381,11 @@ Wss一样在https下配置，因为ws默认端口80，wss默认端口443
 	}
 
 
+
+
+
+
+
 4.autoindex
 autoindex on;
 autoindex_exact_size off;
@@ -378,10 +393,21 @@ autoindex_localtime on;
 charset utf-8;
 允许以列表的形式访问目录
 
+
+
+
+
+
+
 5、让图片以下载的形式出现，而不是在新页面打开
 if ($request_filename ~* ^.*?.(txt|jpg|png)$){
     add_header Content-Disposition 'attachment';
 }
+
+
+
+
+
 
 
 6、图片防盗链
@@ -397,6 +423,62 @@ nginx会通过查看referer字段和valid_referers后面的referer列表进行�
 valid_referers后面的none或者是blocked 所以invalid_referer值为0 所以不进行跳转.
 当我是从这个网站里面的链接跳到该网站首页的时候 因为referer的值是肯定包含srever_names 所以匹配了server_names所以不进行跳转.
 2.当我从搜素引擎进去的时候因为referer字段类似于www.google.com.hk/search
+
+
+
+
+
+
+
+7、nginx开启gzip
+Gzip相关的指令可以在配置文件的http块、server块或者location块中。
+gzip:
+    gzip属于在线压缩，在资源通过http发送报文给客户端的过程中，进行压缩，可以减少客户端带宽占用，减少文件传输大小。一般写在server或者location均可；
+gzip_static: 
+    在前端代码打包构建bundle的时候，一般都有根据一定的算法自动压缩代码成gz文件的webpack插件;
+当我们不在 nginx 开启 gzip_static的时候，发现生产的gz文件并没有被运行；
+gzip_static是会自动执行gz文件的，这样的就避免了通过gzip自动压缩；
+gzip_static在安装ngonx需要添加--with-http_gzip_static_module;
+如果忘了安装：
+在源代码./configure --prefix=/usr/local/nginx --with-http_gzip_static_module
+make && make install
+不会覆盖之前的配置。
+
+# 开启和关闭gzip模式
+gzip on;
+# gizp压缩起点，文件大于1k才进行压缩
+gzip_min_length 1k;
+# 设置压缩所需要的缓冲区大小，以4k为单位，如果文件为7k则申请2*4k的缓冲区 
+gzip_buffers 4 16k;
+# 设置gzip压缩针对的HTTP协议版本
+gzip_http_version 1.1;
+# gzip 压缩级别，1-9，数字越大压缩的越好，也越占用CPU时间
+gzip_comp_level 2;
+# 需要压缩的文件mime类型
+gzip_types text/plain application/javascript application/x-javascript text/javascript text/css application/xml;
+# 是否在http header中添加Vary: Accept-Encoding，建议开启
+gzip_vary on;
+# nginx做前端代理时启用该选项，表示无论后端服务器的headers头返回什么信息，都无条件启用压缩
+gzip_proxied expired no-cache no-store private auth;
+# 不启用压缩的条件，IE6对Gzip不友好，所以不压缩
+gzip_disable "MSIE [1-6]\.";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
