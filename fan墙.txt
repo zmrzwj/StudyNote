@@ -1,0 +1,36 @@
+1、安装Ssr服务端
+#wget --no-check-certificate https://raw.githubusercontent.com/teddysun/shadowsocks_install/master/shadowsocksR.sh
+修改其权限：
+chmod +x shadowsocksR.sh
+安装并记录日志：
+./shadowsocksR.sh 2>&1 | tee shadowsocksR.log
+下载安装过程中要求设置密码和端口及协议模式，安装完成后显示如下：
+Congratulations, ShadowsocksR server install completed!
+Your Server IP : IP
+Your Server Port : 端口（刚才设置的端口）
+Your Password : 密码
+Your Protocol : origin
+Your obfs : plain
+Your Encryption Method: aes-256-cfb（加密协议）
+删除：
+./shadowsocks.sh uninstall删除这个shadowsocks
+查看运行状态：
+/etc/init.d/shadowsocks status
+使用命令：
+启动：/etc/init.d/shadowsocks start
+停止：/etc/init.d/shadowsocks stop
+重启：/etc/init.d/shadowsocks restart
+状态：/etc/init.d/shadowsocks status
+配置文件路径：/etc/shadowsocks.json
+日志文件路径：/var/log/shadowsocks.log
+代码安装目录：/usr/local/shadowsocks
+如果要配置多用户需要可以修改配置文件/etc/shadowsocks.json
+
+
+
+
+
+
+
+
+
