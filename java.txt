@@ -17,8 +17,12 @@ export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
 export PATH=$JAVA_HOME/bin:$PATH
 等号与变量和路径之间不要加空格
 
+
+
 2.Java数组字符串输出
 System.out.println(Arrays.toString(array));
+
+
 
 
 3.字符流与字节流
@@ -30,7 +34,11 @@ System.out.println(Arrays.toString(array));
 字符流到文件流的转换Java提供了两个转换流：InputStreamReader和OutputStreamWriter。
 为了提高数据的传输效率，特意引入缓冲流(Buffered Stream)的概念，为每一个流配置一个缓冲(Buffered)，BufferedReader类 ，BufferedWriter类。
 
+
+
 4.add-ons:译为附加软件，即插件，外挂的意思。
+
+
 
 5.TreeMap
 TreeMap 是一个有序的key-value集合，它是通过红黑树实现的.
@@ -40,6 +48,7 @@ while (iterator.hasNext()) {
     System.out.println(entry.getKey() + "　：" + entry.getValue());
 }
 Map遍历最快。
+
 
 
 6.List遍历
@@ -99,6 +108,7 @@ helper=new Helper
 
 
 
+
 11.@Repository注解的作用及含义
 @Repository注解非常重要，它将类在web应用程序中的位置标识出来了，同时也让spring容器扫描的时候能将这个类找到并归入到可以使用自动注入的类中。
 注解还有@Service和@Controller，本质相同由于功能不同以不同名字区分。
@@ -107,6 +117,7 @@ helper=new Helper
 @Constroller 通常作用在控制层，但是目前该功能与 @Component 相同。
 
 以上注解配合@Autowired实现自动注入实例，就不用自己在写new xxx;
+
 
 
 
@@ -122,6 +133,8 @@ AES	批量加密	256  128
 Diffie-Hellman	重要协议	1024，512
 DSA	认证	1024
 SunJSSE实现使用Java Cryptography Extension（JCE）来实现其所有加密算法
+
+
 
 
 
@@ -170,6 +183,7 @@ org.ietf.jgss	GSSContext	Encapsulates a GSS-API security context and provides th
 
 
 
+
 14.Thread和Runnable的区别
 想实现多线程，有两种手段，一种是继续Thread类，另外一种是实现Runable接口
 class MyThread extends Thread{
@@ -197,6 +211,7 @@ t.start();
 
 
 
+
 15.synchronized关键字
 它包括两种用法：synchronized 方法和 synchronized 块
 声明为 synchronized 的成员函数中至多只有一个处于可执行状态，从而有效避免了类成员变量的访问冲突。
@@ -214,6 +229,7 @@ synchronized块是这样一个代码块，其中的代码必须获得对象 sync
 
 
 
+
 16.final
 它指的是“这是不可变的”.
 1.修饰数据
@@ -227,9 +243,11 @@ synchronized块是这样一个代码块，其中的代码必须获得对象 sync
 
 
 
+
 17.AtomicInteger通过一种线程安全的加减操作接口
 static AtomicInteger ai=new AtomicInteger(0);
 ai.incrementAndGet();//增加
+
 
 
 
@@ -310,7 +328,14 @@ submit()可以进行Exception处理;
 
 
 
-20.jstack
+
+20.java内存优化
+jstat查看 gc实时执行情况
+
+
+
+
+jstack
 jstack -l pid
 jstack是java虚拟机自带的一种堆栈跟踪工具。
 
@@ -326,6 +351,10 @@ jmap -dump:format=b,file=文件名 pid
 jconsole 
 是一个内置 Java 性能分析器
 远程连接
+
+jinfo pid 查看应用的配置
+
+ 
 
 
 
@@ -367,7 +396,9 @@ timer.schedule(new TimerTask() {
 
 
 
+
 24.-ea可打开断言机制
+
 
 
 
@@ -473,6 +504,7 @@ Integer.toHexString把int转二进制打印，对于byte需要&ff.
 Integer.toHexString的参数是int，如果不进行&0xff，那么当一个byte会转换成int时，由于int是32位，而byte只有8位这时会进行补位。
 那要怎样才能保证byte存储的128，转成int,short的值也应该是128, 128&ff
 byte转int都需要&ff
+
 
 
 
